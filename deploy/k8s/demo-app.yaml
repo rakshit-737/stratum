@@ -1,0 +1,38 @@
+# OPTIONAL: mirrors the synthetic scenario for a local kind/minikube cluster only.
+# Not required for tests. Never apply to a shared or production cluster.
+apiVersion: v1
+kind: Namespace
+metadata: {name: shop}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: payments}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: cart-sa, namespace: shop}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: cart, namespace: shop}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: cart}}
+  template:
+    metadata: {labels: {app: cart}}
+    spec:
+      serviceAccountName: cart-sa
+      containers:
+        - name: cart
+          image: nginx:alpine   # placeholder; a shell-bearing image for the R-SHELL demo
+          securityContext: {allowPrivilegeEscalation: false}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny-egress, namespace: payments}
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - ipBlock: {cidr: 10.0.0.0/8}
