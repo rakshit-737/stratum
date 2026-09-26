@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, fields
-from typing import Optional
 
 
 @dataclass
@@ -11,7 +10,7 @@ class Commit:
     repo: str
     author: str
     message: str
-    pr: Optional[int] = None
+    pr: int | None = None
 
 
 @dataclass
@@ -26,8 +25,8 @@ class Build:
 class Image:
     digest: str
     ref: str
-    build_id: Optional[str]      # None => not produced by the trusted pipeline
-    base_image: Optional[str] = None
+    build_id: str | None      # None => not produced by the trusted pipeline
+    base_image: str | None = None
     layers: list[str] = field(default_factory=list)
 
 
@@ -65,7 +64,7 @@ class Workload:
     pods: list[str] = field(default_factory=list)
     # --- populated by the real-manifest collector (stratum.k8s); empty for synthetic data
     images: list[str] = field(default_factory=list)          # every container image ref
-    automount_token: Optional[bool] = None                   # effective automountServiceAccountToken
+    automount_token: bool | None = None                   # effective automountServiceAccountToken
     pss_level: str = ""                                      # restricted | baseline | privileged
     pss_violations: dict = field(default_factory=dict)       # check id -> [violations] (restricted level)
     source: str = ""                                         # e.g. helm chart that rendered it
@@ -139,11 +138,11 @@ class Detection:
 class Incident:
     id: str
     detection: Detection
-    workload: Optional[str]
+    workload: str | None
     chain: list[str]             # pod -> workload -> image -> build -> commit
-    root_commit: Optional[str]
-    author: Optional[str]
-    pr: Optional[int]
+    root_commit: str | None
+    author: str | None
+    pr: int | None
     failed_controls: list[Finding]
     blast_radius: list[str]
     recommendations: list[str]

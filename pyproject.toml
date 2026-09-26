@@ -22,7 +22,7 @@ classifiers = [
 api = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27"]
 bench = ["scikit-learn>=1.4", "matplotlib>=3.8"]
 neo4j = ["neo4j>=5"]
-dev = ["pytest>=7", "ruff>=0.5", "fastapi>=0.110", "httpx>=0.27"]
+dev = ["pytest>=7", "ruff==0.8.4", "fastapi>=0.110", "httpx>=0.27"]
 
 [project.urls]
 Homepage = "https://github.com/rakshit-737/stratum"
@@ -48,4 +48,4 @@ extend-exclude = ["data", "results"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
-ignore = ["E702", "UP007", "B905"]
+ignore = ["E702", "B905"]
