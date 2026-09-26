@@ -11,6 +11,7 @@ No cluster access is needed; a live-cluster variant is simply
 """
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from collections.abc import Iterable
 from pathlib import Path
@@ -35,18 +36,33 @@ WORKLOAD_KINDS = {"Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job",
 _WILD = "*"
 
 
+_USED_KINDS = WORKLOAD_KINDS | {"Namespace", "ServiceAccount", "ClusterRole", "Role", "ClusterRoleBinding",
+                                "RoleBinding", "NetworkPolicy"}
+_DOC_SPLIT = re.compile(r"^---.*$", re.M)
+_TOP_KIND = re.compile(r"^kind:\s*[\"']?([A-Za-z]+)", re.M)
+
+
+def _wanted(chunk: str) -> bool:
+    """Cheap pre-filter: skip documents whose top-level kind we never use (CRDs are ~90% of bytes)."""
+    m = _TOP_KIND.search(chunk)
+    return m is None or m.group(1) in _USED_KINDS or m.group(1).endswith("List")
+
+
 def load_docs(paths: Iterable[str | Path]) -> list[dict]:
-    """Parse every YAML document in the given files (``List`` kinds are flattened)."""
+    """Parse the relevant YAML documents in the given files (``List`` kinds are flattened)."""
     docs: list[dict] = []
     for p in paths:
         text = Path(p).read_text(encoding="utf-8", errors="replace")
-        for d in yaml.load_all(text, Loader=_StratumLoader):  # noqa: S506 - safe loader subclass
-            if not isinstance(d, dict):
+        for chunk in _DOC_SPLIT.split(text):
+            if not chunk.strip() or not _wanted(chunk):
                 continue
-            if d.get("kind") == "List" or (d.get("kind", "").endswith("List") and "items" in d):
-                docs.extend(i for i in d.get("items") or [] if isinstance(i, dict))
-            else:
-                docs.append(d)
+            for d in yaml.load_all(chunk, Loader=_StratumLoader):  # noqa: S506 - safe loader subclass
+                if not isinstance(d, dict):
+                    continue
+                if d.get("kind") == "List" or (str(d.get("kind", "")).endswith("List") and "items" in d):
+                    docs.extend(i for i in d.get("items") or [] if isinstance(i, dict))
+                else:
+                    docs.append(d)
     return docs
 
 
