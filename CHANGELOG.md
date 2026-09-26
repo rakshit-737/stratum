@@ -39,7 +39,7 @@ The project moves from a synthetic MVP to a real-data pipeline.
   - exec from temp dirs
   - network tools
 - `stratum.syscall`: syscall anomaly models (STIDE baseline, n-gram surprisal, Isolation Forest) and an ADFA-LD loader.
-- `policies/stratum.rego`, a Rego v1 mirror of the policy engine. `stratum opa-check` diffs it against the Python engine; both produce 226 identical findings on the real corpus.
+- `policies/stratum.rego`, a Rego v1 mirror of the policy engine. `stratum opa-check` diffs it against the Python engine; both produce 292 identical findings on the real corpus.
 
 **Interfaces**
 - Neo4j Cypher export with control nodes and `VIOLATES` edges; `docker-compose.yml` with Neo4j 5.
