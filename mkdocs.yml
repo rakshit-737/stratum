@@ -1,0 +1,67 @@
+site_name: STRATUM
+site_description: "Open mini-CNAPP: code-to-runtime lifecycle graph, Zero-Trust policy (Python + Rego), trace-to-commit"
+site_url: https://rakshit-737.github.io/stratum/
+repo_url: https://github.com/rakshit-737/stratum
+repo_name: rakshit-737/stratum
+edit_uri: edit/main/docs/
+copyright: MIT licensed. Lab-only, defensive tool.
+
+theme:
+  name: material
+  features: [navigation.sections, navigation.top, content.code.copy, search.highlight]
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle: {icon: material/weather-night, name: Dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle: {icon: material/weather-sunny, name: Light mode}
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc: {permalink: true}
+  - pymdownx.details
+  - pymdownx.snippets: {base_path: ["."], check_paths: true}
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["."]
+          options: {show_source: false, docstring_style: google, show_root_heading: true, heading_level: 3}
+
+not_in_nav: |
+  demo/**
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Architecture: architecture.md
+  - Datasets: datasets.md
+  - Benchmarks: benchmarks.md
+  - Live demo: demo.md
+  - Reference:
+      - CLI: cli.md
+      - Python API: api.md
+      - Gatekeeper export: gatekeeper.md
+  - Threat model: threat-model.md
+  - Security: security.md
+  - ADRs:
+      - adr/0001-in-memory-graph-with-neo4j-export.md
+      - adr/0002-python-policy-engine-with-rego-mirror.md
+      - adr/0003-pss-reimplementation-and-conformance.md
+      - adr/0004-provenance-sources.md
+      - adr/0005-real-data-corpus.md
+      - adr/0006-runtime-rules-plus-novelty.md
+  - Limitations & roadmap: limitations.md
+  - Changelog: changelog.md

@@ -1,0 +1,1 @@
+{"start":"base:ubuntu 24.04","workloads":["workload:online-boutique/cartservice"]}

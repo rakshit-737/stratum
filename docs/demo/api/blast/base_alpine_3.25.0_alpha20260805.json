@@ -1,0 +1,1 @@
+{"start":"base:alpine 3.25.0_alpha20260805","workloads":["workload:kyverno/kyverno-admission-controller","workload:kyverno/kyverno-background-controller","workload:kyverno/kyverno-cleanup-controller","workload:kyverno/kyverno-reports-controller"]}

@@ -1,0 +1,1 @@
+{"start":"base:debian 13.6","workloads":["workload:cert-manager/cert-manager","workload:cert-manager/cert-manager-cainjector","workload:cert-manager/cert-manager-webhook","workload:kube-system/kube-state-metrics","workload:kube-system/sealed-secrets-controller"]}

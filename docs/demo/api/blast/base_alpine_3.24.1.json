@@ -1,0 +1,1 @@
+{"start":"base:alpine 3.24.1","workloads":["workload:jenkins/jenkins-ui-test-rixly","workload:kube-flannel/kube-flannel-ds","workload:online-boutique/currencyservice","workload:online-boutique/emailservice","workload:online-boutique/loadgenerator","workload:online-boutique/paymentservice","workload:online-boutique/recommendationservice","workload:vault/vault-agent-injector"]}

@@ -3,29 +3,30 @@
 ```mermaid
 flowchart LR
   subgraph Inputs
-    MAN[K8s manifests / helm template / kubectl get -o yaml]
-    REG[OCI registries: digest, labels, cosign artefacts]
-    GH[GitHub API: commit, author, PR]
-    TRV[Trivy JSON + CISA KEV]
-    TET[Tetragon JSON events]
+    MAN["K8s manifests / helm template / kubectl get -o yaml"]
+    REG["OCI registries: digest, labels, cosign artefacts"]
+    GH["GitHub API: commit, author, PR"]
+    TRV["Trivy JSON + CISA KEV"]
+    TET["Tetragon JSON events"]
   end
-  MAN --> K8S[k8s.py collector<br/>workloads, RBAC risk, NetworkPolicies, PSS level]
-  REG --> PROV[provenance.py]
+  MAN --> K8S["k8s.py collector<br/>workloads, RBAC risk, NetworkPolicies, PSS level"]
+  REG --> PROV["provenance.py"]
   GH --> PROV
-  TRV --> ING[ingest.py]
+  TRV --> ING["ingest.py"]
   TET --> ING
-  K8S --> DS[(Dataset JSON)]
+  K8S --> DS[("Dataset JSON")]
   PROV --> DS
   ING --> DS
-  DS --> G[graph.py lifecycle graph]
-  G --> POL[policy.py 13 ZT controls]
-  POL -. diffed in CI .-> REGO[policies/stratum.rego via OPA]
-  G --> DET[detect.py 9 rules + novelty]
-  DET --> INC[incident.py trace to commit, failed control, blast radius, fix]
+  DS --> G["graph.py lifecycle graph"]
+  G --> POL["policy.py 13 ZT controls"]
+  POL -. "diffed in CI" .-> REGO["policies/stratum.rego via OPA"]
+  G --> DET["detect.py 9 rules + novelty"]
+  DET --> INC["incident.py trace to commit, failed control, blast radius, fix"]
   POL --> INC
-  INC --> API[FastAPI + console]
-  G --> NEO[neo4j.py Cypher export]
-  INC --> CLI[CLI / JSON]
+  INC --> API["FastAPI + console"]
+  REGO --> GK["Gatekeeper ConstraintTemplate (PSS subset)"]
+  G --> NEO["neo4j.py Cypher export"]
+  INC --> CLI["CLI / JSON"]
 ```
 
 ## Data model

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STRATUM console</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1b1f24; --muted: #5d6673; --line: #dde1e6;
+    --accent: #2458d6; --crit: #b3261e; --high: #c2570c; --med: #8a6d00; --ok: #1f7a3d;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1216; --panel: #171b21; --ink: #e6e9ee; --muted: #9aa3ae; --line: #2a3038;
+            --accent: #7aa2ff; --crit: #ff7b72; --high: #f0a35e; --med: #e3c65b; --ok: #56d364; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; background: var(--bg); color: var(--ink); }
+  header { display: flex; align-items: baseline; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: .04em; }
+  header .src { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  nav { display: flex; gap: 4px; padding: 8px 20px; border-bottom: 1px solid var(--line); background: var(--panel); overflow-x: auto; }
+  nav button { border: 0; background: none; color: var(--muted); padding: 6px 10px; border-radius: 6px; cursor: pointer; font: inherit; }
+  nav button.on { color: var(--ink); background: var(--bg); font-weight: 600; }
+  main { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  code, .mono { font-family: var(--mono); font-size: 12px; }
+  .sev-critical { color: var(--crit); font-weight: 600; } .sev-high { color: var(--high); font-weight: 600; }
+  .sev-medium { color: var(--med); } .lvl-restricted { color: var(--ok); } .lvl-privileged { color: var(--crit); }
+  .chain { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .chain span { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; font-family: var(--mono); font-size: 11px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chain i { color: var(--muted); font-style: normal; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .card h3 { margin: 0 0 6px; font-size: 14px; }
+  .muted { color: var(--muted); }
+  input, select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); }
+  .scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<header><h1>STRATUM</h1><span class="muted">code &rarr; CI &rarr; image &rarr; pod &rarr; runtime</span><span class="src" id="src"></span></header>
+<nav id="tabs">
+  <button data-t="overview" class="on">Overview</button>
+  <button data-t="incidents">Incidents</button>
+  <button data-t="workloads">Workloads</button>
+  <button data-t="blast">Blast radius</button>
+  <button data-t="controls">Controls</button>
+</nav>
+<p class="muted" style="margin:0 1rem">Static snapshot of the STRATUM console (real source). Run <code>stratum serve</code> for the live API.</p>
+<main id="view"></main>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const slug = (s) => s.replace(/[^A-Za-z0-9._-]+/g, "_");
+const get = (u) => { const m = u.match(/^\/api\/blast\?base=(.*)$/);
+  const f = m ? "api/blast/" + slug(decodeURIComponent(m[1])) + ".json" : u.replace(/^\//, "") + ".json";
+  return fetch(f).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }); };
+const chain = (c) => `<div class="chain">${c.map((n) => `<span title="${esc(n)}">${esc(n)}</span>`).join("<i>&larr;</i>")}</div>`;
+
+const views = {
+  async overview() {
+    const s = await get("/api/summary");
+    $("#src").textContent = `source=${s.source} v${s.version}`;
+    const stat = (k, v) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`;
+    const rows = Object.entries(s.findings_by_control).map(([k, v]) => `<tr><td><code>${esc(k)}</code></td><td class="num">${v}</td></tr>`).join("");
+    const lv = Object.entries(s.pss_levels).map(([k, v]) => `<tr><td class="lvl-${esc(k)}">${esc(k)}</td><td class="num">${v}</td></tr>`).join("");
+    return `<div class="stats">${stat("graph nodes", s.nodes)}${stat("edges", s.edges)}${stat("workloads", s.workloads)}
+      ${stat("images", s.images)}${stat("commits", s.commits)}${stat("runtime events", s.events)}
+      ${stat("posture findings", s.findings)}${stat("incidents", s.incidents)}</div>
+      <div class="stats" style="grid-template-columns:1fr 1fr">
+      <table><tr><th>control</th><th>findings</th></tr>${rows}</table>
+      <table><tr><th>Pod Security level</th><th>workloads</th></tr>${lv}</table></div>`;
+  },
+  async incidents() {
+    const inc = await get("/api/incidents");
+    if (!inc.length) return `<p class="muted">No incidents: no runtime events in this source.</p>`;
+    return inc.map((i) => {
+      const d = i.detection, e = d.event;
+      const ctl = i.failed_controls.slice(0, 4).map((f) => `<li><code>${esc(f.control_id)}</code> <span class="sev-${esc(f.severity)}">${esc(f.severity)}</span> ${esc(f.message)}</li>`).join("");
+      return `<div class="card"><h3><span class="sev-${esc(d.severity)}">${esc(d.severity.toUpperCase())}</span> ${esc(i.id)} &middot; <code>${esc(d.rule)}</code> ${esc(d.reason)}</h3>
+        <div class="muted mono">${esc(e.namespace)}/${esc(e.pod)} ${e.image ? "&middot; " + esc(e.image) : ""}</div>
+        <p>${chain(i.chain)}</p>
+        <div>root commit: ${i.root_commit ? `<code>${esc(i.root_commit.slice(0, 12))}</code> by ${esc(i.author)}${i.pr ? " PR #" + esc(i.pr) : ""}` : '<span class="sev-high">none (no pipeline provenance)</span>'}</div>
+        <ul>${ctl}</ul>
+        <div class="muted">blast radius: ${i.blast_radius.map(esc).join(", ") || "-"}</div>
+        <div>fix: ${esc(i.recommendations[0] || "-")}</div></div>`;
+    }).join("");
+  },
+  async workloads() {
+    const ws = await get("/api/workloads");
+    ws.sort((a, b) => b.findings - a.findings);
+    return `<div class="scroll"><table><tr><th>workload</th><th>kind</th><th>PSS</th><th>findings</th><th>lifecycle trace</th></tr>${ws.map((w) => `
+      <tr><td class="mono">${esc(w.id)}<div class="muted">${esc(w.source)}</div></td><td>${esc(w.kind)}</td>
+      <td class="lvl-${esc(w.pss_level)}">${esc(w.pss_level || "-")}</td><td class="num">${w.findings}</td><td>${chain(w.trace)}</td></tr>`).join("")}</table></div>`;
+  },
+  async blast() {
+    const bs = await get("/api/bases");
+    if (!bs.length) return `<p class="muted">No base-image nodes in this source.</p>`;
+    const opts = bs.map((b) => `<option value="${esc(b.id)}">${esc(b.id)} (${b.workloads})</option>`).join("");
+    setTimeout(() => { const s = $("#base"); const go = async () => { const r = await get("/api/blast?base=" + encodeURIComponent(s.value));
+      $("#blastout").innerHTML = `<table><tr><th>affected workload</th></tr>${r.workloads.map((w) => `<tr><td class="mono">${esc(w)}</td></tr>`).join("")}</table>`; };
+      s.onchange = go; go(); });
+    return `<p>Base image / OS layer: <select id="base">${opts}</select></p><div id="blastout"></div>`;
+  },
+  async controls() {
+    const cs = await get("/api/controls");
+    return `<table><tr><th>id</th><th>control</th><th>pillar</th><th>severity</th><th>reference</th><th>findings</th></tr>${cs.map((c) => `
+      <tr><td><code>${esc(c.id)}</code></td><td>${esc(c.title)}</td><td>${esc(c.pillar)}</td><td class="sev-${esc(c.severity)}">${esc(c.severity)}</td>
+      <td class="muted">${esc(c.reference)}</td><td class="num">${c.findings}</td></tr>`).join("")}</table>`;
+  },
+};
+
+async function show(t) {
+  document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.t === t));
+  $("#view").innerHTML = '<p class="muted">loading&hellip;</p>';
+  try { $("#view").innerHTML = await views[t](); } catch (e) { $("#view").innerHTML = `<p class="sev-critical">error: ${esc(e.message)}</p>`; }
+}
+document.querySelectorAll("#tabs button").forEach((b) => (b.onclick = () => show(b.dataset.t)));
+views.overview().then((h) => ($("#view").innerHTML = h)).catch((e) => ($("#view").innerHTML = esc(e.message)));
+</script>
+</body>
+</html>

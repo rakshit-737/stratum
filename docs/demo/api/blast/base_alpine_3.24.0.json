@@ -1,0 +1,1 @@
+{"start":"base:alpine 3.24.0","workloads":["workload:knative-serving/activator","workload:knative-serving/autoscaler","workload:knative-serving/controller","workload:knative-serving/webhook"]}

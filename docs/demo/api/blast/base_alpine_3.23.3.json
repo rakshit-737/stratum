@@ -1,0 +1,1 @@
+{"start":"base:alpine 3.23.3","workloads":["workload:argo-cd/argocd-dex-server"]}

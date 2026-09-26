@@ -8,3 +8,4 @@ data/
 cluster.json
 *.part
 .ruff_cache/
+site/

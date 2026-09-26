@@ -1,0 +1,1 @@
+{"start":"base:alpine 3.23.5","workloads":["workload:flux-system/image-automation-controller","workload:flux-system/image-reflector-controller","workload:flux-system/source-watcher"]}

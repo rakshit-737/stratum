@@ -1,0 +1,1 @@
+{"start":"base:debian 13.4","workloads":["workload:ingress-nginx/ingress-nginx-admission-create","workload:ingress-nginx/ingress-nginx-admission-patch"]}

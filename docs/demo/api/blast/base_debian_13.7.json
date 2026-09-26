@@ -1,0 +1,1 @@
+{"start":"base:debian 13.7","workloads":["workload:cnpg-system/cnpg-controller-manager","workload:online-boutique/checkoutservice","workload:online-boutique/frontend","workload:online-boutique/productcatalogservice","workload:online-boutique/shippingservice"]}

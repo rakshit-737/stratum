@@ -1,0 +1,1 @@
+{"start":"base:photon 5.0","workloads":["workload:redis-bitnami/redis-bitnami-master","workload:redis-bitnami/redis-bitnami-replicas"]}
