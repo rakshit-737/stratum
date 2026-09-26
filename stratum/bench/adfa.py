@@ -10,9 +10,11 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-from ..syscall import NgramIsolationForest, NgramNovelty, Stide, load_adfa, roc_auc, tpr_at_fpr
+from ..syscall import NgramIsolationForest, NgramNovelty, Stide, bootstrap_ci, load_adfa, roc_auc, tpr_at_fpr
 
 FPRS = (0.01, 0.05, 0.15)
+N_BOOT = 500
+IFOREST_SEEDS = (0, 1, 2, 3, 4)
 
 
 def detectors():
@@ -22,24 +24,45 @@ def detectors():
     yield "STRATUM n-gram novelty n=5", NgramNovelty(5)
     try:
         import sklearn  # noqa: F401
-        yield "Isolation Forest, TF-IDF 1..3-grams", NgramIsolationForest(3)
+        yield "Isolation Forest, TF-IDF 1..3-grams", [NgramIsolationForest(3, seed=s) for s in IFOREST_SEEDS]
     except ImportError:  # pragma: no cover
         return
 
 
-def run(root: Path, roc: bool = True) -> dict:
+def _scores(m, train, val, pos):
+    m.fit(train)
+    if hasattr(m, "score_many"):
+        return [float(x) for x in m.score_many(val)], [float(x) for x in m.score_many(pos)]
+    return [m.score(t) for t in val], [m.score(t) for t in pos]
+
+
+def _ci(neg, sp, n_boot):
+    out = {"auc_ci95": [round(x, 4) for x in bootstrap_ci(neg, sp, roc_auc, n_boot)]}
+    for f in (0.01, 0.05):
+        out[f"tpr@{f:g}_ci95"] = [round(x, 4) for x in bootstrap_ci(neg, sp, lambda a, b, f=f: tpr_at_fpr(a, b, f)[0], n_boot)]
+    return out
+
+
+def run(root: Path, roc: bool = True, n_boot: int = N_BOOT) -> dict:
     d = load_adfa(root / "adfa")
     pos = [t for _, t in d["attack"]]
     fams = sorted({f for f, _ in d["attack"]})
     out = {"n_train": len(d["train"]), "n_val_normal": len(d["val"]), "n_attack": len(pos), "detectors": {}}
     for name, m in detectors():
         t0 = time.perf_counter()
-        m.fit(d["train"])
-        if hasattr(m, "score_many"):
-            neg, sp = [float(x) for x in m.score_many(d["val"])], [float(x) for x in m.score_many(pos)]
+        seeds = {}
+        if isinstance(m, list):  # stochastic model: one run per seed, report seed 0 plus mean/sd over seeds
+            runs = [_scores(mm, d["train"], d["val"], pos) for mm in m]
+            aucs = [roc_auc(a, b) for a, b in runs]
+            mu = sum(aucs) / len(aucs)
+            sd = (sum((a - mu) ** 2 for a in aucs) / max(len(aucs) - 1, 1)) ** 0.5
+            seeds = {"seeds": list(IFOREST_SEEDS), "auc_seed_mean": round(mu, 4), "auc_seed_sd": round(sd, 4)}
+            neg, sp = runs[0]
         else:
-            neg, sp = [m.score(t) for t in d["val"]], [m.score(t) for t in pos]
-        res = {"auc": round(roc_auc(neg, sp), 4), "seconds": round(time.perf_counter() - t0, 1)}
+            neg, sp = _scores(m, d["train"], d["val"], pos)
+        res = {"auc": round(roc_auc(neg, sp), 4), "seconds": round(time.perf_counter() - t0, 1), **seeds}
+        if n_boot:
+            res.update(_ci(neg, sp, n_boot))
         for f in FPRS:
             tpr, real = tpr_at_fpr(neg, sp, f)
             res[f"tpr@{f:g}"] = round(tpr, 4)
@@ -66,9 +89,18 @@ def _roc_points(neg, pos, n=200):
 def markdown(r: dict) -> str:
     lines = [f"### Syscall anomaly detection on ADFA-LD ({r['n_train']} train / {r['n_val_normal']} normal test / "
              f"{r['n_attack']} attack traces)", "",
-             "| detector | ROC-AUC | TPR @1% FPR | TPR @5% FPR | TPR @15% FPR |", "|---|---:|---:|---:|---:|"]
+             "95% CIs: stratified percentile bootstrap over test traces (500 resamples, seed 0). "
+             "Isolation Forest: seed 0 shown, AUC mean ± sd over seeds 0-4 in the last column.", "",
+             "| detector | ROC-AUC [95% CI] | TPR @1% FPR [95% CI] | TPR @5% FPR [95% CI] | TPR @15% FPR | seed AUC mean ± sd |",
+             "|---|---:|---:|---:|---:|---:|"]
+
+    def ci(d, k):
+        c = d.get(f"{k}_ci95")
+        return f" [{c[0]:.3f}, {c[1]:.3f}]" if c else ""
     for n, d in r["detectors"].items():
-        lines.append(f"| {n} | {d['auc']:.3f} | {d['tpr@0.01']:.3f} | {d['tpr@0.05']:.3f} | {d['tpr@0.15']:.3f} |")
+        sd = f"{d['auc_seed_mean']:.3f} ± {d['auc_seed_sd']:.3f}" if "auc_seed_mean" in d else "deterministic"
+        lines.append(f"| {n} | {d['auc']:.3f}{ci(d, 'auc')} | {d['tpr@0.01']:.3f}{ci(d, 'tpr@0.01')} | "
+                     f"{d['tpr@0.05']:.3f}{ci(d, 'tpr@0.05')} | {d['tpr@0.15']:.3f} | {sd} |")
     lines += ["", "Per attack family, TPR at 5% FPR:", "",
               "| detector | " + " | ".join(next(iter(r["detectors"].values()))["family_tpr@0.05"]) + " |",
               "|---|" + "---:|" * len(next(iter(r["detectors"].values()))["family_tpr@0.05"])]

@@ -157,3 +157,20 @@ def tpr_at_fpr(neg: Sequence[float], pos: Sequence[float], fpr: float) -> tuple[
     tpr = sum(p > thr for p in pos) / len(pos)
     real = sum(n > thr for n in neg) / len(neg)
     return tpr, real
+
+
+def bootstrap_ci(neg: Sequence[float], pos: Sequence[float], stat, n_boot: int = 500, seed: int = 0,
+                 alpha: float = 0.05) -> tuple[float, float]:
+    """Stratified percentile bootstrap CI for ``stat(neg, pos)`` (normal and attack resampled separately)."""
+    import random
+
+    rng = random.Random(seed)
+    vals = []
+    for _ in range(n_boot):
+        bn = [neg[rng.randrange(len(neg))] for _ in neg]
+        bp = [pos[rng.randrange(len(pos))] for _ in pos]
+        vals.append(stat(bn, bp))
+    vals.sort()
+    lo = vals[int(alpha / 2 * (n_boot - 1))]
+    hi = vals[int((1 - alpha / 2) * (n_boot - 1))]
+    return lo, hi
