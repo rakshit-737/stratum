@@ -41,6 +41,7 @@ class ServiceAccount:
     name: str
     namespace: str
     cluster_admin: bool = False
+    rbac_risks: list[str] = field(default_factory=list)      # e.g. "cluster-wide secrets read"
 
 
 @dataclass
@@ -62,6 +63,12 @@ class Workload:
     run_as_root: bool = False
     host_network: bool = False
     pods: list[str] = field(default_factory=list)
+    # --- populated by the real-manifest collector (stratum.k8s); empty for synthetic data
+    images: list[str] = field(default_factory=list)          # every container image ref
+    automount_token: Optional[bool] = None                   # effective automountServiceAccountToken
+    pss_level: str = ""                                      # restricted | baseline | privileged
+    pss_violations: dict = field(default_factory=dict)       # check id -> [violations] (restricted level)
+    source: str = ""                                         # e.g. helm chart that rendered it
 
 
 @dataclass
@@ -75,7 +82,31 @@ class RuntimeEvent:
     dest_ip: str = ""
     dest_port: int = 0
     path: str = ""
-    label: str = "benign"        # synthetic ground truth; never read by detectors
+    label: str = "benign"        # ground truth annotation; never read by detectors
+    # --- populated by real sensors (Tetragon); empty for synthetic data
+    image: str = ""              # container image ref as reported by the runtime
+    image_digest: str = ""       # sha256:... of the running image
+    container_id: str = ""
+    parent: str = ""             # parent process binary
+    uid: int = -1
+    privileged: bool = False     # CAP_SYS_ADMIN in the effective set
+    node: str = ""
+    source: str = ""             # file / stream the event came from
+
+
+@dataclass
+class ImageReport:
+    """What an SBOM / vulnerability scan (Trivy) + OCI labels say about one image."""
+    ref: str
+    digest: str = ""
+    os: str = ""                                             # e.g. "debian 12.11" -> base-image node
+    packages: int = 0
+    vulns: dict = field(default_factory=dict)                # severity -> count
+    kev: list[str] = field(default_factory=list)             # CVEs in the CISA KEV catalog
+    critical: list[str] = field(default_factory=list)        # CVE ids with severity CRITICAL
+    shells: list[str] = field(default_factory=list)          # shell-providing packages (bash, busybox...)
+    source_repo: str = ""                                    # org.opencontainers.image.source
+    revision: str = ""                                       # org.opencontainers.image.revision
 
 
 @dataclass
