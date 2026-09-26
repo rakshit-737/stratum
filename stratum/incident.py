@@ -19,6 +19,11 @@ FIX = {
     "ZT-PROV-02": "sign builds (cosign) and verify at admission",
     "ZT-IMG-01": "rebuild on a patched base image",
     "ZT-IMG-02": "switch to a distroless image without a shell",
+    "ZT-WL-02": "meet PSS restricted: runAsNonRoot, drop ALL capabilities, seccomp RuntimeDefault, "
+                "allowPrivilegeEscalation=false (and readOnlyRootFilesystem)",
+    "ZT-ID-04": "replace cluster-wide secret/RBAC-escalation grants with namespaced, resource-named Roles",
+    "ZT-PROV-03": "pin images by @sha256 digest and verify signatures at admission",
+    "ZT-IMG-03": "patch the KEV-listed CVE immediately (CISA BOD 22-01) and rebuild",
 }
 
 
@@ -59,8 +64,9 @@ def build_incident(n: int, d: Detection, g: LifecycleGraph, findings: list[Findi
     blast = g.blast_radius(bases[0]) if bases else ([wid] if wid else [])
     recs = []
     for f in failed:
-        if FIX[f.control_id] not in recs:
-            recs.append(FIX[f.control_id])
+        fix = FIX.get(f.control_id, f"remediate {f.control_id}")
+        if fix not in recs:
+            recs.append(fix)
     return Incident(f"INC-{n:04d}", d, wid, chain, commit.split(":", 1)[1] if commit else None,
                     cattrs.get("author"), cattrs.get("pr"), failed, blast, recs)
 
