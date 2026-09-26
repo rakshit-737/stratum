@@ -1,4 +1,4 @@
-"""Unified lifecycle graph (in-memory adjacency; Neo4j export is a TODO).
+"""Unified lifecycle graph (in-memory adjacency; exported to Neo4j by stratum.neo4j).
 
 Node ids are typed: commit:<sha>, build:<id>, image:<digest>, base:<ref>,
 workload:<ns>/<name>, pod:<ns>/<pod>, ns:<name>, sa:<ns>/<name>, netpol:<ns>/<name>.
@@ -94,14 +94,34 @@ def build_graph(ds: Dataset) -> LifecycleGraph:
     for w in ds.workloads:
         wid = f"workload:{w.namespace}/{w.name}"
         g.add_node(wid, "workload", namespace=w.namespace, privileged=w.privileged,
-                   run_as_root=w.run_as_root, service_account=w.service_account)
+                   run_as_root=w.run_as_root, service_account=w.service_account, kind=w.kind,
+                   pss_level=w.pss_level, source=w.source)
         if f"image:{w.image_digest}" not in g.nodes:
             g.add_node(f"image:{w.image_digest}", "image", ref="?", trusted=False, layers=[])
         g.add_edge(f"image:{w.image_digest}", wid, "deploys")
+        for ref in w.images:
+            if ref != w.image_digest:
+                if f"image:{ref}" not in g.nodes:
+                    g.add_node(f"image:{ref}", "image", ref=ref, trusted=False, layers=[])
+                g.add_edge(f"image:{ref}", wid, "deploys_sidecar")
         g.add_edge(f"ns:{w.namespace}", wid, "contains")
         g.add_node(f"sa:{w.namespace}/{w.service_account}", "service_account")
         g.add_edge(f"sa:{w.namespace}/{w.service_account}", wid, "identity_of")
         for p in w.pods:
             g.add_node(f"pod:{w.namespace}/{p}", "pod")
             g.add_edge(wid, f"pod:{w.namespace}/{p}", "runs")
+    for r in ds.image_reports:
+        nid = f"image:{r.ref}"
+        if nid in g.nodes:
+            g.nodes[nid].update(os=r.os, vulns=r.vulns, kev=r.kev, critical=len(r.critical), shells=r.shells)
+    return g
+
+
+def attach_findings(g: LifecycleGraph, findings) -> LifecycleGraph:
+    """Add control nodes and VIOLATES edges (subject -> control) for export/visualisation."""
+    for f in findings:
+        cid = f"control:{f.control_id}"
+        g.add_node(cid, "control")
+        if f.subject in g.nodes:
+            g.add_edge(f.subject, cid, "violates")
     return g
