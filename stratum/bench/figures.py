@@ -77,7 +77,7 @@ def render(results: dict, out: Path) -> None:
         items = list(fn.items())[::-1]
         bars = ax.barh([k for k, _ in items], [v[1] for _, v in items], color=SERIES[2], height=0.6)
         ax.bar_label(bars, labels=[f"{v[0]} ({v[1]:.0f}%)" for _, v in items], fontsize=8, color=INK, padding=2)
-        ax.set_xlim(0, 115)
+        ax.set_xlim(0, 125)
         ax.set_xlabel("% of images referenced by the manifests", color=INK)
         ax.set_title("Provenance coverage: image -> commit", color=INK, fontsize=11, loc="left")
         _style(ax)
@@ -85,4 +85,25 @@ def render(results: dict, out: Path) -> None:
         ax.grid(axis="y", visible=False)
         fig.tight_layout()
         fig.savefig(out / "provenance_funnel.png")
+        plt.close(fig)
+
+    if "scans" in results and results["scans"]["per_image"]:
+        rows = sorted(results["scans"]["per_image"], key=lambda x: (x["CRITICAL"], x["HIGH"]), reverse=True)[:15][::-1]
+        fig, ax = plt.subplots(figsize=(6.4, 4.4), dpi=130)
+        names = [r["ref"].split("/")[-1][:38] for r in rows]
+        left = [0] * len(rows)
+        for i, sev in enumerate(("CRITICAL", "HIGH", "MEDIUM")):
+            vals = [r[sev] for r in rows]
+            ax.barh(names, vals, left=left, color=["#b3261e", "#c2570c", "#d9b44a"][i], height=0.62, label=sev.lower())
+            left = [a + b for a, b in zip(left, vals)]
+        ax.set_xlabel("vulnerabilities (Trivy, unique CVE x package)", color=INK)
+        ax.set_title(f"Most-exposed images ({results['scans']['images_scanned']} scanned)", color=INK,
+                     fontsize=11, loc="left")
+        ax.legend(fontsize=8, frameon=False, loc="lower right")
+        _style(ax)
+        ax.tick_params(axis="y", labelsize=7)
+        ax.grid(axis="x", color=GRID)
+        ax.grid(axis="y", visible=False)
+        fig.tight_layout()
+        fig.savefig(out / "scans_top_images.png")
         plt.close(fig)

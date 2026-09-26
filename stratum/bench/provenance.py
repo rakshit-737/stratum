@@ -44,7 +44,7 @@ def run(root: Path) -> dict:
         "funnel": {
             "manifest resolved to digest": [len(ok), pct(len(ok), n)],
             "OCI source label -> GitHub repo": [len(has_src), pct(len(has_src), n)],
-            "OCI revision label": [len(has_rev), pct(len(has_rev), n)],
+            "revision (label or source URL)": [len(has_rev), pct(len(has_rev), n)],
             "commit verified on GitHub": [len(verified), pct(len(verified), n)],
             "commit linked to a merged PR": [len(with_pr), pct(len(with_pr), n)],
             "cosign signature artefact": [len(signed), pct(len(signed), n)],
