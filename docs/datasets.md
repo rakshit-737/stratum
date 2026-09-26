@@ -24,7 +24,7 @@ Tools (not data): Trivy 0.74.0, Syft 1.52.0, Helm 4.3.0 and OPA 1.21.0 are fetch
 1. **PSS fixtures** are the ground truth for the policy engine. Each YAML is a Pod that the upstream admission plugin must accept (`pass/`) or reject (`fail/`) at a given level and version. The filename prefix names the violated check.
 2. **Manifests** and 3. **Helm renders** stand in for the *cluster state* of a notional cluster running all 31 projects in their default configuration. They feed the collector (`stratum/k8s.py`), the posture benchmark and the lifecycle graph.
 4. **Provenance** holds the image -> digest -> OCI labels -> GitHub commit -> PR edges for every image the manifests reference.
-5. **Trivy** plus 6. **KEV** provide the vulnerability and "shell present" facts per image, and the base OS layer used for blast radius.
+5. **Trivy** plus 6. **KEV** provide the vulnerability and "shell present" facts per image, and the base OS release (family + version) used for blast radius.
 7. **Tetragon events** are real runtime sensor output. They include an attack chain from *Security Observability with eBPF* (Isovalent, 2022): a privileged pod, `nsenter` into the host, a Merlin C2 agent, then exfiltration with 7z, scp and an ssh tunnel. Our per-file labels are in `benchmarks/labels/tetragon.json`.
 8. **ADFA-LD** is the standard host IDS benchmark: 833 normal training traces, 4,372 normal validation traces and 746 attack traces in 6 families. It is used to evaluate the runtime anomaly models.
 

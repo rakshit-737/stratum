@@ -91,7 +91,7 @@ docker compose exec -T neo4j cypher-shell -u neo4j -p stratum-lab < graph.cypher
 Example queries (also in `stratum.neo4j.QUERIES`):
 
 ```cypher
-// every workload built on a given base OS layer
+// every workload built on a given base OS release
 MATCH (b:BaseImage {id: "base:debian 12.13"})-[:BASE_OF]->(:Image)-[:DEPLOYS]->(w:Workload) RETURN w.id;
 // full provenance path for a pod
 MATCH p=(c:Commit)-[:BUILDS]->(:Build)-[:PRODUCES]->(:Image)-[:DEPLOYS]->(:Workload)-[:RUNS]->(:Pod {id: $pod}) RETURN p;

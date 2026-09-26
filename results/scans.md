@@ -4,7 +4,7 @@
 |---:|---:|---:|---:|---:|---:|---:|
 | 15 | 432 | 342 | 326 | 7 | 0 | 18 |
 
-Blast radius by base OS layer (workloads whose image is built on it):
+Blast radius by base OS release as reported by Trivy (workloads whose image is built on it; grouped by OS family + version, not by layer digest):
 
 | base | workloads | examples |
 |---|---:|---|

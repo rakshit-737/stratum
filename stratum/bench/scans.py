@@ -44,7 +44,7 @@ def markdown(r: dict) -> str:
              "|---:|---:|---:|---:|---:|---:|---:|",
              f"| {v['CRITICAL']} | {v['HIGH']} | {v['MEDIUM']} | {v['LOW']} | {r['images_with_critical']} | "
              f"{r['images_with_kev']} | {r['images_with_shell']} |", "",
-             "Blast radius by base OS layer (workloads whose image is built on it):", "",
+             "Blast radius by base OS release as reported by Trivy (workloads whose image is built on it; grouped by OS family + version, not by layer digest):", "",
              "| base | workloads | examples |", "|---|---:|---|"]
     for b in r["blast_radius_by_base"]:
         lines.append(f"| `{b['base']}` | {b['workloads']} | {', '.join(x.split(':', 1)[1] for x in b['examples'])} |")

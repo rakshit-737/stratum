@@ -5,7 +5,7 @@
 [![license: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![policy: OPA/Rego](https://img.shields.io/badge/policy-OPA%2FRego%20v1-7d4cdb)
 
-**An open mini-CNAPP.** STRATUM puts `commit → CI build → image → Kubernetes workload → pod → runtime event` into one graph and checks 13 Zero-Trust controls against it. The controls are written in Python and mirrored in Rego. When a runtime alert fires, STRATUM traces it back to the commit and PR that shipped the code and names the control that should have stopped it. It also lists every other workload built on the same base layer (the blast radius).
+**An open mini-CNAPP.** STRATUM puts `commit → CI build → image → Kubernetes workload → pod → runtime event` into one graph and checks 13 Zero-Trust controls against it. The controls are written in Python and mirrored in Rego. When a runtime alert fires, STRATUM traces it back to the commit and PR that shipped the code and names the control that should have stopped it. It also lists every other workload built on the same base OS release (the blast radius).
 
 v0.2 runs on real public data:
 
@@ -27,7 +27,7 @@ v0.2 runs on real public data:
 | Trace pod → verified commit (86 real images) | 25 images (29%) carry a revision that GitHub confirms; **23 / 87 workloads** traced end-to-end, 19 of them on to the merged PR (21 of the 25 images link to a PR) | `tag == git tag` heuristic: right for 21 of those 25; no answer for the other 4 |
 | Runtime rules on real Tetragon events (30 events, 20 attack) | **recall 0.80, precision 0.89**; container escape, unmanaged C2 container and credential read are named with their control | v0.1 rules: recall 0.40, precision 0.80 |
 | Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty n=5: ROC-AUC 0.822, TPR 0.08 at 1% FPR; n=3: AUC 0.799, TPR 0.18 at 1% FPR | STIDE n=6: AUC 0.827, TPR 0.00 at 1% FPR; STIDE n=3: AUC 0.695, TPR 0.17 at 1% FPR |
-| Trivy + CISA KEV on 49 real images | 15 critical / 432 high; 7 images with a critical, 18 ship a shell, **0** KEV hits; one Alpine layer → 8 workloads blast radius | n/a |
+| Trivy + CISA KEV on 49 real images | 15 critical / 432 high; 7 images with a critical, 18 ship a shell, **0** KEV hits; one base OS release (Alpine 3.24.1) → 8 workloads blast radius | n/a |
 | Latency, full analysis of the real corpus (470 nodes, 504 edges) | **14 ms**; one pod → commit trace takes 0.04 ms | n/a |
 
 The full tables are in [`results/RESULTS.md`](results/RESULTS.md) and are regenerated with `python -m stratum bench`.
@@ -190,7 +190,7 @@ Of the 87 workloads, 55 reach PSS *restricted*, 25 *baseline* and 7 only *privil
   - `ghcr.io/dexidp/dex:v2.45.1` (4 critical, 66 high).
   - `redis:8.2.3-alpine` (2 critical), bundled by argo-cd.
 - **Blast radius from the graph:**
-  - The `alpine 3.24.1` layer sits under 8 workloads in three projects (flannel, Online Boutique, a Jenkins chart test pod), so a single Alpine advisory reaches all 8.
+  - The `alpine 3.24.1` base OS release (as reported by Trivy, not a shared layer digest) sits under 8 workloads in three projects (flannel, Online Boutique, a Jenkins chart test pod), so a single Alpine 3.24.1 advisory reaches all 8.
   - `debian 13.6` (distroless) sits under cert-manager, kube-state-metrics and sealed-secrets.
 - **Distroless:** 6 images have no OS package database at all.
 - **Shells:** 18 images still ship `busybox` or `bash`. That is what `ZT-IMG-02` flags and what the `R-SHELL` rule then catches at runtime.
