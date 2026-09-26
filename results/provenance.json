@@ -1,0 +1,916 @@
+{
+ "images": 86,
+ "resolved": 86,
+ "registries": {
+  "docker.io": 27,
+  "ghcr.io": 18,
+  "quay.io": 13,
+  "us-central1-docker.pkg.dev": 11,
+  "reg.kyverno.io": 5,
+  "gcr.io": 4,
+  "registry.k8s.io": 4,
+  "registry-1.docker.io": 2,
+  "mirror.gcr.io": 1,
+  "public.ecr.aws": 1
+ },
+ "funnel": {
+  "manifest resolved to digest": [
+   86,
+   100.0
+  ],
+  "OCI source label -> GitHub repo": [
+   43,
+   50.0
+  ],
+  "OCI revision label": [
+   27,
+   31.4
+  ],
+  "commit verified on GitHub": [
+   25,
+   29.1
+  ],
+  "commit linked to a merged PR": [
+   21,
+   24.4
+  ],
+  "cosign signature artefact": [
+   32,
+   37.2
+  ],
+  "cosign attestation artefact": [
+   28,
+   32.6
+  ]
+ },
+ "workloads": 87,
+ "workloads_traced_to_commit": 23,
+ "tag_heuristic": {
+  "comparable": 25,
+  "git_tag_found": 21,
+  "agrees_with_embedded_revision": 21,
+  "images_with_any_tag_commit": 36
+ },
+ "per_image": [
+  {
+   "ref": "busybox:1.38.0@sha256:dc2d74b28e4cf8984fa52af1f39bc7c3d9c73760b41a74d629f5d11b1ab28616",
+   "repo": "docker-library/busybox",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 2.2
+  },
+  {
+   "ref": "docker.io/bats/bats:1.14.0",
+   "repo": "bats-core/bats-core",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 21.0
+  },
+  {
+   "ref": "docker.io/bitnami/sealed-secrets-controller:0.40.0",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 32.7
+  },
+  {
+   "ref": "docker.io/falcosecurity/falco-driver-loader:0.45.0",
+   "repo": "falcosecurity/falco",
+   "revision": "05d5b3e363d5",
+   "verified": true,
+   "author": "leogr",
+   "pr": 4011,
+   "signed": true,
+   "size_mb": 341.3
+  },
+  {
+   "ref": "docker.io/falcosecurity/falco:0.45.0",
+   "repo": "falcosecurity/falco",
+   "revision": "05d5b3e363d5",
+   "verified": true,
+   "author": "leogr",
+   "pr": 4011,
+   "signed": true,
+   "size_mb": 49.9
+  },
+  {
+   "ref": "docker.io/falcosecurity/falcoctl:0.14.2",
+   "repo": "chainguard-images/images",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 34.2
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-core:v2.15.2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 87.2
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-db:v2.15.2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 139.6
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-jobservice:v2.15.2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 98.8
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-portal:v2.15.2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 72.9
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-registryctl:v2.15.2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 90.8
+  },
+  {
+   "ref": "docker.io/goharbor/registry-photon:v2.15.2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 54.5
+  },
+  {
+   "ref": "docker.io/goharbor/trivy-adapter-photon:v2.15.2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 164.3
+  },
+  {
+   "ref": "docker.io/goharbor/valkey-photon:v2.15.2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 85.5
+  },
+  {
+   "ref": "docker.io/jenkins/jenkins:2.568.3-jdk21",
+   "repo": "jenkinsci/docker",
+   "revision": "bb25c48ab0fe",
+   "verified": true,
+   "author": "lemeurherve",
+   "pr": 2451,
+   "signed": false,
+   "size_mb": 293.4
+  },
+  {
+   "ref": "docker.io/kiwigrid/k8s-sidecar:2.11.2",
+   "repo": "kiwigrid/k8s-sidecar",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 30.4
+  },
+  {
+   "ref": "docker.io/longhornio/longhorn-manager:v1.12.1",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 134.3
+  },
+  {
+   "ref": "docker.io/longhornio/longhorn-share-manager:v1.12.1",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 125.6
+  },
+  {
+   "ref": "docker.io/longhornio/longhorn-ui:v1.12.1",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 75.5
+  },
+  {
+   "ref": "docker.io/rancher/local-path-provisioner:v0.0.37",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 15.1
+  },
+  {
+   "ref": "docker.io/traefik:v3.7.13",
+   "repo": "traefik/traefik",
+   "revision": "06814bb30ce3",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 55.2
+  },
+  {
+   "ref": "gcr.io/knative-releases/knative.dev/serving/cmd/activator@sha256:e5ab46f3b73fa2e3898fe47f6a3a0c2bd765596f4fb36ceb4c28c35d0a74b2e5",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 21.5
+  },
+  {
+   "ref": "gcr.io/knative-releases/knative.dev/serving/cmd/autoscaler@sha256:879da127b23db65d862cafa6b23fb987381d0e44150f0027d44e1f5aee83bde2",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 21.7
+  },
+  {
+   "ref": "gcr.io/knative-releases/knative.dev/serving/cmd/controller@sha256:ca5062ece0329d002a81940cf4268d7898866434d70049bb93f27d3a786d3292",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 24.8
+  },
+  {
+   "ref": "gcr.io/knative-releases/knative.dev/serving/cmd/webhook@sha256:3846e9a416665c5b9ec2e4de246cfcb5c4ab0d01ba19348aa008caf30144b650",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 21.4
+  },
+  {
+   "ref": "ghcr.io/cloudnative-pg/cloudnative-pg:1.30.1",
+   "repo": "cloudnative-pg/cloudnative-pg",
+   "revision": "2a35abb46",
+   "verified": true,
+   "author": "cnpg-bot",
+   "pr": 11554,
+   "signed": false,
+   "size_mb": 38.5
+  },
+  {
+   "ref": "ghcr.io/dexidp/dex:v2.45.1",
+   "repo": "dexidp/dex",
+   "revision": "11d2eeb52b42",
+   "verified": true,
+   "author": "nabokihms",
+   "pr": 4604,
+   "signed": false,
+   "size_mb": 48.1
+  },
+  {
+   "ref": "ghcr.io/external-secrets/external-secrets:v2.11.0",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 99.7
+  },
+  {
+   "ref": "ghcr.io/flannel-io/flannel-cni-plugin:v1.9.1-flannel3",
+   "repo": "flannel-io/cni-plugin",
+   "revision": "b380f201008e",
+   "verified": true,
+   "author": "thomasferrandiz",
+   "pr": 184,
+   "signed": false,
+   "size_mb": 5.2
+  },
+  {
+   "ref": "ghcr.io/flannel-io/flannel:v0.28.9",
+   "repo": "flannel-io/flannel",
+   "revision": "5cd0d52648e8",
+   "verified": true,
+   "author": "thomasferrandiz",
+   "pr": 2525,
+   "signed": false,
+   "size_mb": 33.3
+  },
+  {
+   "ref": "ghcr.io/fluxcd/helm-controller:v1.6.4",
+   "repo": "fluxcd/helm-controller",
+   "revision": "561379cd309d",
+   "verified": true,
+   "author": "matheuscscp",
+   "pr": 1573,
+   "signed": true,
+   "size_mb": 51.5
+  },
+  {
+   "ref": "ghcr.io/fluxcd/image-automation-controller:v1.2.5",
+   "repo": "fluxcd/image-automation-controller",
+   "revision": "119f65d75d1d",
+   "verified": true,
+   "author": "matheuscscp",
+   "pr": 1088,
+   "signed": true,
+   "size_mb": 43.7
+  },
+  {
+   "ref": "ghcr.io/fluxcd/image-reflector-controller:v1.2.5",
+   "repo": "fluxcd/image-reflector-controller",
+   "revision": "d245eae59b9e",
+   "verified": true,
+   "author": "matheuscscp",
+   "pr": 936,
+   "signed": true,
+   "size_mb": 42.0
+  },
+  {
+   "ref": "ghcr.io/fluxcd/kustomize-controller:v1.9.5",
+   "repo": "fluxcd/kustomize-controller",
+   "revision": "d5d5d2bf9d9c",
+   "verified": true,
+   "author": "matheuscscp",
+   "pr": 1732,
+   "signed": true,
+   "size_mb": 71.2
+  },
+  {
+   "ref": "ghcr.io/fluxcd/notification-controller:v1.9.4",
+   "repo": "fluxcd/notification-controller",
+   "revision": "a1dff35982bf",
+   "verified": true,
+   "author": "matheuscscp",
+   "pr": 1376,
+   "signed": true,
+   "size_mb": 52.0
+  },
+  {
+   "ref": "ghcr.io/fluxcd/source-controller:v1.9.5",
+   "repo": "fluxcd/source-controller",
+   "revision": "53194ad4730e",
+   "verified": true,
+   "author": "matheuscscp",
+   "pr": 2143,
+   "signed": true,
+   "size_mb": 64.8
+  },
+  {
+   "ref": "ghcr.io/fluxcd/source-watcher:v2.2.4",
+   "repo": "fluxcd/source-watcher",
+   "revision": "06cb1109bfa7",
+   "verified": true,
+   "author": "matheuscscp",
+   "pr": 379,
+   "signed": true,
+   "size_mb": 33.6
+  },
+  {
+   "ref": "ghcr.io/kedacore/keda-metrics-apiserver:2.21.0",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 72.9
+  },
+  {
+   "ref": "ghcr.io/kedacore/keda:2.21.0",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 98.8
+  },
+  {
+   "ref": "ghcr.io/tektoncd/pipeline/controller-10a3e32792f33651396d02b6855a6e36:v1.16.0@sha256:27458f2073bb6f826cbe7a97324ca5553d8d97e60f91f2b8dd37fea72c43fdf2",
+   "repo": "tektoncd/pipeline",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 66.9
+  },
+  {
+   "ref": "ghcr.io/tektoncd/pipeline/events-a9042f7efb0cbade2a868a1ee5ddd52c:v1.16.0@sha256:3b4777e52b0fcf98c3a24d1227eedf2984a222c1af18ea0d5f56da0f4832b6d1",
+   "repo": "tektoncd/pipeline",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 55.4
+  },
+  {
+   "ref": "ghcr.io/tektoncd/pipeline/resolvers-ff86b24f130c42b88983d3c13993056d:v1.16.0@sha256:318c3caf89aec173b4c4bb69da60d09e1a1f8d8ffb4b9255982832d9c63b70c5",
+   "repo": "tektoncd/pipeline",
+   "revision": "0da92763d599",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 72.4
+  },
+  {
+   "ref": "ghcr.io/tektoncd/pipeline/webhook-d4749e605405422fd87700164e31b2d1:v1.16.0@sha256:cc0f3620092c91d8a2eb18a155fd0504dae7043a1fae9851dc7b5b9ed1ea3626",
+   "repo": "tektoncd/pipeline",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 55.4
+  },
+  {
+   "ref": "hashicorp/vault-k8s:1.7.6",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 37.7
+  },
+  {
+   "ref": "hashicorp/vault:2.0.4",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 192.4
+  },
+  {
+   "ref": "kubernetesui/dashboard:v2.7.0",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 75.8
+  },
+  {
+   "ref": "kubernetesui/metrics-scraper:v1.0.8",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 19.7
+  },
+  {
+   "ref": "mirror.gcr.io/aquasec/trivy-operator:0.34.0",
+   "repo": "aquasecurity/trivy-operator",
+   "revision": "7107830178ae",
+   "verified": true,
+   "author": "afdesk",
+   "pr": 3042,
+   "signed": true,
+   "size_mb": 51.4
+  },
+  {
+   "ref": "openpolicyagent/gatekeeper:v3.23.1",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 47.8
+  },
+  {
+   "ref": "public.ecr.aws/docker/library/redis:8.2.3-alpine",
+   "repo": "redis/docker-library-redis",
+   "revision": "bcbc692165ce",
+   "verified": true,
+   "author": "github-actions[bot]",
+   "pr": null,
+   "signed": false,
+   "size_mb": 27.5
+  },
+  {
+   "ref": "quay.io/argoproj/argocd:v3.5.3",
+   "repo": "argoproj/argo-cd",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 215.1
+  },
+  {
+   "ref": "quay.io/calico/cni:v3.32.2",
+   "repo": "projectcalico/calico",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 69.9
+  },
+  {
+   "ref": "quay.io/calico/kube-controllers:v3.32.2",
+   "repo": "projectcalico/calico",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 63.2
+  },
+  {
+   "ref": "quay.io/calico/node:v3.32.2",
+   "repo": "projectcalico/calico",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 123.4
+  },
+  {
+   "ref": "quay.io/cilium/hubble-export-stdout:v1.1.1",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 1.5
+  },
+  {
+   "ref": "quay.io/cilium/tetragon-operator:v1.7.1",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 16.3
+  },
+  {
+   "ref": "quay.io/cilium/tetragon:v1.7.1",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 88.3
+  },
+  {
+   "ref": "quay.io/jetstack/cert-manager-cainjector:v1.21.2",
+   "repo": "cert-manager/cert-manager",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 12.4
+  },
+  {
+   "ref": "quay.io/jetstack/cert-manager-controller:v1.21.2",
+   "repo": "cert-manager/cert-manager",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 24.9
+  },
+  {
+   "ref": "quay.io/jetstack/cert-manager-webhook:v1.21.2",
+   "repo": "cert-manager/cert-manager",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 19.8
+  },
+  {
+   "ref": "quay.io/metallb/controller:v0.16.0",
+   "repo": "metallb/metallb",
+   "revision": "4c613e152c34",
+   "verified": true,
+   "author": "oribon",
+   "pr": null,
+   "signed": true,
+   "size_mb": 37.3
+  },
+  {
+   "ref": "quay.io/metallb/speaker:v0.16.0",
+   "repo": "metallb/metallb",
+   "revision": "4c613e152c34",
+   "verified": true,
+   "author": "oribon",
+   "pr": null,
+   "signed": true,
+   "size_mb": 71.9
+  },
+  {
+   "ref": "quay.io/prometheus-operator/prometheus-operator:v0.94.1",
+   "repo": "prometheus-operator/prometheus-operator",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 22.6
+  },
+  {
+   "ref": "redis:alpine",
+   "repo": "redis/docker-library-redis",
+   "revision": "8104e63b5910",
+   "verified": true,
+   "author": "github-actions[bot]",
+   "pr": null,
+   "signed": false,
+   "size_mb": 39.1
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/background-controller:v1.19.1",
+   "repo": "kyverno/kyverno",
+   "revision": "40ec788d48bb",
+   "verified": true,
+   "author": "realshuting",
+   "pr": 17541,
+   "signed": false,
+   "size_mb": 46.8
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/cleanup-controller:v1.19.1",
+   "repo": "kyverno/kyverno",
+   "revision": "40ec788d48bb",
+   "verified": true,
+   "author": "realshuting",
+   "pr": 17541,
+   "signed": false,
+   "size_mb": 43.4
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/kyverno:v1.19.1",
+   "repo": "kyverno/kyverno",
+   "revision": "40ec788d48bb",
+   "verified": true,
+   "author": "realshuting",
+   "pr": 17541,
+   "signed": false,
+   "size_mb": 47.8
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/kyvernopre:v1.19.1",
+   "repo": "kyverno/kyverno",
+   "revision": "40ec788d48bb",
+   "verified": true,
+   "author": "realshuting",
+   "pr": 17541,
+   "signed": false,
+   "size_mb": 42.6
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/reports-controller:v1.19.1",
+   "repo": "kyverno/kyverno",
+   "revision": "40ec788d48bb",
+   "verified": true,
+   "author": "realshuting",
+   "pr": 17541,
+   "signed": false,
+   "size_mb": 46.4
+  },
+  {
+   "ref": "registry-1.docker.io/bitnami/postgresql:latest",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 135.1
+  },
+  {
+   "ref": "registry-1.docker.io/bitnami/redis:latest",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 49.7
+  },
+  {
+   "ref": "registry.k8s.io/ingress-nginx/controller:v1.15.1@sha256:594ceea76b01c592858f803f9ff4d2cb40542cae2060410b2c95f75907d659e1",
+   "repo": "kubernetes/ingress-nginx",
+   "revision": "0df02f2cfcf5",
+   "verified": true,
+   "author": "Gacko",
+   "pr": 14732,
+   "signed": true,
+   "size_mb": 116.0
+  },
+  {
+   "ref": "registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.6.9@sha256:01038e7de14b78d702d2849c3aad72fd25903c4765af63cf16aa3398f5d5f2dd",
+   "repo": "kubernetes/ingress-nginx",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 26.5
+  },
+  {
+   "ref": "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 19.3
+  },
+  {
+   "ref": "registry.k8s.io/metrics-server/metrics-server:v0.9.0",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": true,
+   "size_mb": 23.3
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/adservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 109.9
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/cartservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 17.9
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/checkoutservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 7.8
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/currencyservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 50.8
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/emailservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 40.7
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 12.7
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/loadgenerator:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 45.1
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/paymentservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 49.0
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/productcatalogservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 10.0
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/recommendationservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 40.1
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice:v0.10.7",
+   "repo": "",
+   "revision": "",
+   "verified": false,
+   "author": "",
+   "pr": null,
+   "signed": false,
+   "size_mb": 7.6
+  }
+ ]
+}

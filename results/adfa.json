@@ -1,0 +1,97 @@
+{
+ "n_train": 833,
+ "n_val_normal": 4372,
+ "n_attack": 746,
+ "detectors": {
+  "STIDE n=6 (baseline, Forrest 1996)": {
+   "auc": 0.8273,
+   "seconds": 17.3,
+   "tpr@0.01": 0.0,
+   "fpr_real@0.01": 0.0,
+   "tpr@0.05": 0.2185,
+   "fpr_real@0.05": 0.0499,
+   "tpr@0.15": 0.6273,
+   "fpr_real@0.15": 0.1498,
+   "family_tpr@0.05": {
+    "Adduser": 0.143,
+    "Hydra_FTP": 0.327,
+    "Hydra_SSH": 0.278,
+    "Java_Meterpreter": 0.105,
+    "Meterpreter": 0.133,
+    "Web_Shell": 0.212
+   }
+  },
+  "STIDE n=3": {
+   "auc": 0.6951,
+   "seconds": 11.5,
+   "tpr@0.01": 0.1702,
+   "fpr_real@0.01": 0.0096,
+   "tpr@0.05": 0.3177,
+   "fpr_real@0.05": 0.0499,
+   "tpr@0.15": 0.5764,
+   "fpr_real@0.15": 0.1498,
+   "family_tpr@0.05": {
+    "Adduser": 0.33,
+    "Hydra_FTP": 0.395,
+    "Hydra_SSH": 0.284,
+    "Java_Meterpreter": 0.25,
+    "Meterpreter": 0.253,
+    "Web_Shell": 0.373
+   }
+  },
+  "STRATUM n-gram novelty n=3": {
+   "auc": 0.7989,
+   "seconds": 21.5,
+   "tpr@0.01": 0.1756,
+   "fpr_real@0.01": 0.0098,
+   "tpr@0.05": 0.2654,
+   "fpr_real@0.05": 0.0499,
+   "tpr@0.15": 0.5375,
+   "fpr_real@0.15": 0.1498,
+   "family_tpr@0.05": {
+    "Adduser": 0.253,
+    "Hydra_FTP": 0.364,
+    "Hydra_SSH": 0.307,
+    "Java_Meterpreter": 0.185,
+    "Meterpreter": 0.133,
+    "Web_Shell": 0.246
+   }
+  },
+  "STRATUM n-gram novelty n=5": {
+   "auc": 0.822,
+   "seconds": 26.5,
+   "tpr@0.01": 0.0818,
+   "fpr_real@0.01": 0.0098,
+   "tpr@0.05": 0.2413,
+   "fpr_real@0.05": 0.0499,
+   "tpr@0.15": 0.5643,
+   "fpr_real@0.15": 0.148,
+   "family_tpr@0.05": {
+    "Adduser": 0.165,
+    "Hydra_FTP": 0.346,
+    "Hydra_SSH": 0.295,
+    "Java_Meterpreter": 0.169,
+    "Meterpreter": 0.133,
+    "Web_Shell": 0.22
+   }
+  },
+  "Isolation Forest, TF-IDF 1..3-grams": {
+   "auc": 0.5679,
+   "seconds": 98.3,
+   "tpr@0.01": 0.0013,
+   "fpr_real@0.01": 0.0098,
+   "tpr@0.05": 0.0389,
+   "fpr_real@0.05": 0.0499,
+   "tpr@0.15": 0.1716,
+   "fpr_real@0.15": 0.1496,
+   "family_tpr@0.05": {
+    "Adduser": 0.0,
+    "Hydra_FTP": 0.025,
+    "Hydra_SSH": 0.131,
+    "Java_Meterpreter": 0.0,
+    "Meterpreter": 0.0,
+    "Web_Shell": 0.017
+   }
+  }
+ }
+}

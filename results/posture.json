@@ -1,0 +1,561 @@
+{
+ "projects": {
+  "argo-cd": {
+   "version": "v3.5.3",
+   "category": "gitops",
+   "workloads": 7,
+   "pss": {
+    "restricted": 7
+   },
+   "findings": {
+    "ZT-ID-02": 6,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 7
+   },
+   "check_violations": {}
+  },
+  "flux2": {
+   "version": "v2.9.5",
+   "category": "gitops",
+   "workloads": 7,
+   "pss": {
+    "restricted": 7
+   },
+   "findings": {
+    "ZT-ID-02": 7,
+    "ZT-ID-03": 2,
+    "ZT-ID-04": 5,
+    "ZT-PROV-03": 7
+   },
+   "check_violations": {}
+  },
+  "cert-manager": {
+   "version": "v1.21.2",
+   "category": "security",
+   "workloads": 3,
+   "pss": {
+    "restricted": 3
+   },
+   "findings": {
+    "ZT-ID-02": 3,
+    "ZT-ID-04": 2,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 3
+   },
+   "check_violations": {}
+  },
+  "sealed-secrets": {
+   "version": "v0.40.0",
+   "category": "security",
+   "workloads": 1,
+   "pss": {
+    "restricted": 1
+   },
+   "findings": {
+    "ZT-ID-02": 1,
+    "ZT-ID-04": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1
+   },
+   "check_violations": {}
+  },
+  "kyverno": {
+   "version": "v1.19.1",
+   "category": "policy",
+   "workloads": 4,
+   "pss": {
+    "restricted": 4
+   },
+   "findings": {
+    "ZT-ID-02": 4,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 4
+   },
+   "check_violations": {}
+  },
+  "gatekeeper": {
+   "version": "v3.23.1",
+   "category": "policy",
+   "workloads": 2,
+   "pss": {
+    "restricted": 2
+   },
+   "findings": {
+    "ZT-ID-02": 2,
+    "ZT-ID-04": 2,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 2
+   },
+   "check_violations": {}
+  },
+  "ingress-nginx": {
+   "version": "controller-v1.15.1",
+   "category": "networking",
+   "workloads": 3,
+   "pss": {
+    "restricted": 3
+   },
+   "findings": {
+    "ZT-ID-02": 3,
+    "ZT-ID-04": 1,
+    "ZT-NET-01": 1
+   },
+   "check_violations": {}
+  },
+  "metallb": {
+   "version": "v0.16.0",
+   "category": "networking",
+   "workloads": 2,
+   "pss": {
+    "privileged": 2
+   },
+   "findings": {
+    "ZT-ID-02": 2,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 2,
+    "ZT-WL-01": 2
+   },
+   "check_violations": {
+    "hostprobesandhostlifecycle": 2,
+    "seccompprofile_restricted": 2,
+    "capabilities_restricted": 2,
+    "hostnamespaces": 1,
+    "capabilities_baseline": 1,
+    "runasnonroot": 1
+   }
+  },
+  "calico": {
+   "version": "v3.32.2",
+   "category": "networking",
+   "workloads": 2,
+   "pss": {
+    "privileged": 1,
+    "baseline": 1
+   },
+   "findings": {
+    "ZT-ID-02": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 2,
+    "ZT-WL-01": 1,
+    "ZT-WL-02": 1
+   },
+   "check_violations": {
+    "hostnamespaces": 1,
+    "privileged": 1,
+    "hostpathvolumes": 1,
+    "restrictedvolumes": 1,
+    "allowprivilegeescalation": 2,
+    "runasnonroot": 1,
+    "capabilities_restricted": 2
+   }
+  },
+  "flannel": {
+   "version": "v0.28.9",
+   "category": "networking",
+   "workloads": 1,
+   "pss": {
+    "privileged": 1
+   },
+   "findings": {
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1,
+    "ZT-WL-01": 1
+   },
+   "check_violations": {
+    "hostnamespaces": 1,
+    "capabilities_baseline": 1,
+    "hostpathvolumes": 1,
+    "restrictedvolumes": 1,
+    "allowprivilegeescalation": 1,
+    "runasnonroot": 1,
+    "seccompprofile_restricted": 1,
+    "capabilities_restricted": 1
+   }
+  },
+  "metrics-server": {
+   "version": "v0.9.0",
+   "category": "observability",
+   "workloads": 1,
+   "pss": {
+    "restricted": 1
+   },
+   "findings": {
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1
+   },
+   "check_violations": {}
+  },
+  "kube-state-metrics": {
+   "version": "v2.20.0",
+   "category": "observability",
+   "workloads": 1,
+   "pss": {
+    "restricted": 1
+   },
+   "findings": {
+    "ZT-ID-02": 1,
+    "ZT-ID-04": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1
+   },
+   "check_violations": {}
+  },
+  "prometheus-operator": {
+   "version": "v0.94.1",
+   "category": "observability",
+   "workloads": 1,
+   "pss": {
+    "restricted": 1
+   },
+   "findings": {
+    "ZT-ID-02": 1,
+    "ZT-ID-04": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1
+   },
+   "check_violations": {}
+  },
+  "kubernetes-dashboard": {
+   "version": "v2.7.0",
+   "category": "observability",
+   "workloads": 2,
+   "pss": {
+    "baseline": 2
+   },
+   "findings": {
+    "ZT-ID-02": 2,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 2,
+    "ZT-WL-02": 2
+   },
+   "check_violations": {
+    "runasnonroot": 2,
+    "capabilities_restricted": 2
+   }
+  },
+  "longhorn": {
+   "version": "v1.12.1",
+   "category": "storage",
+   "workloads": 3,
+   "pss": {
+    "privileged": 1,
+    "baseline": 2
+   },
+   "findings": {
+    "ZT-ID-02": 2,
+    "ZT-ID-04": 2,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 3,
+    "ZT-WL-01": 2,
+    "ZT-WL-02": 1
+   },
+   "check_violations": {
+    "privileged": 1,
+    "hostpathvolumes": 1,
+    "restrictedvolumes": 1,
+    "allowprivilegeescalation": 3,
+    "runasnonroot": 3,
+    "seccompprofile_restricted": 3,
+    "capabilities_restricted": 3,
+    "runasuser": 1
+   }
+  },
+  "local-path-provisioner": {
+   "version": "v0.0.37",
+   "category": "storage",
+   "workloads": 1,
+   "pss": {
+    "baseline": 1
+   },
+   "findings": {
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1,
+    "ZT-WL-02": 1
+   },
+   "check_violations": {
+    "allowprivilegeescalation": 1,
+    "runasnonroot": 1,
+    "seccompprofile_restricted": 1,
+    "capabilities_restricted": 1
+   }
+  },
+  "cloudnative-pg": {
+   "version": "v1.30.1",
+   "category": "database",
+   "workloads": 1,
+   "pss": {
+    "restricted": 1
+   },
+   "findings": {
+    "ZT-ID-02": 1,
+    "ZT-ID-04": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1
+   },
+   "check_violations": {}
+  },
+  "keda": {
+   "version": "v2.21.0",
+   "category": "autoscaling",
+   "workloads": 2,
+   "pss": {
+    "restricted": 2
+   },
+   "findings": {
+    "ZT-ID-02": 2,
+    "ZT-ID-04": 2,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 2
+   },
+   "check_violations": {}
+  },
+  "knative-serving": {
+   "version": "v1.23.0",
+   "category": "serverless",
+   "workloads": 4,
+   "pss": {
+    "restricted": 4
+   },
+   "findings": {
+    "ZT-ID-02": 1,
+    "ZT-NET-01": 1
+   },
+   "check_violations": {}
+  },
+  "tekton-pipelines": {
+   "version": "v1.16.0",
+   "category": "ci-cd",
+   "workloads": 4,
+   "pss": {
+    "restricted": 4
+   },
+   "findings": {
+    "ZT-ID-02": 3,
+    "ZT-ID-04": 2,
+    "ZT-NET-01": 2
+   },
+   "check_violations": {}
+  },
+  "online-boutique": {
+   "version": "v0.10.7",
+   "category": "demo-app",
+   "workloads": 12,
+   "pss": {
+    "baseline": 12
+   },
+   "findings": {
+    "ZT-ID-01": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 12,
+    "ZT-WL-02": 12
+   },
+   "check_violations": {
+    "seccompprofile_restricted": 12
+   }
+  },
+  "vault": {
+   "version": "vault-0.34.1",
+   "category": "helm",
+   "workloads": 3,
+   "pss": {
+    "baseline": 3
+   },
+   "findings": {
+    "ZT-ID-01": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 3,
+    "ZT-WL-02": 3
+   },
+   "check_violations": {
+    "seccompprofile_restricted": 3,
+    "capabilities_restricted": 2,
+    "allowprivilegeescalation": 1,
+    "runasnonroot": 1
+   }
+  },
+  "falco": {
+   "version": "falco-9.2.0",
+   "category": "helm",
+   "workloads": 1,
+   "pss": {
+    "privileged": 1
+   },
+   "findings": {
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1,
+    "ZT-WL-01": 1
+   },
+   "check_violations": {
+    "privileged": 1,
+    "hostpathvolumes": 1,
+    "restrictedvolumes": 1,
+    "allowprivilegeescalation": 1,
+    "runasnonroot": 1,
+    "seccompprofile_restricted": 1,
+    "capabilities_restricted": 1
+   }
+  },
+  "tetragon": {
+   "version": "tetragon-1.7.1",
+   "category": "helm",
+   "workloads": 2,
+   "pss": {
+    "privileged": 1,
+    "baseline": 1
+   },
+   "findings": {
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 2,
+    "ZT-WL-01": 1,
+    "ZT-WL-02": 1
+   },
+   "check_violations": {
+    "hostnamespaces": 1,
+    "privileged": 1,
+    "hostpathvolumes": 1,
+    "restrictedvolumes": 1,
+    "allowprivilegeescalation": 1,
+    "runasnonroot": 1,
+    "seccompprofile_restricted": 2,
+    "capabilities_restricted": 1
+   }
+  },
+  "traefik": {
+   "version": "traefik-41.6.0",
+   "category": "helm",
+   "workloads": 1,
+   "pss": {
+    "restricted": 1
+   },
+   "findings": {
+    "ZT-ID-02": 1,
+    "ZT-ID-04": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1
+   },
+   "check_violations": {}
+  },
+  "external-secrets": {
+   "version": "external-secrets-2.11.0",
+   "category": "helm",
+   "workloads": 3,
+   "pss": {
+    "restricted": 3
+   },
+   "findings": {
+    "ZT-ID-02": 2,
+    "ZT-ID-04": 2,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 3
+   },
+   "check_violations": {}
+  },
+  "trivy-operator": {
+   "version": "trivy-operator-0.36.0",
+   "category": "helm",
+   "workloads": 1,
+   "pss": {
+    "baseline": 1
+   },
+   "findings": {
+    "ZT-ID-02": 1,
+    "ZT-ID-04": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 1,
+    "ZT-WL-02": 1
+   },
+   "check_violations": {
+    "runasnonroot": 1,
+    "seccompprofile_restricted": 1
+   }
+  },
+  "redis-bitnami": {
+   "version": "redis-28.2.4",
+   "category": "helm",
+   "workloads": 2,
+   "pss": {
+    "restricted": 2
+   },
+   "findings": {
+    "ZT-PROV-03": 2
+   },
+   "check_violations": {}
+  },
+  "postgresql-bitnami": {
+   "version": "postgresql-18.12.2",
+   "category": "helm",
+   "workloads": 1,
+   "pss": {
+    "restricted": 1
+   },
+   "findings": {
+    "ZT-PROV-03": 1
+   },
+   "check_violations": {}
+  },
+  "jenkins": {
+   "version": "jenkins-5.9.64",
+   "category": "helm",
+   "workloads": 2,
+   "pss": {
+    "baseline": 2
+   },
+   "findings": {
+    "ZT-ID-01": 1,
+    "ZT-ID-02": 1,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 2,
+    "ZT-WL-02": 2
+   },
+   "check_violations": {
+    "seccompprofile_restricted": 2,
+    "capabilities_restricted": 2,
+    "allowprivilegeescalation": 1,
+    "runasnonroot": 1
+   }
+  },
+  "harbor": {
+   "version": "harbor-1.19.2",
+   "category": "helm",
+   "workloads": 7,
+   "pss": {
+    "restricted": 7
+   },
+   "findings": {
+    "ZT-ID-01": 7,
+    "ZT-NET-01": 1,
+    "ZT-PROV-03": 7
+   },
+   "check_violations": {}
+  }
+ },
+ "n_projects": 31,
+ "n_workloads": 87,
+ "pss_levels": {
+  "restricted": 55,
+  "privileged": 7,
+  "baseline": 25
+ },
+ "findings_by_control": {
+  "ZT-PROV-03": 76,
+  "ZT-ID-02": 47,
+  "ZT-NET-01": 29,
+  "ZT-ID-04": 24,
+  "ZT-WL-02": 24,
+  "ZT-ID-01": 10,
+  "ZT-WL-01": 8,
+  "ZT-ID-03": 2
+ },
+ "workload_hardening_flagged": {
+  "v0.1 heuristic": 7,
+  "PSS restricted (v0.2)": 32
+ },
+ "rbac_risks": {
+  "secrets read": 50,
+  "pods/exec": 13,
+  "wildcard verbs on wildcard resources": 9,
+  "cluster-admin": 3,
+  "RBAC escalate/bind": 2,
+  "nodes/proxy": 1
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "nodes": 460,
+ "edges": 476,
+ "workloads": 95,
+ "events": 30,
+ "incidents": 18,
+ "load_ms": 54135.3,
+ "graph_build_ms": 14.16,
+ "policy_eval_ms": 8.753,
+ "trace_per_pod_ms": 0.07,
+ "full_analyze_ms": 22.324
+}
