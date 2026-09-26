@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stratum"
+version = "0.1.0"
+description = "Open mini-CNAPP: code-to-runtime lifecycle graph, Zero-Trust policy, trace-to-commit"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+stratum = "stratum.cli:main"
+
+[tool.setuptools]
+packages = ["stratum"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
