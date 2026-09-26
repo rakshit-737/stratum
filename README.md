@@ -24,9 +24,9 @@ v0.2 runs on real public data:
 | Policy engine vs upstream PSS conformance fixtures (148 pods, v1.37) | **F1 1.000** at baseline and restricted | v0.1 heuristic: recall 0.147 / 0.105 |
 | Posture of 31 real projects in their default configuration | **32 / 87** workloads not PSS-restricted (7 privileged); 29 namespaces with no egress policy; 24 workloads with cluster-wide secret read or RBAC escalation | v0.1 heuristic flags 7 / 87 |
 | Rego mirror vs Python engine on the full corpus | **292 / 292 identical findings** (OPA 1.21), including scan-derived controls | n/a |
-| Trace pod → verified commit (86 real images) | 25 images (29%) carry a revision that GitHub confirms; **23 / 87 workloads** traced end-to-end, 21 of them to the merged PR | `tag == git tag` heuristic: right for 21 of those 25; no answer for the other 4 |
+| Trace pod → verified commit (86 real images) | 25 images (29%) carry a revision that GitHub confirms; **23 / 87 workloads** traced end-to-end, 19 of them on to the merged PR (21 of the 25 images link to a PR) | `tag == git tag` heuristic: right for 21 of those 25; no answer for the other 4 |
 | Runtime rules on real Tetragon events (30 events, 20 attack) | **recall 0.80, precision 0.89**; container escape, unmanaged C2 container and credential read are named with their control | v0.1 rules: recall 0.40, precision 0.80 |
-| Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty ROC-AUC 0.822, TPR 0.18 at 1% FPR (n=3) | STIDE n=6: AUC 0.827, TPR 0.00 at 1% FPR |
+| Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty n=5: ROC-AUC 0.822, TPR 0.08 at 1% FPR; n=3: AUC 0.799, TPR 0.18 at 1% FPR | STIDE n=6: AUC 0.827, TPR 0.00 at 1% FPR; STIDE n=3: AUC 0.695, TPR 0.17 at 1% FPR |
 | Trivy + CISA KEV on 49 real images | 15 critical / 432 high; 7 images with a critical, 18 ship a shell, **0** KEV hits; one Alpine layer → 8 workloads blast radius | n/a |
 | Latency, full analysis of the real corpus (470 nodes, 504 edges) | **14 ms**; one pod → commit trace takes 0.04 ms | n/a |
 
@@ -245,7 +245,7 @@ The models were fit on the 833 normal training traces and scored on 4,372 normal
 **Honest read:**
 
 - The frequency-weighted novelty model does not beat STIDE on AUC.
-- It is better at the low-FPR operating point that matters for alerting (0.18 vs 0.00 at 1% FPR).
+- At 1% FPR the n=3 variant detects 0.18 vs 0.00 for STIDE n=6, but STIDE n=3 gets 0.17 there, so the low-FPR edge comes mostly from the shorter window, not the frequency weighting. No single configuration wins on both AUC and low-FPR TPR.
 - Neither comes close to the ~90% detection at ~15% FAR that Creech & Hu (2014) report with semantic features.
 
 This is why STRATUM alerts on rules and uses anomaly scores only as `medium` context.
