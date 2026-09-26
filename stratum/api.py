@@ -1,0 +1,132 @@
+"""FastAPI service + lifecycle incident console.
+
+Run: ``uvicorn stratum.api:app`` (or ``python -m stratum serve``). The data
+source is chosen with ``STRATUM_SOURCE``: ``synthetic`` (default, no downloads
+needed), ``real`` (the $STRATUM_DATA corpus) or a path to a Dataset JSON.
+"""
+from __future__ import annotations
+
+import os
+from collections import Counter
+from functools import lru_cache
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, PlainTextResponse
+
+from . import __version__
+from .dataset import Dataset
+from .incident import analyze, replay_with_policy
+from .models import to_dict
+from .neo4j import to_cypher
+from .policy import CONTROLS, SEV
+from .synth import generate
+
+WEB = Path(__file__).parent / "web"
+app = FastAPI(title="STRATUM", version=__version__,
+              description="Open mini-CNAPP: code -> CI -> image -> pod -> runtime lifecycle graph")
+
+
+def _source() -> str:
+    return os.environ.get("STRATUM_SOURCE", "synthetic")
+
+
+@lru_cache(maxsize=4)
+def _load(src: str) -> Dataset:
+    if src == "synthetic":
+        return generate(7)
+    if src == "real":
+        from .realdata import real_dataset
+        return real_dataset()
+    return Dataset.load(src)
+
+
+@lru_cache(maxsize=4)
+def _analysis(src: str):
+    return analyze(_load(src))
+
+
+def _a():
+    return _analysis(_source())
+
+
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    return FileResponse(WEB / "index.html")
+
+
+@app.get("/api/summary")
+def summary() -> dict:
+    a, ds = _a(), _load(_source())
+    return {
+        "source": _source(), "version": __version__,
+        "nodes": len(a.graph.nodes), "edges": a.graph.edge_count(),
+        "workloads": len(ds.workloads), "namespaces": len(ds.namespaces), "images": len(ds.images),
+        "commits": len(ds.commits), "events": len(ds.events), "findings": len(a.findings),
+        "incidents": len(a.incidents),
+        "findings_by_control": dict(Counter(f.control_id for f in a.findings).most_common()),
+        "pss_levels": dict(Counter(w.pss_level or "n/a" for w in ds.workloads)),
+    }
+
+
+@app.get("/api/controls")
+def controls() -> list[dict]:
+    counts = Counter(f.control_id for f in _a().findings)
+    return [dict(to_dict(c), severity=SEV[c.id], findings=counts.get(c.id, 0)) for c in CONTROLS.values()]
+
+
+@app.get("/api/findings")
+def findings(control: str | None = None, limit: int = 500) -> list[dict]:
+    fs = [f for f in _a().findings if control in (None, f.control_id)]
+    return [to_dict(f) for f in fs[:limit]]
+
+
+@app.get("/api/workloads")
+def workloads() -> list[dict]:
+    a, ds = _a(), _load(_source())
+    per = Counter(f.subject for f in a.findings)
+    return [{"id": f"workload:{w.namespace}/{w.name}", "namespace": w.namespace, "name": w.name, "kind": w.kind,
+             "image": w.image_digest, "pss_level": w.pss_level, "source": w.source,
+             "findings": per.get(f"workload:{w.namespace}/{w.name}", 0),
+             "trace": a.graph.trace_upstream(f"workload:{w.namespace}/{w.name}")} for w in ds.workloads]
+
+
+@app.get("/api/incidents")
+def incidents() -> list[dict]:
+    return [to_dict(i) for i in _a().incidents]
+
+
+@app.get("/api/trace")
+def trace(node: str) -> dict:
+    g = _a().graph
+    if node not in g.nodes:
+        raise HTTPException(404, f"unknown node {node}")
+    chain = g.trace_upstream(node)
+    return {"chain": chain, "nodes": {n: g.nodes[n] for n in chain}}
+
+
+@app.get("/api/blast")
+def blast(base: str) -> dict:
+    g = _a().graph
+    nid = base if base.startswith(("base:", "image:", "commit:", "build:")) else f"base:{base}"
+    if nid not in g.nodes:
+        raise HTTPException(404, f"unknown node {nid}")
+    return {"start": nid, "workloads": g.blast_radius(nid)}
+
+
+@app.get("/api/bases")
+def bases() -> list[dict]:
+    g = _a().graph
+    return sorted(({"id": b, "workloads": len(g.blast_radius(b))} for b in g.of_type("base_image")),
+                  key=lambda x: -x["workloads"])
+
+
+@app.post("/api/prevent/{namespace}")
+def prevent(namespace: str) -> dict:
+    ds = Dataset.from_json(_load(_source()).to_json())  # copy: replay mutates
+    return replay_with_policy(ds, namespace)
+
+
+@app.get("/api/export/cypher", response_class=PlainTextResponse)
+def cypher() -> str:
+    return to_cypher(_a().graph)
