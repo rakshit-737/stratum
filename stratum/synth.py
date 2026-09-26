@@ -10,8 +10,7 @@ from __future__ import annotations
 import random
 
 from .dataset import Dataset
-from .models import (Build, Commit, Image, Namespace, NetworkPolicy, RuntimeEvent,
-                     ServiceAccount, Workload)
+from .models import Build, Commit, Image, Namespace, NetworkPolicy, RuntimeEvent, ServiceAccount, Workload
 
 BAD_BASE = "alpine:3.14.0"          # stands in for a base image with a known-critical CVE
 GOOD_BASE = "python:3.12-slim"
@@ -27,7 +26,7 @@ _SERVICES = [
 
 
 def _sha(rng: random.Random) -> str:
-    return "%040x" % rng.getrandbits(160)
+    return f"{rng.getrandbits(160):040x}"
 
 
 def generate(seed: int = 7, benign_per_pod: int = 40) -> Dataset:
@@ -51,7 +50,7 @@ def generate(seed: int = 7, benign_per_pod: int = 40) -> Dataset:
         ds.commits.append(Commit(sha, repo, author, f"feat({name}): release", pr))
         bid = f"gha-{1000 + i}"
         ds.builds.append(Build(bid, sha, "github-actions/release.yml", signed=True))
-        digest = "sha256:" + "%064x" % rng.getrandbits(256)
+        digest = "sha256:" + f"{rng.getrandbits(256):064x}"
         ds.images.append(Image(digest, f"ghcr.io/{repo}:1.{i}.0", bid, base,
                                layers=[f"base:{base}", f"app:{sha[:8]}"]))
         pods = [f"{name}-{rng.randrange(16**5):05x}-{k}" for k in range(2)]
@@ -60,7 +59,7 @@ def generate(seed: int = 7, benign_per_pod: int = 40) -> Dataset:
             procs[p] = (proc, ports)
 
     # drift: image pulled from a random registry, not built by the trusted pipeline
-    rogue = "sha256:" + "%064x" % rng.getrandbits(256)
+    rogue = "sha256:" + f"{rng.getrandbits(256):064x}"
     ds.images.append(Image(rogue, "docker.io/randomuser/debug-tools:latest", None, None))
     ds.workloads.append(Workload("debug-tools", "shop", "Pod", rogue, "default", pods=["debug-tools"]))
     procs["debug-tools"] = ("sleep", [])
