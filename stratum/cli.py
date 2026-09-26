@@ -151,6 +151,17 @@ def cmd_opa_check(a) -> int:
     return 0 if d["equivalent"] else 1
 
 
+def cmd_gatekeeper(a) -> int:
+    from .gatekeeper import export_yaml
+    text = export_yaml(a.level, a.action)
+    if a.out:
+        from pathlib import Path
+        Path(a.out).write_text(text, encoding="utf-8")
+    else:
+        print(text)
+    return 0
+
+
 def cmd_bench(a) -> int:
     from pathlib import Path
 
@@ -192,6 +203,10 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--out"); s.set_defaults(fn=cmd_export)
     s = sub.add_parser("opa-check", help="diff Python policy engine vs policies/stratum.rego (needs opa)")
     s.add_argument("--data"); s.set_defaults(fn=cmd_opa_check)
+    s = sub.add_parser("gatekeeper", help="export PSS Rego as a Gatekeeper ConstraintTemplate + Constraint")
+    s.add_argument("--level", choices=["baseline", "restricted"], default="restricted")
+    s.add_argument("--action", choices=["dryrun", "warn", "deny"], default="dryrun")
+    s.add_argument("--out"); s.set_defaults(fn=cmd_gatekeeper)
     s = sub.add_parser("bench", help="run real-data benchmarks into results/")
     s.add_argument("names", nargs="*"); s.add_argument("--data-dir"); s.add_argument("--out", default="results")
     s.set_defaults(fn=cmd_bench)
