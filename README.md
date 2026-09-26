@@ -61,7 +61,7 @@ flowchart LR
   PROV --> G
   ING --> G
   G --> POL[Zero-Trust policy engine, 13 controls]
-  POL <-. identical findings, checked in CI .-> REGO[policies/stratum.rego on OPA]
+  POL -. identical findings, diffed in CI .-> REGO[policies/stratum.rego on OPA]
   G --> DET[runtime rules + anomaly scoring]
   DET --> INC[Incident: root commit, PR, failed control, blast radius, fix]
   POL --> INC
