@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stratum"
-version = "0.2.0"
+version = "1.0.0"
 description = "Open mini-CNAPP: code-to-runtime lifecycle graph, Zero-Trust policy (Python + Rego), trace-to-commit"
 readme = "README.md"
 license = { text = "MIT" }

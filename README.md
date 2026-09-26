@@ -3,6 +3,7 @@
 [![ci](https://github.com/rakshit-737/stratum/actions/workflows/ci.yml/badge.svg)](https://github.com/rakshit-737/stratum/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.10%E2%80%933.14-blue)
 [![license: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://rakshit-737.github.io/stratum/)
 ![policy: OPA/Rego](https://img.shields.io/badge/policy-OPA%2FRego%20v1-7d4cdb)
 
 **An open mini-CNAPP.** STRATUM puts `commit → CI build → image → Kubernetes workload → pod → runtime event` into one graph and checks 13 Zero-Trust controls against it. The controls are written in Python and mirrored in Rego. When a runtime alert fires, STRATUM traces it back to the commit and PR that shipped the code and names the control that should have stopped it. It also lists every other workload built on the same base OS release (the blast radius).
@@ -15,6 +16,8 @@ v0.2 runs on real public data:
 - real Cilium Tetragon events from a container-escape and C2 attack chain
 - the ADFA-LD syscall benchmark
 
+Documentation: **https://rakshit-737.github.io/stratum/** (with a [static demo of the console](https://rakshit-737.github.io/stratum/demo/) on the real-data snapshot).
+
 > Lab-only, defensive tool. It reads public manifests, registry metadata and published event logs, and it never changes a cluster. See [Safety](#safety).
 
 ## Headline results (real data)
@@ -26,7 +29,7 @@ v0.2 runs on real public data:
 | Rego mirror vs Python engine on the full corpus | **292 / 292 identical findings** (OPA 1.21), including scan-derived controls | n/a |
 | Trace pod → verified commit (86 real images) | 25 images (29%) carry a revision that GitHub confirms; **23 / 87 workloads** traced end-to-end, 19 of them on to the merged PR (21 of the 25 images link to a PR) | `tag == git tag` heuristic: right for 21 of those 25; no answer for the other 4 |
 | Runtime rules on real Tetragon events (30 events, 20 attack) | **recall 0.80, precision 0.89**; container escape, unmanaged C2 container and credential read are named with their control | v0.1 rules: recall 0.40, precision 0.80 |
-| Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty n=5: ROC-AUC 0.822, TPR 0.08 at 1% FPR; n=3: AUC 0.799, TPR 0.18 at 1% FPR | STIDE n=6: AUC 0.827, TPR 0.00 at 1% FPR; STIDE n=3: AUC 0.695, TPR 0.17 at 1% FPR |
+| Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty n=5: ROC-AUC 0.822 (95% CI 0.803-0.841), TPR 0.08 at 1% FPR; n=3: AUC 0.799, TPR 0.18 at 1% FPR | STIDE n=6: AUC 0.827 (0.811-0.844), TPR 0.00 at 1% FPR; STIDE n=3: AUC 0.695, TPR 0.17 at 1% FPR |
 | Trivy + CISA KEV on 49 real images | 15 critical / 432 high; 7 images with a critical, 18 ship a shell, **0** KEV hits; one base OS release (Alpine 3.24.1) → 8 workloads blast radius | n/a |
 | Latency, full analysis of the real corpus (470 nodes, 504 edges) | **14 ms**; one pod → commit trace takes 0.04 ms | n/a |
 
@@ -103,6 +106,7 @@ kubectl get deploy,ds,sts,job,cronjob,pod,sa,netpol,clusterrole,clusterrolebindi
 python -m stratum collect live.yaml --tetragon tetragon-events.json --out live.json
 python -m stratum export --data live.json --format cypher --out graph.cypher   # Neo4j
 python -m stratum opa-check --data live.json                               # Rego == Python?
+python -m stratum gatekeeper --level restricted --out stratum-pss.yaml     # Gatekeeper ConstraintTemplate
 ```
 
 ## Reproducing the results
@@ -234,17 +238,21 @@ The two false positives are `curl www.google.com` (external egress) and `sh life
 
 The models were fit on the 833 normal training traces and scored on 4,372 normal and 746 attack traces. No attack data was used for fitting or tuning.
 
-| detector | ROC-AUC | TPR @1% FPR | TPR @5% FPR | TPR @15% FPR |
+95% confidence intervals come from a stratified percentile bootstrap over the test traces (500 resamples). The Isolation Forest is the only stochastic model; its AUC is also given as mean ± sd over seeds 0-4.
+
+| detector | ROC-AUC [95% CI] | TPR @1% FPR [95% CI] | TPR @5% FPR [95% CI] | TPR @15% FPR |
 |---|---:|---:|---:|---:|
-| STIDE n=6 (Forrest et al. 1996), baseline | **0.827** | 0.000 | 0.218 | **0.627** |
-| STRATUM n-gram novelty n=5 | 0.822 | 0.082 | 0.241 | 0.564 |
-| STRATUM n-gram novelty n=3 | 0.799 | **0.176** | 0.265 | 0.537 |
-| STIDE n=3 | 0.695 | 0.170 | **0.318** | 0.576 |
-| Isolation Forest, TF-IDF 1..3-grams | 0.568 | 0.001 | 0.039 | 0.172 |
+| STIDE n=6 (Forrest et al. 1996), baseline | **0.827** [0.811, 0.844] | 0.000 [0.000, 0.000] | 0.218 [0.186, 0.251] | **0.627** |
+| STRATUM n-gram novelty n=5 | 0.822 [0.803, 0.841] | 0.082 [0.055, 0.133] | 0.241 [0.205, 0.275] | 0.564 |
+| STRATUM n-gram novelty n=3 | 0.799 [0.780, 0.818] | **0.176** [0.107, 0.214] | 0.265 [0.232, 0.306] | 0.537 |
+| STIDE n=3 | 0.695 [0.672, 0.721] | 0.170 [0.110, 0.209] | **0.318** [0.271, 0.359] | 0.576 |
+| Isolation Forest, TF-IDF 1..3-grams (seed 0) | 0.568 [0.547, 0.588] | 0.001 [0.000, 0.005] | 0.039 [0.024, 0.062] | 0.172 |
+| Isolation Forest, seeds 0-4 | 0.483 ± 0.068 | | | |
 
 **Honest read:**
 
-- The frequency-weighted novelty model does not beat STIDE on AUC.
+- The frequency-weighted novelty model does not beat STIDE on AUC: novelty n=5 and STIDE n=6 have overlapping CIs, so they are statistically indistinguishable here.
+- The Isolation Forest is no better than chance once seed variance is counted (the earlier single-seed 0.568 was a favourable seed).
 - At 1% FPR the n=3 variant detects 0.18 vs 0.00 for STIDE n=6, but STIDE n=3 gets 0.17 there, so the low-FPR edge comes mostly from the shorter window, not the frequency weighting. No single configuration wins on both AUC and low-FPR TPR.
 - Neither comes close to the ~90% detection at ~15% FAR that Creech & Hu (2014) report with semantic features.
 
@@ -272,7 +280,8 @@ STRATUM does not compete with commercial CNAPPs. It is a small, readable, graph-
 - **Weak syscall models on ADFA-LD.** They are also not container workloads.
 - **Scan budget.** Image scans are budget-limited because of bandwidth. The largest images (for example Jenkins, argo-cd and the Falco driver loader) were skipped; see the scans section.
 - **Simulated egress enforcement.** It models CIDR only (no DNS, ports or L7).
-- **PSS semantics.** Only the latest (v1.37) semantics are implemented.
+- **PSS semantics.** Only the latest (v1.37) semantics are implemented. The Gatekeeper export covers 8 of 19 checks and has not been applied to a live Gatekeeper install (no cluster on the dev machine).
+- **Needs hardware or people.** Live kube-API/Tetragon collectors need a running Linux cluster with eBPF; the mean-time-to-root-cause study needs human participants. Both stay on the roadmap.
 
 ## Roadmap
 
@@ -280,7 +289,8 @@ STRATUM does not compete with commercial CNAPPs. It is a small, readable, graph-
 - [ ] Verify cosign signatures and SLSA/in-toto provenance (sigstore-python); parse BuildKit attestations
 - [ ] Container-native runtime evaluation (LID-DS 2021, CB-DS) and sequence models
 - [ ] Mean-time-to-root-cause user study: STRATUM vs siloed tools (the spec's research question)
-- [ ] Rego for the PSS checks; Gatekeeper `ConstraintTemplate` export
+- [x] Gatekeeper `ConstraintTemplate` export (`stratum gatekeeper`) for the 8 field-test PSS checks, Rego diffed against Python in tests
+- [ ] Rego for the remaining 11 PSS checks (AppArmor, SELinux, seccomp, sysctls, ...)
 - [ ] Per-version PSS semantics; RBAC path analysis in Neo4j
 
 ## Safety

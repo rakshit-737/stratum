@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.0.0] - 2026-09-26
+
+### Added
+- `stratum gatekeeper`: exports `policies/pss/pss.rego` (8 field-test Pod Security Standards checks in Rego v1) as an OPA Gatekeeper `ConstraintTemplate` + `Constraint` (dryrun by default). Tests diff the Rego against the Python PSS engine with `opa`, on the committed fixtures, on workload templates (Deployment, CronJob), and on every Pod in the upstream PSA v0.37.1 testdata when the corpus is present. There were no disagreements.
+- ADFA-LD benchmark: 95% stratified bootstrap confidence intervals for AUC and TPR at 1% and 5% FPR. The Isolation Forest now runs over 5 seeds (mean ± sd).
+- MkDocs Material documentation site on GitHub Pages, with a mkdocstrings API reference and a static snapshot of the incident console on the real-data corpus (`/demo/`, built by `scripts/build_static_demo.py`).
+- Release workflow: on a `v*` tag it pushes a container image to `ghcr.io/rakshit-737/stratum` and creates a GitHub Release with the wheel and sdist attached.
+
+### Changed
+- The Isolation Forest ADFA-LD result is corrected. With seed variance counted, its AUC is 0.483 ± 0.068 (seeds 0-4); the single-seed 0.568 reported in 0.2.0 was a favourable seed. Novelty n=5 and STIDE n=6 have overlapping AUC CIs.
+- The Dockerfile now carries OCI labels, and `docker-compose.yml` references the published image.
+
 ## [0.2.0] - 2026-09-26
 
 The project moves from a synthetic MVP to a real-data pipeline.
