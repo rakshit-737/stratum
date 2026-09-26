@@ -4,7 +4,7 @@
 |---|---:|---:|
 | manifest resolved to digest | 86 | 100.0 |
 | OCI source label -> GitHub repo | 43 | 50.0 |
-| OCI revision label | 27 | 31.4 |
+| revision (label or source URL) | 27 | 31.4 |
 | commit verified on GitHub | 25 | 29.1 |
 | commit linked to a merged PR | 21 | 24.4 |
 | cosign signature artefact | 32 | 37.2 |

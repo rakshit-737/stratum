@@ -1,0 +1,775 @@
+{
+ "images_scanned": 49,
+ "skipped_budget": 37,
+ "failed": 0,
+ "vulns_by_severity": {
+  "CRITICAL": 15,
+  "HIGH": 432,
+  "MEDIUM": 342,
+  "LOW": 326,
+  "UNKNOWN": 30
+ },
+ "images_with_critical": 7,
+ "images_with_kev": 0,
+ "kev_cves": {},
+ "images_with_shell": 18,
+ "base_os": {
+  "alpine 3.24.1": 9,
+  "none (distroless/static)": 6,
+  "debian 13.6": 5,
+  "debian 13.7": 5,
+  "alpine 3.25.0_alpha20260805": 5,
+  "alpine 3.24.0": 4,
+  "alpine 3.23.5": 3,
+  "wolfi 20230201": 2,
+  "debian 13.5": 2,
+  "alpine 3.22.4": 1,
+  "alpine 3.23.3": 1,
+  "debian 12.14": 1,
+  "alpine 3.22.3": 1,
+  "alpine 3.23.6": 1,
+  "photon 5.0": 1,
+  "debian 13.4": 1,
+  "ubuntu 24.04": 1
+ },
+ "blast_radius_by_base": [
+  {
+   "base": "base:alpine 3.24.1",
+   "workloads": 8,
+   "examples": [
+    "workload:jenkins/jenkins-ui-test-rixly",
+    "workload:kube-flannel/kube-flannel-ds",
+    "workload:online-boutique/currencyservice",
+    "workload:online-boutique/emailservice",
+    "workload:online-boutique/loadgenerator",
+    "workload:online-boutique/paymentservice"
+   ]
+  },
+  {
+   "base": "base:debian 13.6",
+   "workloads": 5,
+   "examples": [
+    "workload:cert-manager/cert-manager",
+    "workload:cert-manager/cert-manager-cainjector",
+    "workload:cert-manager/cert-manager-webhook",
+    "workload:kube-system/kube-state-metrics",
+    "workload:kube-system/sealed-secrets-controller"
+   ]
+  },
+  {
+   "base": "base:debian 13.7",
+   "workloads": 5,
+   "examples": [
+    "workload:cnpg-system/cnpg-controller-manager",
+    "workload:online-boutique/checkoutservice",
+    "workload:online-boutique/frontend",
+    "workload:online-boutique/productcatalogservice",
+    "workload:online-boutique/shippingservice"
+   ]
+  },
+  {
+   "base": "base:alpine 3.24.0",
+   "workloads": 4,
+   "examples": [
+    "workload:knative-serving/activator",
+    "workload:knative-serving/autoscaler",
+    "workload:knative-serving/controller",
+    "workload:knative-serving/webhook"
+   ]
+  },
+  {
+   "base": "base:alpine 3.25.0_alpha20260805",
+   "workloads": 4,
+   "examples": [
+    "workload:kyverno/kyverno-admission-controller",
+    "workload:kyverno/kyverno-background-controller",
+    "workload:kyverno/kyverno-cleanup-controller",
+    "workload:kyverno/kyverno-reports-controller"
+   ]
+  },
+  {
+   "base": "base:alpine 3.23.5",
+   "workloads": 3,
+   "examples": [
+    "workload:flux-system/image-automation-controller",
+    "workload:flux-system/image-reflector-controller",
+    "workload:flux-system/source-watcher"
+   ]
+  },
+  {
+   "base": "base:debian 12.14",
+   "workloads": 2,
+   "examples": [
+    "workload:gatekeeper-system/gatekeeper-audit",
+    "workload:gatekeeper-system/gatekeeper-controller-manager"
+   ]
+  },
+  {
+   "base": "base:debian 13.5",
+   "workloads": 2,
+   "examples": [
+    "workload:kube-system/metrics-server",
+    "workload:metallb-system/controller"
+   ]
+  },
+  {
+   "base": "base:photon 5.0",
+   "workloads": 2,
+   "examples": [
+    "workload:redis-bitnami/redis-bitnami-master",
+    "workload:redis-bitnami/redis-bitnami-replicas"
+   ]
+  },
+  {
+   "base": "base:debian 13.4",
+   "workloads": 2,
+   "examples": [
+    "workload:ingress-nginx/ingress-nginx-admission-create",
+    "workload:ingress-nginx/ingress-nginx-admission-patch"
+   ]
+  }
+ ],
+ "per_image": [
+  {
+   "ref": "kubernetesui/metrics-scraper:v1.0.8",
+   "os": "",
+   "packages": 45,
+   "CRITICAL": 5,
+   "HIGH": 68,
+   "MEDIUM": 60,
+   "LOW": 4,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "ghcr.io/dexidp/dex:v2.45.1",
+   "os": "alpine 3.23.3",
+   "packages": 286,
+   "CRITICAL": 4,
+   "HIGH": 66,
+   "MEDIUM": 51,
+   "LOW": 38,
+   "UNKNOWN": 2,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "public.ecr.aws/docker/library/redis:8.2.3-alpine",
+   "os": "alpine 3.22.3",
+   "packages": 22,
+   "CRITICAL": 2,
+   "HIGH": 21,
+   "MEDIUM": 23,
+   "LOW": 32,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "docker.io/bats/bats:1.14.0",
+   "os": "alpine 3.24.1",
+   "packages": 24,
+   "CRITICAL": 1,
+   "HIGH": 2,
+   "MEDIUM": 6,
+   "LOW": 12,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "quay.io/metallb/controller:v0.16.0",
+   "os": "debian 13.5",
+   "packages": 105,
+   "CRITICAL": 1,
+   "HIGH": 25,
+   "MEDIUM": 10,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/currencyservice:v0.10.7",
+   "os": "alpine 3.24.1",
+   "packages": 370,
+   "CRITICAL": 1,
+   "HIGH": 20,
+   "MEDIUM": 18,
+   "LOW": 15,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/paymentservice:v0.10.7",
+   "os": "alpine 3.24.1",
+   "packages": 337,
+   "CRITICAL": 1,
+   "HIGH": 20,
+   "MEDIUM": 18,
+   "LOW": 15,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "busybox:1.38.0@sha256:dc2d74b28e4cf8984fa52af1f39bc7c3d9c73760b41a74d629f5d11b1ab28616",
+   "os": "",
+   "packages": 0,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "docker.io/bitnami/sealed-secrets-controller:0.40.0",
+   "os": "debian 13.6",
+   "packages": 77,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "docker.io/falcosecurity/falco:0.45.0",
+   "os": "wolfi 20230201",
+   "packages": 43,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox"
+   ]
+  },
+  {
+   "ref": "docker.io/falcosecurity/falcoctl:0.14.2",
+   "os": "wolfi 20230201",
+   "packages": 318,
+   "CRITICAL": 0,
+   "HIGH": 2,
+   "MEDIUM": 2,
+   "LOW": 1,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "docker.io/kiwigrid/k8s-sidecar:2.11.2",
+   "os": "alpine 3.22.4",
+   "packages": 54,
+   "CRITICAL": 0,
+   "HIGH": 6,
+   "MEDIUM": 3,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "docker.io/rancher/local-path-provisioner:v0.0.37",
+   "os": "",
+   "packages": 54,
+   "CRITICAL": 0,
+   "HIGH": 8,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "gcr.io/knative-releases/knative.dev/serving/cmd/activator@sha256:e5ab46f3b73fa2e3898fe47f6a3a0c2bd765596f4fb36ceb4c28c35d0a74b2e5",
+   "os": "alpine 3.24.0",
+   "packages": 96,
+   "CRITICAL": 0,
+   "HIGH": 10,
+   "MEDIUM": 1,
+   "LOW": 4,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "gcr.io/knative-releases/knative.dev/serving/cmd/autoscaler@sha256:879da127b23db65d862cafa6b23fb987381d0e44150f0027d44e1f5aee83bde2",
+   "os": "alpine 3.24.0",
+   "packages": 96,
+   "CRITICAL": 0,
+   "HIGH": 10,
+   "MEDIUM": 1,
+   "LOW": 4,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "gcr.io/knative-releases/knative.dev/serving/cmd/controller@sha256:ca5062ece0329d002a81940cf4268d7898866434d70049bb93f27d3a786d3292",
+   "os": "alpine 3.24.0",
+   "packages": 140,
+   "CRITICAL": 0,
+   "HIGH": 12,
+   "MEDIUM": 3,
+   "LOW": 4,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "gcr.io/knative-releases/knative.dev/serving/cmd/webhook@sha256:3846e9a416665c5b9ec2e4de246cfcb5c4ab0d01ba19348aa008caf30144b650",
+   "os": "alpine 3.24.0",
+   "packages": 99,
+   "CRITICAL": 0,
+   "HIGH": 10,
+   "MEDIUM": 1,
+   "LOW": 4,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "ghcr.io/cloudnative-pg/cloudnative-pg:1.30.1",
+   "os": "debian 13.7",
+   "packages": 192,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "ghcr.io/flannel-io/flannel-cni-plugin:v1.9.1-flannel3",
+   "os": "alpine 3.24.1",
+   "packages": 21,
+   "CRITICAL": 0,
+   "HIGH": 10,
+   "MEDIUM": 6,
+   "LOW": 12,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "ghcr.io/flannel-io/flannel:v0.28.9",
+   "os": "alpine 3.24.1",
+   "packages": 129,
+   "CRITICAL": 0,
+   "HIGH": 13,
+   "MEDIUM": 12,
+   "LOW": 18,
+   "UNKNOWN": 2,
+   "kev": [],
+   "shells": [
+    "bash",
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "ghcr.io/fluxcd/image-automation-controller:v1.2.5",
+   "os": "alpine 3.23.5",
+   "packages": 197,
+   "CRITICAL": 0,
+   "HIGH": 7,
+   "MEDIUM": 10,
+   "LOW": 12,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "ghcr.io/fluxcd/image-reflector-controller:v1.2.5",
+   "os": "alpine 3.23.5",
+   "packages": 173,
+   "CRITICAL": 0,
+   "HIGH": 6,
+   "MEDIUM": 9,
+   "LOW": 12,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "ghcr.io/fluxcd/source-watcher:v2.2.4",
+   "os": "alpine 3.23.5",
+   "packages": 134,
+   "CRITICAL": 0,
+   "HIGH": 4,
+   "MEDIUM": 6,
+   "LOW": 12,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "hashicorp/vault-k8s:1.7.6",
+   "os": "alpine 3.24.1",
+   "packages": 112,
+   "CRITICAL": 0,
+   "HIGH": 11,
+   "MEDIUM": 8,
+   "LOW": 12,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "openpolicyagent/gatekeeper:v3.23.1",
+   "os": "debian 12.14",
+   "packages": 137,
+   "CRITICAL": 0,
+   "HIGH": 3,
+   "MEDIUM": 3,
+   "LOW": 3,
+   "UNKNOWN": 2,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "quay.io/cilium/hubble-export-stdout:v1.1.1",
+   "os": "",
+   "packages": 0,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "quay.io/cilium/tetragon-operator:v1.7.1",
+   "os": "",
+   "packages": 70,
+   "CRITICAL": 0,
+   "HIGH": 2,
+   "MEDIUM": 1,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "quay.io/jetstack/cert-manager-cainjector:v1.21.2",
+   "os": "debian 13.6",
+   "packages": 83,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "quay.io/jetstack/cert-manager-controller:v1.21.2",
+   "os": "debian 13.6",
+   "packages": 184,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "quay.io/jetstack/cert-manager-webhook:v1.21.2",
+   "os": "debian 13.6",
+   "packages": 102,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "quay.io/prometheus-operator/prometheus-operator:v0.94.1",
+   "os": "",
+   "packages": 161,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 2,
+   "LOW": 1,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "redis:alpine",
+   "os": "alpine 3.23.6",
+   "packages": 22,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/background-controller:v1.19.1",
+   "os": "alpine 3.25.0_alpha20260805",
+   "packages": 338,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/cleanup-controller:v1.19.1",
+   "os": "alpine 3.25.0_alpha20260805",
+   "packages": 339,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/kyverno:v1.19.1",
+   "os": "alpine 3.25.0_alpha20260805",
+   "packages": 341,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/kyvernopre:v1.19.1",
+   "os": "alpine 3.25.0_alpha20260805",
+   "packages": 338,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "reg.kyverno.io/kyverno/reports-controller:v1.19.1",
+   "os": "alpine 3.25.0_alpha20260805",
+   "packages": 338,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "registry-1.docker.io/bitnami/redis:latest",
+   "os": "photon 5.0",
+   "packages": 82,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "bash"
+   ]
+  },
+  {
+   "ref": "registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.6.9@sha256:01038e7de14b78d702d2849c3aad72fd25903c4765af63cf16aa3398f5d5f2dd",
+   "os": "debian 13.4",
+   "packages": 58,
+   "CRITICAL": 0,
+   "HIGH": 26,
+   "MEDIUM": 11,
+   "LOW": 0,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0",
+   "os": "debian 13.6",
+   "packages": 109,
+   "CRITICAL": 0,
+   "HIGH": 4,
+   "MEDIUM": 4,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "registry.k8s.io/metrics-server/metrics-server:v0.9.0",
+   "os": "debian 13.5",
+   "packages": 111,
+   "CRITICAL": 0,
+   "HIGH": 14,
+   "MEDIUM": 5,
+   "LOW": 3,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/cartservice:v0.10.7",
+   "os": "ubuntu 24.04",
+   "packages": 8,
+   "CRITICAL": 0,
+   "HIGH": 2,
+   "MEDIUM": 30,
+   "LOW": 44,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/checkoutservice:v0.10.7",
+   "os": "debian 13.7",
+   "packages": 49,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 2,
+   "LOW": 0,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/emailservice:v0.10.7",
+   "os": "alpine 3.24.1",
+   "packages": 86,
+   "CRITICAL": 0,
+   "HIGH": 17,
+   "MEDIUM": 10,
+   "LOW": 12,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend:v0.10.7",
+   "os": "debian 13.7",
+   "packages": 55,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 2,
+   "LOW": 0,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/loadgenerator:v0.10.7",
+   "os": "alpine 3.24.1",
+   "packages": 103,
+   "CRITICAL": 0,
+   "HIGH": 16,
+   "MEDIUM": 12,
+   "LOW": 13,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/productcatalogservice:v0.10.7",
+   "os": "debian 13.7",
+   "packages": 65,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 2,
+   "LOW": 0,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/recommendationservice:v0.10.7",
+   "os": "alpine 3.24.1",
+   "packages": 82,
+   "CRITICAL": 0,
+   "HIGH": 17,
+   "MEDIUM": 10,
+   "LOW": 12,
+   "UNKNOWN": 0,
+   "kev": [],
+   "shells": [
+    "busybox",
+    "busybox-binsh"
+   ]
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice:v0.10.7",
+   "os": "debian 13.7",
+   "packages": 41,
+   "CRITICAL": 0,
+   "HIGH": 0,
+   "MEDIUM": 0,
+   "LOW": 0,
+   "UNKNOWN": 1,
+   "kev": [],
+   "shells": []
+  }
+ ]
+}

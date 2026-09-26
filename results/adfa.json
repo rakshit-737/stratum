@@ -5,7 +5,7 @@
  "detectors": {
   "STIDE n=6 (baseline, Forrest 1996)": {
    "auc": 0.8273,
-   "seconds": 17.3,
+   "seconds": 7.7,
    "tpr@0.01": 0.0,
    "fpr_real@0.01": 0.0,
    "tpr@0.05": 0.2185,
@@ -23,7 +23,7 @@
   },
   "STIDE n=3": {
    "auc": 0.6951,
-   "seconds": 11.5,
+   "seconds": 5.9,
    "tpr@0.01": 0.1702,
    "fpr_real@0.01": 0.0096,
    "tpr@0.05": 0.3177,
@@ -41,7 +41,7 @@
   },
   "STRATUM n-gram novelty n=3": {
    "auc": 0.7989,
-   "seconds": 21.5,
+   "seconds": 12.4,
    "tpr@0.01": 0.1756,
    "fpr_real@0.01": 0.0098,
    "tpr@0.05": 0.2654,
@@ -59,7 +59,7 @@
   },
   "STRATUM n-gram novelty n=5": {
    "auc": 0.822,
-   "seconds": 26.5,
+   "seconds": 15.2,
    "tpr@0.01": 0.0818,
    "fpr_real@0.01": 0.0098,
    "tpr@0.05": 0.2413,
@@ -77,7 +77,7 @@
   },
   "Isolation Forest, TF-IDF 1..3-grams": {
    "auc": 0.5679,
-   "seconds": 98.3,
+   "seconds": 60.6,
    "tpr@0.01": 0.0013,
    "fpr_real@0.01": 0.0098,
    "tpr@0.05": 0.0389,

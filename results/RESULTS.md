@@ -71,7 +71,7 @@ Workloads needing hardening flagged by the v0.1 heuristic vs full PSS: v0.1 heur
 |---|---:|---:|
 | manifest resolved to digest | 86 | 100.0 |
 | OCI source label -> GitHub repo | 43 | 50.0 |
-| OCI revision label | 27 | 31.4 |
+| revision (label or source URL) | 27 | 31.4 |
 | commit verified on GitHub | 25 | 29.1 |
 | commit linked to a merged PR | 21 | 24.4 |
 | cosign signature artefact | 32 | 37.2 |
@@ -80,6 +80,28 @@ Workloads needing hardening flagged by the v0.1 heuristic vs full PSS: v0.1 heur
 Workloads traced end-to-end (pod -> image -> verified commit): **23 / 87**.
 
 Baseline, the `image tag == git tag` heuristic: of 25 images with a verified embedded commit, a same-named git tag existed for 21 and pointed at the embedded commit for 21.
+
+
+### Trivy scans of 49 real images (+ CISA KEV join)
+
+| critical | high | medium | low | images w/ critical | images w/ KEV CVE | images shipping a shell |
+|---:|---:|---:|---:|---:|---:|---:|
+| 15 | 432 | 342 | 326 | 7 | 0 | 18 |
+
+Blast radius by base OS layer (workloads whose image is built on it):
+
+| base | workloads | examples |
+|---|---:|---|
+| `base:alpine 3.24.1` | 8 | jenkins/jenkins-ui-test-rixly, kube-flannel/kube-flannel-ds, online-boutique/currencyservice, online-boutique/emailservice, online-boutique/loadgenerator, online-boutique/paymentservice |
+| `base:debian 13.6` | 5 | cert-manager/cert-manager, cert-manager/cert-manager-cainjector, cert-manager/cert-manager-webhook, kube-system/kube-state-metrics, kube-system/sealed-secrets-controller |
+| `base:debian 13.7` | 5 | cnpg-system/cnpg-controller-manager, online-boutique/checkoutservice, online-boutique/frontend, online-boutique/productcatalogservice, online-boutique/shippingservice |
+| `base:alpine 3.24.0` | 4 | knative-serving/activator, knative-serving/autoscaler, knative-serving/controller, knative-serving/webhook |
+| `base:alpine 3.25.0_alpha20260805` | 4 | kyverno/kyverno-admission-controller, kyverno/kyverno-background-controller, kyverno/kyverno-cleanup-controller, kyverno/kyverno-reports-controller |
+| `base:alpine 3.23.5` | 3 | flux-system/image-automation-controller, flux-system/image-reflector-controller, flux-system/source-watcher |
+| `base:debian 12.14` | 2 | gatekeeper-system/gatekeeper-audit, gatekeeper-system/gatekeeper-controller-manager |
+| `base:debian 13.5` | 2 | kube-system/metrics-server, metallb-system/controller |
+| `base:photon 5.0` | 2 | redis-bitnami/redis-bitnami-master, redis-bitnami/redis-bitnami-replicas |
+| `base:debian 13.4` | 2 | ingress-nginx/ingress-nginx-admission-create, ingress-nginx/ingress-nginx-admission-patch |
 
 
 ### Runtime rules on real Tetragon events (30 security-relevant events, 20 labelled attack)
@@ -146,8 +168,8 @@ Per attack family, TPR at 5% FPR:
 | Isolation Forest, TF-IDF 1..3-grams | 0.00 | 0.03 | 0.13 | 0.00 | 0.00 | 0.02 |
 
 
-### Performance (real corpus: 460 nodes / 476 edges, 95 workloads, 30 runtime events; median of 5)
+### Performance (real corpus: 470 nodes / 504 edges, 95 workloads, 30 runtime events; median of 5)
 
 | load corpus | build graph | evaluate policy | trace one pod to commit | full analyze |
 |---:|---:|---:|---:|---:|
-| 54135.3 ms | 14.16 ms | 8.753 ms | 0.07 ms | 22.324 ms |
+| 8016.4 ms | 7.356 ms | 1.591 ms | 0.041 ms | 14.087 ms |

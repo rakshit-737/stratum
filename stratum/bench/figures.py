@@ -90,7 +90,7 @@ def render(results: dict, out: Path) -> None:
     if "scans" in results and results["scans"]["per_image"]:
         rows = sorted(results["scans"]["per_image"], key=lambda x: (x["CRITICAL"], x["HIGH"]), reverse=True)[:15][::-1]
         fig, ax = plt.subplots(figsize=(6.4, 4.4), dpi=130)
-        names = [r["ref"].split("/")[-1][:38] for r in rows]
+        names = ["/".join(r["ref"].split("@")[0].split("/")[-2:])[-42:] for r in rows]
         left = [0] * len(rows)
         for i, sev in enumerate(("CRITICAL", "HIGH", "MEDIUM")):
             vals = [r[sev] for r in rows]
