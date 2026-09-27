@@ -105,8 +105,11 @@ jobs:
           grep '"namespace":"stratum-live"' live-out/tetragon-all.json > live-out/tetragon-events.json || true
           wc -l live-out/tetragon-all.json live-out/tetragon-events.json
           kubectl get pods -A -o json > live-out/pods.json
+          kubectl get constrainttemplate stratumpodsecurity -o yaml > live-out/template-status.yaml || true
+          kubectl get stratumpodsecurity -o yaml > live-out/constraint-status.yaml || true
       - name: STRATUM detection + trace-to-commit
         run: |
+          set -o pipefail
           python -m stratum live-check --manifests live-out/workloads.yaml --pods live-out/pods.json \
             --events live-out/tetragon-events.json --image-ref "$IMAGE@${{ steps.img.outputs.digest }}" \
             --digest ${{ steps.img.outputs.digest }} --commit ${{ github.sha }} --run-id ${{ github.run_id }} \
