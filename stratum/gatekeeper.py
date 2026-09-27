@@ -25,7 +25,10 @@ POD_KINDS = [{"apiGroups": [""], "kinds": ["Pod"]},
 
 
 def template_rego() -> str:
-    return PSS_REGO.read_text(encoding="utf-8").replace("package stratum.pss", f"package {KIND.lower()}", 1)
+    # Gatekeeper parses template Rego as v0 and rejects `import rego.v1` (found by the live kind job);
+    # `import future.keywords` gives v0 the same keywords (if / contains / in / every).
+    src = PSS_REGO.read_text(encoding="utf-8").replace("package stratum.pss", f"package {KIND.lower()}", 1)
+    return src.replace("import rego.v1", "import future.keywords", 1)
 
 
 def constraint_template() -> dict:

@@ -63,3 +63,11 @@ def test_rego_matches_python_on_upstream_testdata():
     got = rego_violations(pods)
     bad = [p["metadata"]["name"] for p, g in zip(pods, got) if g != _python(p)]
     assert not bad, bad[:10]
+
+
+def test_template_rego_is_gatekeeper_v0_parsable():
+    # Gatekeeper rejects `import rego.v1` in templates (seen on a live kind cluster)
+    from stratum.gatekeeper import template_rego
+    src = template_rego()
+    assert "import rego.v1" not in src and "import future.keywords" in src
+    assert "violation contains" in src or "violation[" in src

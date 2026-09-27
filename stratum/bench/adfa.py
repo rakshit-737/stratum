@@ -74,7 +74,42 @@ def run(root: Path, roc: bool = True, n_boot: int = N_BOOT) -> dict:
         if roc:
             res["_roc"] = _roc_points(neg, sp)
         out["detectors"][name] = res
+    out["resplit"] = resplit(d)
     return out
+
+
+RESPLIT_SEEDS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+T975 = {4: 2.776, 9: 2.262}   # Student t 0.975 quantiles for df = n_seeds - 1
+
+
+def resplit(d: dict, seeds=RESPLIT_SEEDS) -> dict:
+    """Harder check of split luck: pool all 5,205 normals, draw a fresh 833-trace training set per seed,
+    test on the remaining normals vs all attacks. Mean AUC with a t-based 95% CI over seeds."""
+    import random
+    normals = d["train"] + d["val"]
+    pos = [t for _, t in d["attack"]]
+    out = {}
+    for name, make in (("STIDE n=6", lambda: Stide(6)), ("STIDE n=3", lambda: Stide(3)),
+                       ("STRATUM n-gram novelty n=3", lambda: NgramNovelty(3)),
+                       ("STRATUM n-gram novelty n=5", lambda: NgramNovelty(5))):
+        aucs, tprs = [], []
+        for sd in seeds:
+            idx = list(range(len(normals)))
+            random.Random(sd).shuffle(idx)
+            tr = [normals[i] for i in idx[:len(d["train"])]]
+            te = [normals[i] for i in idx[len(d["train"]):]]
+            neg, sp = _scores(make(), tr, te, pos)
+            aucs.append(roc_auc(neg, sp))
+            tprs.append(tpr_at_fpr(neg, sp, 0.01)[0])
+        n = len(aucs)
+
+        def stat(xs, n=n):
+            mu = sum(xs) / n
+            sd_ = (sum((x - mu) ** 2 for x in xs) / (n - 1)) ** 0.5
+            h = T975.get(n - 1, 1.96) * sd_ / n ** 0.5
+            return {"mean": round(mu, 4), "sd": round(sd_, 4), "ci95": [round(mu - h, 4), round(mu + h, 4)]}
+        out[name] = {"auc": stat(aucs), "tpr@0.01": stat(tprs)}
+    return {"seeds": list(seeds), "detectors": out}
 
 
 def _roc_points(neg, pos, n=200):
