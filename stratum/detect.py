@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import ipaddress
+import re
 from collections import Counter, defaultdict
 
 from .graph import LifecycleGraph
@@ -19,6 +20,8 @@ CRED_PATHS = ("serviceaccount/token", "/.ssh/id_", "/etc/shadow", ".keystore", "
 SYSTEM_WRITE = ("/etc/passwd", "/etc/shadow", "/etc/sudoers", "/etc/crontab", "/root/.ssh/authorized_keys",
                 "/etc/ld.so.preload")
 TMP_DIRS = ("/tmp/", "/dev/shm/", "/var/tmp/")
+# projected SA token as the kernel sees it: .../serviceaccount/..2026_09_27_10_00_00.123/token
+_SA_TOKEN = re.compile(r"serviceaccount/(\.\.[^/]+/)?token$|/\.\.\d{4}_\d\d_\d\d_[^/]+/token$")
 _INTERNAL = [ipaddress.ip_network(c) for c in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16",
                                                 "100.64.0.0/10", "fd00::/8")]
 
@@ -39,7 +42,7 @@ def rule_detect(e: RuntimeEvent) -> Detection | None:
     if e.kind == "exec" and base in ESCAPE_TOOLS and ("-t 1" in e.args or "--target 1" in e.args or not e.args):
         return Detection("R-ESCAPE", e, "critical", 1.0,
                          f"'{base} {e.args}' entered the host namespaces (container escape)", "ZT-WL-01")
-    if e.kind in ("open", "write") and "serviceaccount/token" in e.path:
+    if e.kind in ("open", "write") and ("serviceaccount/token" in e.path or _SA_TOKEN.search(e.path)):
         return Detection("R-SA-TOKEN", e, "high", 1.0, f"'{e.process}' read the service-account token", "ZT-ID-02")
     if e.kind in ("open", "write") and any(c in e.path for c in CRED_PATHS):
         return Detection("R-CRED-READ", e, "high", 1.0, f"'{base}' accessed credential material {e.path}",

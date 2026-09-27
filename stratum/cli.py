@@ -153,7 +153,7 @@ def cmd_opa_check(a) -> int:
 
 def cmd_gatekeeper(a) -> int:
     from .gatekeeper import export_yaml
-    text = export_yaml(a.level, a.action)
+    text = export_yaml(a.level, a.action, tuple(a.exclude_namespace))
     if a.out:
         from pathlib import Path
         Path(a.out).write_text(text, encoding="utf-8")
@@ -168,6 +168,21 @@ def cmd_bench(a) -> int:
     from .bench.runner import run
     run(a.names or None, Path(a.data_dir) if a.data_dir else None, Path(a.out))
     return 0
+
+
+def cmd_live_check(a) -> int:
+    from pathlib import Path
+
+    from .live import build_dataset, check, markdown
+    ds = build_dataset(a.manifests, a.pods, a.events, image_ref=a.image_ref, commit=a.commit, repo=a.repo,
+                       author=a.author, run_id=a.run_id, signed=a.cosign_ok == "true")
+    gk = json.loads(Path(a.gatekeeper).read_text(encoding="utf-8")) if a.gatekeeper else None
+    cos = None if a.cosign_ok is None else a.cosign_ok == "true"
+    r = check(ds, namespace=a.namespace, workload=a.workload, image_digest=a.digest, commit=a.commit,
+              gatekeeper=gk, cosign_ok=cos)
+    Path(a.out).write_text(json.dumps(r, indent=1), encoding="utf-8")
+    print(markdown(r))
+    return 0 if r["passed"] else 1
 
 
 def cmd_serve(a) -> int:  # pragma: no cover - blocking server
@@ -206,10 +221,20 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("gatekeeper", help="export PSS Rego as a Gatekeeper ConstraintTemplate + Constraint")
     s.add_argument("--level", choices=["baseline", "restricted"], default="restricted")
     s.add_argument("--action", choices=["dryrun", "warn", "deny"], default="dryrun")
+    s.add_argument("--exclude-namespace", nargs="*", default=["kube-system"])
     s.add_argument("--out"); s.set_defaults(fn=cmd_gatekeeper)
     s = sub.add_parser("bench", help="run real-data benchmarks into results/")
     s.add_argument("names", nargs="*"); s.add_argument("--data-dir"); s.add_argument("--out", default="results")
     s.set_defaults(fn=cmd_bench)
+    s = sub.add_parser("live-check", help="assert on live kind + Tetragon evidence (CI)")
+    s.add_argument("--manifests", nargs="+", required=True); s.add_argument("--pods", required=True)
+    s.add_argument("--events", nargs="+", required=True); s.add_argument("--image-ref", required=True)
+    s.add_argument("--digest", default=""); s.add_argument("--commit", required=True)
+    s.add_argument("--repo", default="rakshit-737/stratum"); s.add_argument("--author", default="")
+    s.add_argument("--run-id", default="live"); s.add_argument("--namespace", default="stratum-live")
+    s.add_argument("--workload", default="web"); s.add_argument("--gatekeeper")
+    s.add_argument("--cosign-ok", choices=["true", "false"]); s.add_argument("--out", default="live-result.json")
+    s.set_defaults(fn=cmd_live_check)
     s = sub.add_parser("serve", help="API + incident console")
     s.add_argument("--source", default="synthetic"); s.add_argument("--host", default="127.0.0.1")
     s.add_argument("--port", type=int, default=8000); s.set_defaults(fn=cmd_serve)

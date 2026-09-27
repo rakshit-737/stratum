@@ -1,0 +1,123 @@
+name: live
+# Real Kubernetes (kind) + Cilium Tetragon + OPA Gatekeeper on the runner.
+# Builds the demo image, pushes it to GHCR, signs it keyless with cosign (GitHub OIDC), verifies the
+# signature, runs attack-shaped actions in the pod and asserts STRATUM detects + traces them to this commit.
+# Nothing is contacted except package/image registries and Sigstore (Fulcio/Rekor) for signing.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+concurrency: {group: live, cancel-in-progress: false}
+env:
+  IMAGE: ghcr.io/rakshit-737/stratum-live-demo
+  TETRAGON_CHART: 1.7.1
+  GATEKEEPER_CHART: 3.20.0
+jobs:
+  kind-tetragon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e .
+      - uses: sigstore/cosign-installer@v3
+      - uses: docker/login-action@v3
+        with: {registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}"}
+
+      - name: build + push demo image
+        id: img
+        run: |
+          docker build --build-arg REVISION=${{ github.sha }} -t $IMAGE:${{ github.sha }} deploy/live
+          docker push $IMAGE:${{ github.sha }}
+          DIGEST=$(docker inspect --format '{{index .RepoDigests 0}}' $IMAGE:${{ github.sha }} | cut -d@ -f2)
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+      - name: cosign sign (keyless) + verify
+        id: cosign
+        run: |
+          mkdir -p live-out
+          REF=$IMAGE@${{ steps.img.outputs.digest }}
+          cosign sign --yes "$REF"
+          if cosign verify "$REF" \
+              --certificate-identity "${{ github.server_url }}/${{ github.workflow_ref }}" \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              -o json > live-out/cosign-verify.json; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+          # negative control: a wrong identity must not verify
+          if cosign verify "$REF" --certificate-identity https://github.com/someone/else/.github/workflows/x.yml@refs/heads/main \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com >/dev/null 2>&1; then
+            echo "wrong identity verified"; exit 1; fi
+
+      - uses: helm/kind-action@v1
+        with: {cluster_name: stratum}
+      - name: install Tetragon + Gatekeeper
+        run: |
+          helm repo add cilium https://helm.cilium.io
+          helm repo add gatekeeper https://open-policy-agent.github.io/gatekeeper/charts
+          helm install tetragon cilium/tetragon -n kube-system --version $TETRAGON_CHART --wait --timeout 8m
+          helm install gatekeeper gatekeeper/gatekeeper -n gatekeeper-system --create-namespace \
+            --version $GATEKEEPER_CHART --wait --timeout 8m
+          kubectl -n kube-system rollout status ds/tetragon --timeout=5m
+          kubectl apply -f deploy/live/tracingpolicy.yaml
+      - name: apply exported Gatekeeper ConstraintTemplate (deny)
+        run: |
+          python -m stratum gatekeeper --level restricted --action deny \
+            --exclude-namespace kube-system gatekeeper-system local-path-storage --out live-out/gatekeeper.yaml
+          python - <<'EOF'
+          import yaml
+          docs = list(yaml.safe_load_all(open("live-out/gatekeeper.yaml")))
+          yaml.safe_dump(docs[0], open("live-out/template.yaml", "w")); yaml.safe_dump(docs[1], open("live-out/constraint.yaml", "w"))
+          EOF
+          kubectl apply -f live-out/template.yaml
+          for i in $(seq 60); do kubectl get crd stratumpodsecurity.constraints.gatekeeper.sh && break; sleep 2; done
+          for i in $(seq 30); do kubectl apply -f live-out/constraint.yaml && break; sleep 2; done
+          kubectl create namespace stratum-live
+          # wait until the constraint is enforced (server-side dry run of the privileged pod is rejected)
+          for i in $(seq 90); do
+            kubectl apply --dry-run=server -f deploy/live/denied-pod.yaml 2>&1 | grep -q stratum && break; sleep 2; done
+      - name: deploy demo workloads
+        run: |
+          sed "s#IMAGE#$IMAGE@${{ steps.img.outputs.digest }}#g" deploy/live/workloads.yaml > live-out/workloads.yaml
+          kubectl apply -f live-out/workloads.yaml
+          kubectl -n stratum-live create secret docker-registry ghcr --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} --docker-password=${{ secrets.GITHUB_TOKEN }}
+          kubectl -n stratum-live rollout status deploy/web --timeout=5m
+          kubectl -n stratum-live rollout status deploy/sink --timeout=5m
+          admitted=true
+          if kubectl apply -f deploy/live/denied-pod.yaml 2> live-out/denied.txt; then denied=false; else denied=true; fi
+          cat live-out/denied.txt
+          grep -q stratum live-out/denied.txt || denied=false
+          echo "{\"privileged_denied\": $denied, \"demo_admitted\": $admitted}" > live-out/gatekeeper-result.json
+          cat live-out/gatekeeper-result.json
+      - name: attack-shaped actions in the pod
+        run: |
+          sleep 15
+          bash deploy/live/actions.sh
+          sleep 20
+      - name: collect Tetragon events + cluster state
+        run: |
+          kubectl -n kube-system logs ds/tetragon -c export-stdout --tail=-1 > live-out/tetragon-all.json
+          # keep only the demo namespace for the artefact (the raw stream has every kube-system exec)
+          grep '"namespace":"stratum-live"' live-out/tetragon-all.json > live-out/tetragon-events.json || true
+          wc -l live-out/tetragon-all.json live-out/tetragon-events.json
+          kubectl get pods -A -o json > live-out/pods.json
+      - name: STRATUM detection + trace-to-commit
+        run: |
+          python -m stratum live-check --manifests live-out/workloads.yaml --pods live-out/pods.json \
+            --events live-out/tetragon-events.json --image-ref "$IMAGE@${{ steps.img.outputs.digest }}" \
+            --digest ${{ steps.img.outputs.digest }} --commit ${{ github.sha }} --run-id ${{ github.run_id }} \
+            --author "$(git log -1 --format=%an)" --gatekeeper live-out/gatekeeper-result.json \
+            --cosign-ok ${{ steps.cosign.outputs.ok }} --out live-out/live-result.json | tee -a "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-evidence
+          path: |
+            live-out/*.json
+            live-out/*.yaml
+            live-out/denied.txt
+          if-no-files-found: warn

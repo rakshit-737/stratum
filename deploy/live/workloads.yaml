@@ -1,0 +1,53 @@
+# Live-CI demo workloads. IMAGE is replaced by the workflow with ghcr.io/...@sha256:<digest>.
+# Both deployments meet the PSS restricted checks so the exported Gatekeeper constraint admits them.
+apiVersion: v1
+kind: Namespace
+metadata: {name: stratum-live}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: web-sa, namespace: stratum-live}
+imagePullSecrets: [{name: ghcr}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: web, namespace: stratum-live}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: web}}
+  template:
+    metadata: {labels: {app: web}}
+    spec:
+      serviceAccountName: web-sa
+      securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: web
+          image: IMAGE
+          command: ["sleep", "infinity"]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: sink, namespace: stratum-live}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: sink}}
+  template:
+    metadata: {labels: {app: sink}}
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets: [{name: ghcr}]
+      securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: sink
+          image: IMAGE
+          command: ["httpd", "-f", "-p", "8080", "-h", "/tmp"]
+          ports: [{containerPort: 8080}]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: sink, namespace: stratum-live}
+spec:
+  selector: {app: sink}
+  ports: [{port: 8080, targetPort: 8080}]

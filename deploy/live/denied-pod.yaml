@@ -1,0 +1,11 @@
+# Must be rejected by the exported Gatekeeper constraint (enforcementAction: deny).
+apiVersion: v1
+kind: Pod
+metadata: {name: privileged-probe, namespace: stratum-live}
+spec:
+  hostPID: true
+  containers:
+    - name: c
+      image: busybox:1.36.1
+      command: ["sleep", "10"]
+      securityContext: {privileged: true}

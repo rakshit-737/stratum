@@ -52,8 +52,9 @@ def constraint(level: str = "restricted", action: str = "dryrun", exclude_ns: tu
     }
 
 
-def export_yaml(level: str = "restricted", action: str = "dryrun") -> str:
-    return yaml.safe_dump_all([constraint_template(), constraint(level, action)], sort_keys=False)
+def export_yaml(level: str = "restricted", action: str = "dryrun",
+                exclude_ns: tuple[str, ...] = ("kube-system",)) -> str:
+    return yaml.safe_dump_all([constraint_template(), constraint(level, action, exclude_ns)], sort_keys=False)
 
 
 def rego_violations(objs: list[dict], opa: str | None = None) -> list[set[str]]:
