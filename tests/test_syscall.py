@@ -26,3 +26,17 @@ def test_adfa_loader(fix):
     assert {f for f, _ in d["attack"]} == {"Adduser", "Web_Shell"}
     m = Stide(6).fit(d["train"])
     assert all(0 <= m.score(t) <= 1 for _, t in d["attack"])
+
+
+def test_container_syscalls_leave_one_run_out(tmp_path):
+    from stratum.bench.container_syscalls import evaluate, load, markdown
+    for r in (1, 2):
+        d = tmp_path / f"run-{r}"
+        d.mkdir()
+        for i in range(6):
+            (d / f"normal-{i}.txt").write_text("openat read close write " * 3)
+        (d / "attack0-1.txt").write_text("execve clone connect execve socket")
+    res = evaluate(load(tmp_path))
+    v = res["detectors"]["STIDE n=3"]
+    assert res["runs"] == 2 and len(v["folds"]) == 2 and v["auc_mean"] == 1.0
+    assert "2 runs" in markdown(res)
