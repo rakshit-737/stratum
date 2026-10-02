@@ -181,15 +181,20 @@ def cmd_bench(a) -> int:
 def cmd_live_check(a) -> int:
     from pathlib import Path
 
-    from .live import build_dataset, check, markdown
+    from .live import ablation, build_dataset, check, markdown
     from .sigstore import parse_cosign_verify
     sigs = parse_cosign_verify(a.cosign_json) if a.cosign_json else []
     ds = build_dataset(a.manifests, a.pods, a.events, signatures=sigs, author=a.author)
     gk = json.loads(Path(a.gatekeeper).read_text(encoding="utf-8")) if a.gatekeeper else None
     cos = None if a.cosign_ok is None else a.cosign_ok == "true"
     r = check(ds, namespace=a.namespace, workload=a.workload, image_digest=a.digest, commit=a.expect_commit,
-              gatekeeper=gk, cosign_ok=cos, drift=a.drift,
+              gatekeeper=gk, cosign_ok=cos, drift=a.drift, forged=a.forged, expect_build=a.expect_build,
               prevention=json.loads(Path(a.prevention).read_text(encoding="utf-8")) if a.prevention else None)
+    if a.labels:
+        labels = json.loads(Path(a.labels).read_text(encoding="utf-8"))
+        r["ablation"] = ablation(a.manifests, a.pods, a.events, signatures=sigs, labels=labels,
+                                 commit=a.expect_commit, namespace=a.namespace, workload=a.workload,
+                                 controls=tuple(x for x in (a.drift, a.forged) if x))
     Path(a.out).write_text(json.dumps(r, indent=1), encoding="utf-8")
     print(markdown(r))
     return 0 if r["passed"] else 1
@@ -264,6 +269,9 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--expect-commit", required=True, help="commit the trace must reach (e.g. github.sha)")
     s.add_argument("--drift", help="unsigned workload used as negative control (must not reach a commit)")
     s.add_argument("--prevention", help="JSON with observed before/after connect results of the egress policy")
+    s.add_argument("--forged", help="unsigned workload whose image carries the right revision label (negative control)")
+    s.add_argument("--expect-build", help="CI run id the certificate must name (e.g. github.run_id)")
+    s.add_argument("--labels", help="JSON {digest: OCI revision label} for the A0-A4 ablation")
     s.add_argument("--author", default=""); s.add_argument("--namespace", default="stratum-live")
     s.add_argument("--workload", default="web"); s.add_argument("--gatekeeper")
     s.add_argument("--cosign-ok", choices=["true", "false"]); s.add_argument("--out", default="live-result.json")

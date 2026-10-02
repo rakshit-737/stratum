@@ -8,3 +8,5 @@ kubectl -n $NS exec "$POD" -- sh -c 'cat /var/run/secrets/kubernetes.io/servicea
 kubectl -n $NS exec "$POD" -- sh -c 'echo ping | nc -w 3 sink.stratum-live.svc.cluster.local 8080 || true' # egress to local sink
 DRIFT=$(kubectl -n $NS get pod -l app=drift -o jsonpath='{.items[0].metadata.name}')
 kubectl -n $NS exec "$DRIFT" -- sh -c 'id'                                              # shell in unsigned (drift) workload
+FORGED=$(kubectl -n $NS get pod -l app=forged -o jsonpath='{.items[0].metadata.name}')
+kubectl -n $NS exec "$FORGED" -- sh -c 'id'                                             # shell in unsigned, right-label workload

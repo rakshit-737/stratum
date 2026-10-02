@@ -69,3 +69,23 @@ spec:
           image: busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
           command: ["sleep", "infinity"]
           securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+# Second negative control ("forged"): built in the same job from the same Dockerfile with the *right*
+# org.opencontainers.image.revision label, pushed but never signed. Label provenance would attribute it
+# to the commit; certificate provenance must not. UNSIGNEDREF is replaced by the workflow.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: forged, namespace: stratum-live}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: forged}}
+  template:
+    metadata: {labels: {app: forged}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: forged
+          image: UNSIGNEDREF
+          command: ["sleep", "infinity"]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}

@@ -105,3 +105,20 @@ def test_aggregate_counts_runs():
     assert a["runs_fully_traced"] == 2 and "traced_ci95" not in a and a["traced_runs_ci95"][1] == 1.0
     assert a["rule_capture"]["R-NETTOOL"]["runs"] == 0 and a["rule_capture"]["R-SHELL"]["runs"] == 2
     assert "8/8" in aggregate_markdown(a)
+
+
+def test_ablation_arms_on_real_replay():
+    from stratum.live import ablation
+    sigs = parse_cosign_verify(FIX / "cosign-verify.json")
+    ab = ablation([FIX / "workloads.yaml"], FIX / "pods.json", [FIX / "tetragon-events.json"],
+                  signatures=sigs, labels={LIVE_DIG: LIVE_SHA}, commit=LIVE_SHA, controls=())
+    assert not ab["A0"]["workload_attributed"] and not ab["A0"]["traced"]
+    assert ab["A1"]["workload_attributed"] and not ab["A1"]["traced"]
+    assert ab["A2"]["traced"] and ab["A3"]["traced"] and ab["A4"]["traced"]
+    assert not ab["A3"]["false_attribution"]
+
+
+def test_repository_join_ignores_tag_and_digest():
+    from stratum.live import _repo
+    assert _repo("ghcr.io/a/b:t@sha256:1") == "ghcr.io/a/b" == _repo("ghcr.io/a/b@sha256:1")
+    assert _repo("localhost:5000/a/b:t") == "localhost:5000/a/b"

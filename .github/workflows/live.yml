@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       runs:
-        description: "repeat the scenario N times (separate jobs)"
+        description: "repeat the scenario N times (separate jobs, each builds and signs its own image)"
         default: "1"
 permissions: {}
 concurrency: {group: "live-${{ github.ref }}", cancel-in-progress: false}
@@ -60,10 +60,29 @@ jobs:
       - name: build + push demo image
         id: img
         run: |
-          docker build --build-arg REVISION=${{ github.sha }} -t $IMAGE:${{ github.sha }} deploy/live
-          docker push $IMAGE:${{ github.sha }}
-          DIGEST=$(docker inspect --format '{{index .RepoDigests 0}}' $IMAGE:${{ github.sha }} | cut -d@ -f2)
+          set -euo pipefail
+          N=${{ github.run_id }}.${{ github.run_attempt }}.${{ matrix.run }}
+          T=$IMAGE:run-$N
+          docker build --build-arg REVISION=${{ github.sha }} --build-arg NONCE=$N -t $T deploy/live
+          docker push $T
+          DIGEST=$(docker inspect --format '{{index .RepoDigests 0}}' $T | cut -d@ -f2)
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          # negative control: same Dockerfile and the same revision label, pushed but never signed
+          F=$IMAGE:forged-$N
+          docker build --build-arg REVISION=${{ github.sha }} --build-arg NONCE=forged-$N -t $F deploy/live
+          docker push $F
+          FDIGEST=$(docker inspect --format '{{index .RepoDigests 0}}' $F | cut -d@ -f2)
+          echo "forged=$FDIGEST" >> "$GITHUB_OUTPUT"
+          mkdir -p live-out
+          docker pull -q busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662 >/dev/null
+          lbl() { docker inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$1" 2>/dev/null || true; }
+          python3 - "$DIGEST" "$(lbl $T)" "$FDIGEST" "$(lbl $F)" <<'EOF' > live-out/labels.json
+          import json, sys
+          a = sys.argv[1:]
+          # the upstream busybox image (drift) carries no revision label
+          print(json.dumps({a[0]: a[1], a[2]: a[3]}))
+          EOF
+          cat live-out/labels.json
       - name: cosign sign (keyless) + verify
         id: cosign
         run: |
@@ -115,10 +134,10 @@ jobs:
       - name: deploy demo workloads
         run: |
           set -uo pipefail
-          sed "s#IMAGE#$IMAGE@${{ steps.img.outputs.digest }}#g" deploy/live/workloads.yaml > live-out/workloads.yaml
+          sed -e "s#UNSIGNEDREF#$IMAGE@${{ steps.img.outputs.forged }}#g"               -e "s#IMAGE#$IMAGE@${{ steps.img.outputs.digest }}#g" deploy/live/workloads.yaml > live-out/workloads.yaml
           kubectl apply -f live-out/workloads.yaml
           admitted=true
-          for d in web sink drift; do kubectl -n stratum-live rollout status deploy/$d --timeout=5m || admitted=false; done
+          for d in web sink drift forged; do kubectl -n stratum-live rollout status deploy/$d --timeout=5m || admitted=false; done
           if kubectl apply -f deploy/live/denied-pod.yaml 2> live-out/denied.txt; then denied=false; else denied=true; fi
           cat live-out/denied.txt
           grep -q stratum live-out/denied.txt || denied=false
@@ -158,7 +177,7 @@ jobs:
           for i in $(seq 45); do
             kubectl -n kube-system logs ds/tetragon -c export-stdout --tail=-1 > "$RUNNER_TEMP/tetragon-all.json"
             n=$(grep -c '"namespace":"stratum-live"' "$RUNNER_TEMP/tetragon-all.json" || true)
-            grep -q '"pod":{"namespace":"stratum-live","name":"drift' "$RUNNER_TEMP/tetragon-all.json" && grep -q tcp_connect "$RUNNER_TEMP/tetragon-all.json" && [ "$n" -ge 10 ] && break
+            grep -q '"pod":{"namespace":"stratum-live","name":"drift' "$RUNNER_TEMP/tetragon-all.json"               && grep -q '"pod":{"namespace":"stratum-live","name":"forged' "$RUNNER_TEMP/tetragon-all.json" && grep -q tcp_connect "$RUNNER_TEMP/tetragon-all.json" && [ "$n" -ge 10 ] && break
             sleep 2
           done
           # keep only the demo namespace for the artefact (the raw stream has every kube-system exec)
@@ -173,7 +192,7 @@ jobs:
           python -m stratum live-check --manifests live-out/workloads.yaml --pods live-out/pods.json \
             --events live-out/tetragon-events.json --cosign-json live-out/cosign-verify.json \
             --digest ${{ steps.img.outputs.digest }} --expect-commit ${{ github.sha }} --drift drift \
-            --author "$(git log -1 --format=%an)" --gatekeeper live-out/gatekeeper-result.json \
+            --forged forged --expect-build ${{ github.run_id }} --labels live-out/labels.json             --author "$(git log -1 --format=%an)" --gatekeeper live-out/gatekeeper-result.json \
             --prevention live-out/prevention.json \
             --cosign-ok ${{ steps.cosign.outputs.ok }} --out live-out/live-result.json | tee -a "$GITHUB_STEP_SUMMARY"
       - if: always()
