@@ -54,7 +54,7 @@ def _cert_der(optional: dict) -> bytes:
 
 def parse_cosign_verify(doc: list[dict] | str | Path) -> list[SignedImage]:
     """Parse ``cosign verify -o json`` output (a list of verified signature payloads)."""
-    if isinstance(doc, (str, Path)):
+    if isinstance(doc, str | Path):
         doc = json.loads(Path(doc).read_text(encoding="utf-8"))
     out = []
     for sig in doc or []:
