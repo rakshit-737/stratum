@@ -5,8 +5,8 @@ fastapi>=0.110
 uvicorn>=0.29
 httpx>=0.27
 # benchmarks / figures (optional for tests)
-scikit-learn>=1.4
+scikit-learn>=1.5
 matplotlib>=3.8
 # dev
-pytest>=7
+pytest>=8
 ruff==0.8.4
