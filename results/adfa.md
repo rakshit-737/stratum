@@ -19,3 +19,41 @@ Per attack family, TPR at 5% FPR:
 | STRATUM n-gram novelty n=3 | 0.25 | 0.36 | 0.31 | 0.18 | 0.13 | 0.25 |
 | STRATUM n-gram novelty n=5 | 0.17 | 0.35 | 0.29 | 0.17 | 0.13 | 0.22 |
 | Isolation Forest, TF-IDF 1..3-grams | 0.00 | 0.03 | 0.13 | 0.00 | 0.00 | 0.02 |
+
+Tie-aware operating points (ROC interpolated across tied scores, i.e. random tie-breaking). The threshold-based TPR @1% FPR above counts only scores strictly above the 99th normal percentile, so a detector whose top normal scores tie (STIDE n=6: many traces score exactly 1.0) can show 0 with a degenerate [0, 0] interval.
+
+| detector | TPR @ exactly 1% FPR [95% CI] | false-alarm rate @ 90% detection [95% CI] | normal / attack traces tied at the max normal score |
+|---|---:|---:|---:|
+| STIDE n=6 (baseline, Forrest 1996) | 0.024 [0.015, 0.035] | 0.267 [0.248, 0.306] | 69 / 28 |
+| STIDE n=3 | 0.171 [0.110, 0.209] | 0.869 [0.848, 0.885] | 3 / 0 |
+| STRATUM n-gram novelty n=3 | 0.176 [0.107, 0.214] | 0.411 [0.334, 0.525] | 3 / 0 |
+| STRATUM n-gram novelty n=5 | 0.082 [0.055, 0.133] | 0.278 [0.248, 0.338] | 6 / 5 |
+| Isolation Forest, TF-IDF 1..3-grams | 0.001 [0.000, 0.005] | 0.949 [0.931, 0.954] | 1 / 0 |
+
+Paired, stratified bootstrap of the difference (same resampled traces for both detectors, 1000 resamples):
+
+| A | B | metric | A - B [95% CI] | bootstrap p |
+|---|---|---|---:|---:|
+| STIDE n=6 (baseline, Forrest 1996) | STRATUM n-gram novelty n=5 | auc | +0.0053 [+0.0016, +0.0090] | 0.002 |
+| STRATUM n-gram novelty n=3 | STIDE n=3 | tpr@0.01_interp | +0.0042 [-0.0214, +0.0268] | 0.958 |
+
+Comparison with published ADFA-LD results (false-alarm rate at 90% detection). The published figures are taken from Kim et al. 2016's summary of Creech & Hu 2014 (we could not access the primary's full text); ELM uses semantic features and a different decision engine.
+
+| system | FAR @ 90% DR | source |
+|---|---:|---|
+| STIDE | 0.23 | published |
+| HMM | 0.42 | published |
+| ELM, semantic features | 0.13 | published |
+| STIDE n=6 (baseline, Forrest 1996) | 0.267 | this repo |
+| STIDE n=3 | 0.869 | this repo |
+| STRATUM n-gram novelty n=3 | 0.411 | this repo |
+| STRATUM n-gram novelty n=5 | 0.278 | this repo |
+
+Random re-splits (10 seeds): pool all normals, draw a fresh 833-trace training set per seed, test on the rest. CI = Nadeau-Bengio corrected resampled t.
+
+| detector | AUC mean [corrected 95% CI] | AUC min-max | TPR @1% FPR (interp.) mean [corrected 95% CI] |
+|---|---:|---:|---:|
+| STIDE n=6 | 0.784 [0.750, 0.819] | 0.774-0.796 | 0.103 [-0.057, 0.262] |
+| STIDE n=3 | 0.712 [0.669, 0.756] | 0.699-0.724 | 0.155 [-0.071, 0.381] |
+| STRATUM n-gram novelty n=3 | 0.754 [0.708, 0.801] | 0.739-0.770 | 0.138 [-0.051, 0.326] |
+| STRATUM n-gram novelty n=5 | 0.808 [0.785, 0.831] | 0.801-0.816 | 0.107 [-0.079, 0.293] |

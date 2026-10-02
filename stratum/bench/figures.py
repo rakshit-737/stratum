@@ -12,6 +12,11 @@ INK, MUTED, GRID = "#1b1f24", "#5d6673", "#e3e6ea"
 SERIES = ["#2458d6", "#c2570c", "#1f7a3d", "#8a3ffc", "#b3261e"]
 
 
+def _roc_label(name: str, d: dict) -> str:
+    seeds = f", seed 0; seed mean {d['auc_seed_mean']:.3f}" if "auc_seed_mean" in d else ""
+    return f"{name} (AUC {d['auc']:.3f}{seeds})"
+
+
 def _style(ax):
     for s in ("top", "right"):
         ax.spines[s].set_visible(False)
@@ -28,7 +33,7 @@ def render(results: dict, out: Path) -> None:
         fig, ax = plt.subplots(figsize=(5.2, 4.2), dpi=130)
         for i, (name, d) in enumerate(results["adfa"]["detectors"].items()):
             xs, ys = zip(*d["_roc"])
-            ax.plot(xs, ys, color=SERIES[i % len(SERIES)], lw=1.8, label=f"{name} (AUC {d['auc']:.3f})")
+            ax.plot(xs, ys, color=SERIES[i % len(SERIES)], lw=1.8, label=_roc_label(name, d))
         ax.plot([0, 1], [0, 1], color=MUTED, lw=0.8, ls="--")
         ax.set_xlabel("false-positive rate (normal traces)", color=INK)
         ax.set_ylabel("detection rate (attack traces)", color=INK)

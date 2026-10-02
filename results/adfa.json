@@ -5,10 +5,24 @@
  "detectors": {
   "STIDE n=6 (baseline, Forrest 1996)": {
    "auc": 0.8273,
-   "seconds": 14.8,
+   "seconds": 5.3,
+   "tpr@0.01_interp": 0.0238,
+   "far@dr0.9": 0.2667,
+   "ties_at_max_normal_score": {
+    "normal": 69,
+    "attack": 28
+   },
    "auc_ci95": [
     0.8114,
     0.8442
+   ],
+   "far@dr0.9_ci95": [
+    0.2477,
+    0.3065
+   ],
+   "tpr@0.01_interp_ci95": [
+    0.0148,
+    0.0348
    ],
    "tpr@0.01_ci95": [
     0.0,
@@ -35,10 +49,24 @@
   },
   "STIDE n=3": {
    "auc": 0.6951,
-   "seconds": 12.4,
+   "seconds": 5.0,
+   "tpr@0.01_interp": 0.1714,
+   "far@dr0.9": 0.8687,
+   "ties_at_max_normal_score": {
+    "normal": 3,
+    "attack": 0
+   },
    "auc_ci95": [
     0.6722,
     0.7209
+   ],
+   "far@dr0.9_ci95": [
+    0.8481,
+    0.8846
+   ],
+   "tpr@0.01_interp_ci95": [
+    0.1099,
+    0.2091
    ],
    "tpr@0.01_ci95": [
     0.1099,
@@ -65,10 +93,24 @@
   },
   "STRATUM n-gram novelty n=3": {
    "auc": 0.7989,
-   "seconds": 28.8,
+   "seconds": 8.6,
+   "tpr@0.01_interp": 0.1756,
+   "far@dr0.9": 0.4115,
+   "ties_at_max_normal_score": {
+    "normal": 3,
+    "attack": 0
+   },
    "auc_ci95": [
     0.78,
     0.8175
+   ],
+   "far@dr0.9_ci95": [
+    0.3339,
+    0.5252
+   ],
+   "tpr@0.01_interp_ci95": [
+    0.1072,
+    0.2145
    ],
    "tpr@0.01_ci95": [
     0.1072,
@@ -95,10 +137,24 @@
   },
   "STRATUM n-gram novelty n=5": {
    "auc": 0.822,
-   "seconds": 28.0,
+   "seconds": 11.7,
+   "tpr@0.01_interp": 0.0818,
+   "far@dr0.9": 0.2777,
+   "ties_at_max_normal_score": {
+    "normal": 6,
+    "attack": 5
+   },
    "auc_ci95": [
     0.803,
     0.8407
+   ],
+   "far@dr0.9_ci95": [
+    0.2484,
+    0.3383
+   ],
+   "tpr@0.01_interp_ci95": [
+    0.055,
+    0.1327
    ],
    "tpr@0.01_ci95": [
     0.055,
@@ -125,7 +181,7 @@
   },
   "Isolation Forest, TF-IDF 1..3-grams": {
    "auc": 0.5679,
-   "seconds": 386.5,
+   "seconds": 187.6,
    "seeds": [
     0,
     1,
@@ -135,9 +191,23 @@
    ],
    "auc_seed_mean": 0.4835,
    "auc_seed_sd": 0.068,
+   "tpr@0.01_interp": 0.0013,
+   "far@dr0.9": 0.9486,
+   "ties_at_max_normal_score": {
+    "normal": 1,
+    "attack": 0
+   },
    "auc_ci95": [
     0.547,
     0.5884
+   ],
+   "far@dr0.9_ci95": [
+    0.9314,
+    0.9544
+   ],
+   "tpr@0.01_interp_ci95": [
+    0.0,
+    0.0054
    ],
    "tpr@0.01_ci95": [
     0.0,
@@ -160,6 +230,141 @@
     "Java_Meterpreter": 0.0,
     "Meterpreter": 0.0,
     "Web_Shell": 0.017
+   }
+  }
+ },
+ "paired": [
+  {
+   "a": "STIDE n=6 (baseline, Forrest 1996)",
+   "b": "STRATUM n-gram novelty n=5",
+   "metric": "auc",
+   "diff": 0.0053,
+   "n_boot": 1000,
+   "ci95": [
+    0.0016,
+    0.009
+   ],
+   "p_boot": 0.002
+  },
+  {
+   "a": "STRATUM n-gram novelty n=3",
+   "b": "STIDE n=3",
+   "metric": "tpr@0.01_interp",
+   "diff": 0.0042,
+   "n_boot": 1000,
+   "ci95": [
+    -0.0214,
+    0.0268
+   ],
+   "p_boot": 0.958
+  }
+ ],
+ "published_far@dr0.9": {
+  "STIDE (Creech & Hu 2014, via Kim et al. 2016)": 0.23,
+  "HMM (Creech & Hu 2014, via Kim et al. 2016)": 0.42,
+  "ELM, semantic features (Creech & Hu 2014, via Kim et al. 2016)": 0.13
+ },
+ "resplit": {
+  "seeds": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9
+  ],
+  "detectors": {
+   "STIDE n=6": {
+    "auc": {
+     "mean": 0.7843,
+     "sd": 0.0066,
+     "min": 0.7745,
+     "max": 0.7965,
+     "ci95_corrected": [
+      0.7496,
+      0.8189
+     ]
+    },
+    "tpr@0.01_interp": {
+     "mean": 0.1028,
+     "sd": 0.0305,
+     "min": 0.0603,
+     "max": 0.1515,
+     "ci95_corrected": [
+      -0.0569,
+      0.2624
+     ]
+    }
+   },
+   "STIDE n=3": {
+    "auc": {
+     "mean": 0.7122,
+     "sd": 0.0083,
+     "min": 0.6989,
+     "max": 0.7238,
+     "ci95_corrected": [
+      0.6688,
+      0.7557
+     ]
+    },
+    "tpr@0.01_interp": {
+     "mean": 0.1547,
+     "sd": 0.0432,
+     "min": 0.0697,
+     "max": 0.1984,
+     "ci95_corrected": [
+      -0.0715,
+      0.3809
+     ]
+    }
+   },
+   "STRATUM n-gram novelty n=3": {
+    "auc": {
+     "mean": 0.7542,
+     "sd": 0.0089,
+     "min": 0.7389,
+     "max": 0.7698,
+     "ci95_corrected": [
+      0.7077,
+      0.8007
+     ]
+    },
+    "tpr@0.01_interp": {
+     "mean": 0.1375,
+     "sd": 0.0361,
+     "min": 0.0898,
+     "max": 0.1769,
+     "ci95_corrected": [
+      -0.0511,
+      0.3261
+     ]
+    }
+   },
+   "STRATUM n-gram novelty n=5": {
+    "auc": {
+     "mean": 0.8076,
+     "sd": 0.0044,
+     "min": 0.8011,
+     "max": 0.8163,
+     "ci95_corrected": [
+      0.7847,
+      0.8305
+     ]
+    },
+    "tpr@0.01_interp": {
+     "mean": 0.1068,
+     "sd": 0.0356,
+     "min": 0.0469,
+     "max": 0.1555,
+     "ci95_corrected": [
+      -0.0794,
+      0.293
+     ]
+    }
    }
   }
  }

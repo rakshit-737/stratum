@@ -53,7 +53,9 @@ Workloads needing hardening flagged by the v0.1 heuristic vs full PSS: v0.1 heur
 | trivy-operator | trivy-operator-0.36.0 | 1 | 0/1/0 | ZT-ID-02:1, ZT-ID-04:1, ZT-NET-01:1, ZT-PROV-03:1, ZT-WL-02:1 |
 | vault | vault-0.34.1 | 3 | 0/3/0 | ZT-ID-01:1, ZT-NET-01:1, ZT-PROV-03:3, ZT-WL-02:3 |
 
-| control | title | findings |
+Findings per control are summed per project (a namespace shared by several projects, e.g. kube-system, is counted once per project). On the merged corpus, 26 of 29 distinct namespaces have no default-deny egress policy (ZT-NET-01).
+
+| control | title | findings (per-project sum) |
 |---|---|---:|
 | ZT-PROV-03 | Images pinned by immutable digest | 76 |
 | ZT-ID-02 | Disable SA token automount unless needed | 47 |
@@ -77,16 +79,21 @@ Workloads needing hardening flagged by the v0.1 heuristic vs full PSS: v0.1 heur
 | cosign signature artefact | 32 | 37.2 |
 | cosign attestation artefact | 28 | 32.6 |
 
-Workloads traced end-to-end (pod -> image -> verified commit): **23 / 87**.
+Workloads traced end-to-end (pod -> image -> verified commit): **23 / 87** (Wilson 95% CI [0.1831, 0.3656]); 19 of them on to a merged PR.
+
+Signature context: 32/86 images carry a cosign signature artefact (Wilson 95% CI [0.2775, 0.4777]), against 1.0% of Docker Hub tags signed in 2023 (Schorlemmer et al. 2024, arXiv:2401.14635, Table 6 (DCT signatures; different population)). This corpus is curated CNCF projects, so the gap is expected; presence of a signature is not a verified signature.
 
 Baseline, the `image tag == git tag` heuristic: of 25 images with a verified embedded commit, a same-named git tag existed for 21 and pointed at the embedded commit for 21.
 
 
 ### Trivy scans of 49 real images (+ CISA KEV join)
 
-| critical | high | medium | low | images w/ critical | images w/ KEV CVE | images shipping a shell |
-|---:|---:|---:|---:|---:|---:|---:|
-| 15 | 432 | 342 | 326 | 7 | 0 | 18 |
+| count | critical | high | medium | low |
+|---|---:|---:|---:|---:|
+| findings summed over images (each image counts a CVE x package pair once) | 15 | 432 | 342 | 326 |
+| unique CVE x package pairs across the corpus | 10 | 156 | 157 | 98 |
+
+Images with a critical CVE: 7; with a CISA KEV CVE: 0; shipping a shell: 18. Trivy 0.74.0; KEV catalog 2026.09.25 (1726 CVEs).
 
 Blast radius by base OS release as reported by Trivy (workloads whose image is built on it; grouped by OS family + version, not by layer digest):
 
@@ -168,6 +175,49 @@ Per attack family, TPR at 5% FPR:
 | STRATUM n-gram novelty n=3 | 0.25 | 0.36 | 0.31 | 0.18 | 0.13 | 0.25 |
 | STRATUM n-gram novelty n=5 | 0.17 | 0.35 | 0.29 | 0.17 | 0.13 | 0.22 |
 | Isolation Forest, TF-IDF 1..3-grams | 0.00 | 0.03 | 0.13 | 0.00 | 0.00 | 0.02 |
+
+Tie-aware operating points (ROC interpolated across tied scores, i.e. random tie-breaking). The threshold-based TPR @1% FPR above counts only scores strictly above the 99th normal percentile, so a detector whose top normal scores tie (STIDE n=6: many traces score exactly 1.0) can show 0 with a degenerate [0, 0] interval.
+
+| detector | TPR @ exactly 1% FPR [95% CI] | false-alarm rate @ 90% detection [95% CI] | normal / attack traces tied at the max normal score |
+|---|---:|---:|---:|
+| STIDE n=6 (baseline, Forrest 1996) | 0.024 [0.015, 0.035] | 0.267 [0.248, 0.306] | 69 / 28 |
+| STIDE n=3 | 0.171 [0.110, 0.209] | 0.869 [0.848, 0.885] | 3 / 0 |
+| STRATUM n-gram novelty n=3 | 0.176 [0.107, 0.214] | 0.411 [0.334, 0.525] | 3 / 0 |
+| STRATUM n-gram novelty n=5 | 0.082 [0.055, 0.133] | 0.278 [0.248, 0.338] | 6 / 5 |
+| Isolation Forest, TF-IDF 1..3-grams | 0.001 [0.000, 0.005] | 0.949 [0.931, 0.954] | 1 / 0 |
+
+Paired, stratified bootstrap of the difference (same resampled traces for both detectors, 1000 resamples):
+
+| A | B | metric | A - B [95% CI] | bootstrap p |
+|---|---|---|---:|---:|
+| STIDE n=6 (baseline, Forrest 1996) | STRATUM n-gram novelty n=5 | auc | +0.0053 [+0.0016, +0.0090] | 0.002 |
+| STRATUM n-gram novelty n=3 | STIDE n=3 | tpr@0.01_interp | +0.0042 [-0.0214, +0.0268] | 0.958 |
+
+Comparison with published ADFA-LD results (false-alarm rate at 90% detection). The published figures are taken from Kim et al. 2016's summary of Creech & Hu 2014 (we could not access the primary's full text); ELM uses semantic features and a different decision engine.
+
+| system | FAR @ 90% DR | source |
+|---|---:|---|
+| STIDE | 0.23 | published |
+| HMM | 0.42 | published |
+| ELM, semantic features | 0.13 | published |
+| STIDE n=6 (baseline, Forrest 1996) | 0.267 | this repo |
+| STIDE n=3 | 0.869 | this repo |
+| STRATUM n-gram novelty n=3 | 0.411 | this repo |
+| STRATUM n-gram novelty n=5 | 0.278 | this repo |
+
+Random re-splits (10 seeds): pool all normals, draw a fresh 833-trace training set per seed, test on the rest. CI = Nadeau-Bengio corrected resampled t.
+
+| detector | AUC mean [corrected 95% CI] | AUC min-max | TPR @1% FPR (interp.) mean [corrected 95% CI] |
+|---|---:|---:|---:|
+| STIDE n=6 | 0.784 [0.750, 0.819] | 0.774-0.796 | 0.103 [-0.057, 0.262] |
+| STIDE n=3 | 0.712 [0.669, 0.756] | 0.699-0.724 | 0.155 [-0.071, 0.381] |
+| STRATUM n-gram novelty n=3 | 0.754 [0.708, 0.801] | 0.739-0.770 | 0.138 [-0.051, 0.326] |
+| STRATUM n-gram novelty n=5 | 0.808 [0.785, 0.831] | 0.801-0.816 | 0.107 [-0.079, 0.293] |
+
+
+### Rego mirror vs Python engine on the real corpus
+
+OPA 1.21.0: Python findings 292, Rego findings 292, only-Python 0, only-Rego 0, equivalent: **true**.
 
 
 ### Performance (real corpus: 470 nodes / 504 edges, 95 workloads, 30 runtime events; median of 5)
