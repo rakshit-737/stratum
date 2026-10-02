@@ -17,16 +17,31 @@ and Sigstore (Fulcio/Rekor) for keyless signing.
    two demo deployments (PSS restricted) must be admitted.
 4. **Actions.** `deploy/live/actions.sh` runs benign but attack-shaped commands in the `web` pod: a shell,
    `cat` of the projected service-account token (to `/dev/null`), and `nc` to an in-cluster `httpd` sink.
-5. **Detection + trace.** The Tetragon export stream is filtered to the demo namespace and fed to
-   `stratum live-check`, which builds a dataset from the rendered manifests, the live pod list, the CI
-   build (run id, commit, cosign result) and the events, runs the normal analysis, and fails the job
-   unless R-SHELL, R-SA-TOKEN and R-NETTOOL fire on the web pod, every incident traces to the pushed
-   commit, the event image digest equals the pushed digest, a connect to `:8080` is captured, Gatekeeper
-   denied/admitted as expected and cosign verified.
+5. **Prevention.** `stratum prevent stratum-live` emits a default-deny egress NetworkPolicy that keeps
+   in-cluster traffic. The job starts a second sink on the runner's `kind` Docker network (outside the cluster
+   CIDRs) and checks that `nc` to it works before and fails after the policy, while the in-cluster sink stays
+   reachable. kind enforces NetworkPolicy natively.
+6. **Detection + trace.** The Tetragon export stream is filtered to the demo namespace and fed to
+   `stratum live-check`, which joins the rendered manifests, the live pod list and the events, and builds the
+   `image -> CI run -> commit` edges **only from the verified cosign certificate** (`stratum/sigstore.py`:
+   commit OID `1.3.6.1.4.1.57264.1.3`, run-invocation URI). `github.sha` is passed only as the expected value.
+   The job fails unless R-SHELL, R-SA-TOKEN and R-NETTOOL fire on the web pod, every web-pod incident traces to
+   the expected commit, the event image digest equals the pushed digest, a connect to `:8080` is captured,
+   Gatekeeper denied/admitted as expected, cosign verified, prevention behaved as predicted, and the
+   **negative control** holds: a digest-pinned upstream busybox workload (`drift`) that runs the same command
+   reaches no commit and names ZT-PROV-01.
 
-## Result (run [36319470255](https://github.com/rakshit-737/stratum/actions/runs/36319470255))
+`gatekeeper-result.json` derives `demo_admitted` from `kubectl rollout status`. Waits use `kubectl wait` and
+polling loops that fail the job on timeout.
+
+## Result: 5 independent runs
 
 --8<-- "results/live.md"
+
+Each run is a separate job with its own kind cluster. Runs that build the same commit produce the same image
+digest, so the certificate can name an earlier run of that commit (as in the example trace); the commit is what
+is asserted. Re-run with `gh workflow run live.yml -f runs=5` and `scripts/aggregate_live.py`
+([Reproduce](reproduce.md)).
 
 ## What the live run found
 
@@ -40,5 +55,9 @@ and Sigstore (Fulcio/Rekor) for keyless signing.
 - The first run's assertion failure did not fail the job because the step piped into `tee` without
   `pipefail`. Fixed.
 
-The demo namespace has no egress NetworkPolicy, so the incidents also name ZT-NET-01; the sink pod raised
-no detections. This is a scripted check of the pipeline on real sensor output, not a detection-rate study.
+- **cosign v3 changed `verify -o json`.** With cosign v3 the output no longer carries the Fulcio claims, so
+  trace-to-commit dropped to 0/11 and the job failed (as it should). The job pins cosign v2.6.1.
+
+The demo namespace has no egress NetworkPolicy until the prevention step, so the incidents also name ZT-NET-01;
+the sink pod raised no detections. This is a scripted check of the pipeline on real sensor output, not a
+detection-rate study: the three actions are known in advance and there is no labelled benign set.

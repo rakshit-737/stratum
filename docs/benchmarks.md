@@ -1,32 +1,34 @@
-# Benchmarks and results
+# Evaluation
 
-All numbers come from `python -m stratum bench` on the real corpus; the raw tables are in `results/`.
+All numbers come from `python -m stratum bench` on the real corpus, the live CI job and the reproduction workflow; the raw tables are in `results/`. Each subsection states its method, sample size and confidence interval.
 
 
-| What | Result | Baseline |
+| What | Result | Baseline (previous version or naive method) |
 |---|---|---|
-| Policy engine vs upstream PSS conformance fixtures (148 pods, v1.37) | **F1 1.000** at baseline and restricted | v0.1 heuristic: recall 0.147 / 0.105 |
-| Posture of 31 real projects in their default configuration | **32 / 87** workloads not PSS-restricted (7 privileged); 29 namespaces with no egress policy; 24 workloads with cluster-wide secret read or RBAC escalation | v0.1 heuristic flags 7 / 87 |
-| Rego mirror vs Python engine on the full corpus | **292 / 292 identical findings** (OPA 1.21), including scan-derived controls | n/a |
-| Trace pod → verified commit (86 real images) | 25 images (29%) carry a revision that GitHub confirms; **23 / 87 workloads** traced end-to-end, 19 of them on to the merged PR (21 of the 25 images link to a PR) | `tag == git tag` heuristic: right for 21 of those 25; no answer for the other 4 |
-| Runtime rules on real Tetragon events (30 events, 20 attack) | **recall 0.80, precision 0.89**; container escape, unmanaged C2 container and credential read are named with their control | v0.1 rules: recall 0.40, precision 0.80 |
-| Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty n=5: ROC-AUC 0.822 (95% CI 0.803-0.841), TPR 0.08 at 1% FPR; n=3: AUC 0.799, TPR 0.18 at 1% FPR | STIDE n=6: AUC 0.827 (0.811-0.844), TPR 0.00 at 1% FPR; STIDE n=3: AUC 0.695, TPR 0.17 at 1% FPR |
-| Trivy + CISA KEV on 49 real images | 15 critical / 432 high; 7 images with a critical, 18 ship a shell, **0** KEV hits; one base OS release (Alpine 3.24.1) → 8 workloads blast radius | n/a |
-| Latency, full analysis of the real corpus (470 nodes, 504 edges) | **14 ms**; one pod → commit trace takes 0.04 ms | n/a |
+| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **55 / 55** demo-pod incidents over 5 independent kind clusters (Wilson 95% CI 0.93-1.00); unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
+| Policy engine vs upstream PSS conformance fixtures (148 pods, v1.37) | **F1 1.000** at baseline and restricted (a conformance gate) | v0.1 heuristic: recall 0.147 / 0.105 |
+| Posture of 31 real projects in their default configuration | **32 / 87** workloads not PSS-restricted (7 privileged); 26 of 29 namespaces with no egress policy; 24 workloads with cluster-wide secret read or RBAC escalation | v0.1 heuristic flags 7 / 87 |
+| Rego mirror vs Python engine on the full corpus | **292 / 292 identical findings** (OPA 1.21, [`results/opa.md`](https://github.com/rakshit-737/stratum/blob/main/results/opa.md)) | n/a |
+| Trace pod → verified commit (86 real images, no runtime event) | 25 images (29%) carry a revision that GitHub confirms; **23 / 87 workloads** (CI 0.18-0.37) traced end to end, 19 of them on to the merged PR | `tag == git tag`: right for 21 of those 25, no answer for 4 |
+| Runtime rules on real Tetragon events (30 events, 20 attack; **in-sample**, rules written on these events) | recall 0.80 [0.58, 0.92], precision 0.89 [0.67, 0.97]; **0 of 18 incidents reach a commit** (no provenance on those images) | v0.1 rules: recall 0.40 [0.22, 0.61], precision 0.80 [0.49, 0.94] |
+| Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty n=5: AUC 0.822 (0.803-0.841); n=3: TPR 0.18 at 1% FPR | **STIDE n=6 wins on AUC**: 0.827 (0.811-0.844), paired difference +0.005 (0.002-0.009) |
+| Reproduction of Kim et al. 2016 (LSTM ensemble, ADFA-LD) | **not reproduced**: AUC 0.709 ± 0.003 over 3 seeds (12 CPU epochs) | paper: 0.928 |
+| Trivy + CISA KEV on 49 real images | 10 critical / 156 high unique CVE × package pairs (15 / 432 summed per image); **0** KEV hits; Alpine 3.24.1 → 8-workload blast radius | n/a |
+| Latency, full analysis of the real corpus (470 nodes, 504 edges) | about 10 ms (3.5-14 ms across laptop runs), plus 1-8 s to load the corpus | n/a |
 
 The full tables are in [`results/RESULTS.md`](https://github.com/rakshit-737/stratum/blob/main/results/RESULTS.md) and are regenerated with `python -m stratum bench`.
 
 <p>
-<img src="../figures/pss_conformance.png" width="49%" alt="PSS conformance: STRATUM F1 1.0 vs v0.1 heuristic">
-<img src="../figures/posture_controls.png" width="49%" alt="Zero-Trust findings across 31 real projects">
+![PSS conformance: STRATUM F1 1.0 vs v0.1 heuristic](figures/pss_conformance.png){ width="49%" }
+![Zero-Trust findings across 31 real projects](figures/posture_controls.png){ width="49%" }
 </p>
 <p>
-<img src="../figures/provenance_funnel.png" width="49%" alt="Provenance coverage funnel for 86 real images">
-<img src="../figures/adfa_roc.png" width="49%" alt="ADFA-LD ROC curves">
+![Provenance coverage funnel for 86 real images](figures/provenance_funnel.png){ width="49%" }
+![ADFA-LD ROC curves](figures/adfa_roc.png){ width="49%" }
 </p>
 
 
-# Results in detail
+## Results in detail
 
 
 ### 1. Policy engine: Pod Security Standards conformance
@@ -73,7 +75,7 @@ Of the 87 workloads, 55 reach PSS *restricted*, 25 *baseline* and 7 only *privil
 
 ### Image scans (Trivy + CISA KEV)
 
-49 of the 86 images were scanned: 1.45 GB pulled, smallest image first. The 37 larger images were skipped by the download budget; the largest are Falco driver-loader, Jenkins, argo-cd, Vault and Harbor. Counts are unique CVE × package pairs.
+49 of the 86 images were scanned: 1.45 GB pulled, smallest image first. The 37 larger images were skipped by the download budget; the largest are Falco driver-loader, Jenkins, argo-cd, Vault and Harbor. The first row sums per-image findings (each image counts a CVE × package pair once); across the corpus there are 10 critical, 156 high, 157 medium and 98 low unique pairs.
 
 | critical | high | medium | low | images with a critical | images with a CISA KEV CVE | images that ship a shell |
 |---:|---:|---:|---:|---:|---:|---:|
@@ -84,12 +86,12 @@ Of the 87 workloads, 55 reach PSS *restricted*, 25 *baseline* and 7 only *privil
   - `ghcr.io/dexidp/dex:v2.45.1` (4 critical, 66 high).
   - `redis:8.2.3-alpine` (2 critical), bundled by argo-cd.
 - **Blast radius from the graph:**
-  - The `alpine 3.24.1` base OS release (as reported by Trivy, not a shared layer digest) sits under 8 workloads in three projects (flannel, Online Boutique, a Jenkins chart test pod), so a single Alpine 3.24.1 advisory reaches all 8.
+  - The `alpine 3.24.1` base OS release (as reported by Trivy, not a shared layer digest) sits under 8 workloads in four projects (flannel, Online Boutique, the Vault agent injector, a Jenkins chart test pod), so a single Alpine 3.24.1 advisory reaches all 8.
   - `debian 13.6` (distroless) sits under cert-manager, kube-state-metrics and sealed-secrets.
 - **Distroless:** 6 images have no OS package database at all.
 - **Shells:** 18 images still ship `busybox` or `bash`. That is what `ZT-IMG-02` flags and what the `R-SHELL` rule then catches at runtime.
 
-<img src="../figures/scans_top_images.png" width="60%" alt="Most-exposed scanned images">
+![Most-exposed scanned images](figures/scans_top_images.png){ width="60%" }
 
 ### 4. Runtime: real Tetragon events
 
@@ -104,8 +106,10 @@ plus benign workload events. Labels are ours ([`benchmarks/labels/tetragon.json`
 
 | rule set | TP | FP | FN | precision | recall |
 |---|---:|---:|---:|---:|---:|
-| **STRATUM v0.2** (9 rules) | 16 | 2 | 4 | **0.89** | **0.80** |
-| v0.1 (shell / SA token / egress) | 8 | 2 | 12 | 0.80 | 0.40 |
+| **STRATUM** (9 rules) | 16 | 2 | 4 | **0.89** [0.67, 0.97] | **0.80** [0.58, 0.92] |
+| v0.1 (shell / SA token / egress) | 8 | 2 | 12 | 0.80 [0.49, 0.94] | 0.40 [0.22, 0.61] |
+
+Brackets are Wilson 95% CIs. None of the 18 incidents reaches a commit: the images in this sample (`nginx:latest`, an Isovalent demo image, two unmanaged containers) carry no provenance. Runtime → commit is shown on the live cluster (section 6).
 
 ```text
 [INC-0003] CRITICAL R-ESCAPE: 'nsenter -t 1 -m -u -n -i -p bash' entered the host namespaces (container escape)
@@ -141,12 +145,49 @@ The models were fit on the 833 normal training traces and scored on 4,372 normal
 
 **Honest read:**
 
-- The frequency-weighted novelty model does not beat STIDE on AUC: novelty n=5 and STIDE n=6 have overlapping CIs, so they are statistically indistinguishable here.
-- The Isolation Forest is no better than chance once seed variance is counted (the earlier single-seed 0.568 was a favourable seed).
-- At 1% FPR the n=3 variant detects 0.18 vs 0.00 for STIDE n=6, but STIDE n=3 gets 0.17 there, so the low-FPR edge comes mostly from the shorter window, not the frequency weighting. No single configuration wins on both AUC and low-FPR TPR.
-- Neither comes close to the ~90% detection at ~15% FAR that Creech & Hu (2014) report with semantic features.
+- STIDE n=6 has a slightly but significantly higher AUC than novelty n=5: a paired, stratified bootstrap on the same traces gives +0.005 (95% CI 0.002-0.009, p≈0.002). Their separate CIs overlap, but that is not a test of the difference. In practice the gap is negligible.
+- On 10 random re-splits (fresh 833-trace training sets, Nadeau-Bengio corrected CIs) the order flips: novelty n=5 0.808 [0.785, 0.831] vs STIDE n=6 0.784 [0.750, 0.819]. Neither result is robust enough to claim a winner.
+- STIDE n=6's "0.000 at 1% FPR" is a tie artefact: 69 normal and 28 attack traces score exactly 1.0. With ties broken at random, its TPR at exactly 1% FPR is 0.024 [0.015, 0.035]. The n=3 variants detect about 0.17-0.18 there; the paired difference novelty n=3 minus STIDE n=3 is +0.004 [-0.021, +0.027], so the low-FPR edge comes from the shorter window, not the frequency weighting.
+- The Isolation Forest is no better than chance once seed variance is counted (0.483 ± 0.068; the figure shows seed 0, the best of five).
 
-This is why STRATUM alerts on rules and uses anomaly scores only as `medium` context.
+**Against published ADFA-LD results** (false-alarm rate at 90% detection; published figures as summarised by Kim et al. 2016 from Creech & Hu 2014, whose full text we could not access):
+
+| system | FAR @ 90% DR |
+|---|---:|
+| STIDE (published) | 0.23 |
+| STIDE n=6 (this repo, partial reproduction) | 0.267 [0.248, 0.306] |
+| STRATUM novelty n=5 | 0.278 [0.248, 0.338] |
+| HMM (published) | 0.42 |
+| ELM with semantic features (published) | 0.13 |
+
+Our STIDE is close to the published STIDE but a few points worse; ELM uses semantic features and a different decision engine.
+
+**Reproduction of Kim et al. 2016** ("LSTM-based system-call language modeling and robust ensemble method", arXiv:1611.01726). Same split (833 / 4,372 / 746), architectures (1×200, 1×400, 2×400 LSTMs), optimiser and ensemble rule; run per seed in GitHub Actions on CPU (`repro-kim.yml`).
+
+| method | paper AUC | reproduction AUC (3 seeds, mean ± sd) |
+|---|---:|---:|
+| leaky-ReLU ensemble (proposed) | 0.928 | **0.709 ± 0.003** |
+| averaging ensemble | 0.890 | 0.634 ± 0.010 |
+| single LSTM 1×200 | figure only | 0.731 ± 0.018 |
+
+The reproduction falls far short. Known deviations: 12 epochs on CPU (every model was still improving at the last epoch, so they are under-trained), 750 traces for fitting with 83 held out for early stopping, batch 32, voting ensemble not reproduced. Full table: [`results/kim_lstm.md`](https://github.com/rakshit-737/stratum/blob/main/results/kim_lstm.md). This is why STRATUM alerts on rules and uses anomaly scores only as `medium` context.
+
+### 6. Live cluster in CI: kind + Tetragon + Gatekeeper + cosign
+
+[`live.yml`](https://github.com/rakshit-737/stratum/blob/main/.github/workflows/live.yml) runs on every push and on demand with N independent clusters. It builds and pushes a demo image, signs it keyless with cosign (GitHub OIDC), deploys it to kind with Tetragon and Gatekeeper (using STRATUM's exported ConstraintTemplate), runs benign attack-shaped actions in the pod (a shell, a read of the pod's own service-account token, `nc` to an in-cluster sink), and runs STRATUM on the real Tetragon events. The image → CI run → commit edges are read from the verified Fulcio certificate; `github.sha` is only the expected value. Walkthrough: [docs/how-it-works.md](how-it-works.md).
+
+| check (run [37005766853](https://github.com/rakshit-737/stratum/actions/runs/37005766853), 5 clusters) | result |
+|---|---:|
+| runs passing every assertion | 5 / 5 (Wilson 0.57-1.00) |
+| R-SHELL, R-SA-TOKEN, R-NETTOOL raised for their scripted action | 5 / 5 each |
+| demo-pod incidents traced to the expected commit, from the certificate | **55 / 55** (0.93-1.00) |
+| detections on the benign sink pod | 0 |
+| unsigned `drift` workload (same command, digest-pinned busybox): traced to a commit / names ZT-PROV-01 | 0 / 5, 5 / 5 |
+| external egress allowed before, blocked after the `stratum prevent` policy; in-cluster sink kept | 5 / 5, 5 / 5 |
+| Gatekeeper (exported template) denies the privileged `hostPID` pod | 5 / 5 |
+| cosign verify: right identity passes, wrong identity fails | 5 / 5 |
+
+This is a scripted pipeline check on real sensor output, not a detection-rate study. The live run also found two real bugs, both fixed: Gatekeeper rejected 1.0.0's template (`import rego.v1`), and the kernel reports the projected token path `..<timestamp>/token`, which the old R-SA-TOKEN rule missed. Details: [`results/live.md`](https://github.com/rakshit-737/stratum/blob/main/results/live.md), [docs/live.md](live.md).
 
 
 ## Prior art
@@ -159,7 +200,7 @@ This is why STRATUM alerts on rules and uses anomaly scores only as `medium` con
 | Kyverno / Gatekeeper / PSA | Admission enforcement (including PSS) | Enforces, but does not explain incidents across the lifecycle |
 | Trivy / Grype / Syft | Image CVEs and SBOMs | Image-centric, with no workload identity or runtime link |
 | Sigstore / SLSA | Signing and provenance formats | Formats, not an incident graph |
-| Wiz / Prisma / Sysdig (CNAPP) | This exact space, commercially | Closed, agent-heavy and expensive |
+| Wiz / Prisma / Sysdig (CNAPP) | This exact space, commercially | Closed and commercial; Prisma and Sysdig rely on agents, Wiz is mainly agentless with an optional sensor |
 
-STRATUM does not compete with commercial CNAPPs. It is a small, readable, graph-centric slice of the idea: every runtime alert is joined to verified build provenance and to the specific Zero-Trust control that failed.
+STRATUM does not compete with commercial CNAPPs. It is a small, readable, graph-centric slice of the idea: every runtime alert is joined to build provenance that can be checked (a Sigstore certificate or a GitHub-confirmed commit) and to the specific Zero-Trust control that failed.
 

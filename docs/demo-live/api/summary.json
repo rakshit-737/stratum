@@ -1,0 +1,1 @@
+{"source":"live","version":"1.0.0","nodes":10,"edges":10,"workloads":2,"namespaces":1,"images":1,"commits":1,"events":23,"findings":2,"incidents":5,"findings_by_control":{"ZT-NET-01":1,"ZT-ID-01":1},"pss_levels":{"restricted":2}}

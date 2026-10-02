@@ -1,16 +1,18 @@
 # Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph Inputs
     MAN["K8s manifests / helm template / kubectl get -o yaml"]
     REG["OCI registries: digest, labels, cosign artefacts"]
     GH["GitHub API: commit, author, PR"]
     TRV["Trivy JSON + CISA KEV"]
     TET["Tetragon JSON events"]
+    SIG["cosign verify JSON (Fulcio certificate)"]
   end
-  MAN --> K8S["k8s.py collector<br/>workloads, RBAC risk, NetworkPolicies, PSS level"]
-  REG --> PROV["provenance.py"]
+  SIG --> PROV
+  MAN --> K8S["k8s.py collector"]
+  REG --> PROV["provenance.py, sigstore.py"]
   GH --> PROV
   TRV --> ING["ingest.py"]
   TET --> ING
@@ -21,7 +23,7 @@ flowchart LR
   G --> POL["policy.py 13 ZT controls"]
   POL -. "diffed in CI" .-> REGO["stratum/policies/stratum.rego via OPA"]
   G --> DET["detect.py 9 rules + novelty"]
-  DET --> INC["incident.py trace to commit, failed control, blast radius, fix"]
+  DET --> INC["incident.py"]
   POL --> INC
   INC --> API["FastAPI + console"]
   REGO --> GK["Gatekeeper ConstraintTemplate (PSS subset)"]
@@ -71,7 +73,7 @@ The lifecycle spine is `commit -BUILDS-> build -PRODUCES-> image -DEPLOYS-> work
 | rule | trigger | control named |
 |---|---|---|
 | R-ESCAPE | `nsenter`/`unshare`/`chroot` into PID 1 namespaces | ZT-WL-01 |
-| R-SA-TOKEN | open of `.../serviceaccount/token` | ZT-ID-02 |
+| R-SA-TOKEN | open of `.../serviceaccount/token` or the projected `.../serviceaccount/..<timestamp>/token` path | ZT-ID-02 |
 | R-CRED-READ | ssh keys, keystores, cloud/kube credentials | ZT-ID-04 |
 | R-SYS-WRITE | writes to `/etc/passwd`, `/etc/shadow`, sudoers, ... | ZT-WL-02 |
 | R-UNMANAGED | process in a container with no pod (not deployed via K8s) | ZT-PROV-01 |

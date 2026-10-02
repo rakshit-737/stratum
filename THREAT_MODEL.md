@@ -9,7 +9,7 @@ STRATUM consumes the following inputs and produces findings and incidents:
 - Vulnerability scans: Trivy output and CISA KEV.
 - Runtime events: Tetragon JSON.
 
-v0.2 runs offline on a downloaded real-data corpus, or on the synthetic scenario.
+STRATUM runs offline on a downloaded real-data corpus or on the synthetic scenario; a CI job (`live.yml`) also runs it against a live kind cluster with Tetragon and Gatekeeper.
 
 ## Threats STRATUM helps defend against
 
@@ -39,7 +39,7 @@ v0.2 runs offline on a downloaded real-data corpus, or on the synthetic scenario
 
 ## Assumptions and limitations
 
-- The graph is only as good as its collectors. v0.2 reads static manifests; a live-cluster watcher is on the roadmap.
+- The graph is only as good as its collectors. The CLI reads static manifests or `kubectl get -o yaml`; there is no continuous kube-API watcher.
 - Egress enforcement is simulated and covers IP/CIDR only. It does not model ports, DNS or L7.
 - Helm charts are rendered with default values, which may differ from production.
 - The perfect PSS conformance score measures faithfulness to the upstream implementation. It is not evidence of real-world detection skill.

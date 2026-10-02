@@ -33,8 +33,8 @@ Tools (not data): Trivy 0.74.0, Syft 1.52.0, Helm 4.3.0 and OPA 1.21.0 are fetch
 - G. Creech and J. Hu. "Generation of a new IDS test dataset: Time to retire the KDD collection." IEEE WCNC 2013.
 - G. Creech and J. Hu. "A Semantic Approach to Host-Based Intrusion Detection Systems Using Contiguous and Discontiguous System Call Patterns." IEEE Transactions on Computers 63(4), 2014.
 - S. Forrest, S. Hofmeyr, A. Somayaji, T. Longstaff. "A Sense of Self for Unix Processes." IEEE S&P 1996 (STIDE).
-- Kubernetes SIG Auth. *Pod Security Standards*, https://kubernetes.io/docs/concepts/security/pod-security-standards/
-- CISA. *Known Exploited Vulnerabilities Catalog*, https://www.cisa.gov/known-exploited-vulnerabilities-catalog
+- Kubernetes SIG Auth. *Pod Security Standards*, <https://kubernetes.io/docs/concepts/security/pod-security-standards/>
+- CISA. *Known Exploited Vulnerabilities Catalog*, <https://www.cisa.gov/known-exploited-vulnerabilities-catalog>
 - J. Salazar and N. R. Ivánkó. *Security Observability with eBPF*, O'Reilly / Isovalent 2022 (Tetragon sample events).
 
 ## Safety notes

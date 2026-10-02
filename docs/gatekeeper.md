@@ -23,4 +23,6 @@ The output holds a `ConstraintTemplate` (kind `StratumPodSecurity`) and a `Const
 
 Not ported: AppArmor, SELinux, `/proc` mount, seccomp, sysctls, Windows HostProcess, host probes, restricted volume types,
 restricted capabilities. Those checks depend on version-specific annotation handling and are still Python-only.
-The template has not been applied to a live Gatekeeper install here (no cluster on this machine).
+The template is applied and enforcing on Gatekeeper 3.20.0 in the live CI job ([Live CI](live.md)): the privileged `hostPID`
+pod is denied by the `stratum-pss-restricted` constraint on every run. Templates exported by 1.0.0 did not load
+(Gatekeeper parses template Rego as v0 and rejected `import rego.v1`); this is fixed on `main`.

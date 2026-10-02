@@ -16,7 +16,8 @@
 | `opa-check [--data]` | diff the Python engine against `stratum/policies/stratum.rego` (needs `opa`) |
 | `gatekeeper [--level] [--action dryrun\|warn\|deny] [--out]` | export PSS Rego as a Gatekeeper ConstraintTemplate + Constraint |
 | `bench [NAMES...] [--data-dir] [--out results]` | real-data benchmarks → `results/` |
-| `serve [--source synthetic\|real\|FILE] [--host] [--port]` | FastAPI + incident console |
+| `live-check --manifests --pods --events --cosign-json --digest --expect-commit [--drift] [--gatekeeper] [--prevention]` | CI: join live kind + Tetragon evidence and assert detection and certificate-derived trace-to-commit (used by `live.yml`) |
+| `serve [--source synthetic\|real\|live\|FILE] [--host] [--port]` | FastAPI + incident console (`live` replays the committed live-run fixture) |
 
 ## HTTP API (`stratum serve`)
 

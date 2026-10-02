@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Live CI job (`live.yml`): kind + Tetragon + OPA Gatekeeper on a GitHub runner. A demo image is pushed to GHCR and signed keyless with cosign; benign attack-shaped actions run in a pod; `stratum live-check` asserts detection and trace-to-commit on the real Tetragon events. 5/5 independent runs pass (`results/live.md`).
+- `stratum/sigstore.py`: the `image -> build -> commit` edges for the live check are read from the verified Fulcio certificate (commit OID .1.3, run-invocation URI), not from workflow variables. Negative control: an unsigned digest-pinned `drift` workload never reaches a commit and names ZT-PROV-01.
+- Policy-as-prevention measured live: the `stratum prevent` NetworkPolicy blocks egress to an external sink and keeps in-cluster traffic.
+- Reproduction of Kim et al. 2016 (LSTM language-model ensemble on ADFA-LD) as a per-seed Actions workflow (`repro-kim.yml`, extra `lstm`); results in `results/kim_lstm.md`. The reproduction falls well short of the paper (AUC 0.709 vs 0.928).
+- ADFA-LD: paired bootstrap of detector differences, tie-aware operating points, false-alarm rate at 90% detection compared with published figures, 10 random re-splits with Nadeau-Bengio corrected CIs.
+- Scans report corpus-wide unique CVE x package pairs next to per-image sums; posture reports distinct namespaces for ZT-NET-01; Wilson CIs on proportions; OPA equivalence written to `results/opa.json`.
+- `--source live` for `stratum serve` and the static demo (`/demo-live/`); docs pages How it works, Evaluation, Reproduce; CITATION.cff, Dependabot, CODEOWNERS, issue/PR templates.
+- CI: wheel/sdist build and clean-venv smoke test, Docker image smoke test, pip-audit, Python 3.10-3.14, SHA-pinned actions.
+
+### Fixed
+- **The Gatekeeper ConstraintTemplate exported by 1.0.0 does not load**: Gatekeeper parses template Rego as v0 and rejected `import rego.v1`. The export now uses `future.keywords`.
+- The 1.0.0 wheel omitted the Rego policies, so `stratum gatekeeper` and `opa-check` crashed after `pip install`. Policies now live in `stratum/policies/` and ship as package data.
+- R-SA-TOKEN now matches the projected token path (`.../serviceaccount/..<timestamp>/token`) seen by the kernel.
+- Release notes were empty (awk regex); the release image is now cosign-signed; registry token realms must be https; the GitHub token for provenance is opt-in (`STRATUM_GITHUB_TOKEN`).
+- Documentation: STIDE n=6 has a small but significant AUC edge over novelty n=5 (paired bootstrap), not "indistinguishable"; scan totals are per-image sums (unique pairs 10/156/157/98); 26 of 29 namespaces lack an egress policy.
+
 ## [1.0.0] - 2026-09-26
 
 ### Added

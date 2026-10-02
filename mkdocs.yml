@@ -25,6 +25,7 @@ markdown_extensions:
   - tables
   - toc: {permalink: true}
   - pymdownx.details
+  - pymdownx.magiclink
   - pymdownx.snippets: {base_path: ["."], check_paths: true}
   - pymdownx.superfences:
       custom_fences:
@@ -42,13 +43,16 @@ plugins:
 
 not_in_nav: |
   demo/**
+  demo-live/**
 
 nav:
   - Home: index.md
   - Getting started: getting-started.md
+  - How it works: how-it-works.md
   - Architecture: architecture.md
   - Datasets: datasets.md
-  - Benchmarks: benchmarks.md
+  - Evaluation: benchmarks.md
+  - Reproduce: reproduce.md
   - Live demo: live-demo.md
   - Live CI (kind + Tetragon): live.md
   - Reference:
