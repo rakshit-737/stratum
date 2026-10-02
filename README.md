@@ -7,7 +7,7 @@
 [![docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://rakshit-737.github.io/stratum/)
 ![policy: OPA/Rego](https://img.shields.io/badge/policy-OPA%2FRego%20v1-7d4cdb)
 
-**Contribution: STRATUM joins each runtime eBPF alert, edge by edge and with checkable evidence, to the running image digest, the Sigstore-certified CI run and commit that built it, and the named Zero-Trust control that should have stopped it. This is demonstrated on a scripted live pipeline (one demo workload, one commit): on a kind + Tetragon cluster, every alert in 5 of 5 independent runs (55 alerts) traces to the right commit read from the signing certificate, while an unsigned look-alike workload traces to none. No ablation yet isolates what each join edge adds over runtime-only or posture-only tools (see Roadmap).**
+**Contribution: STRATUM joins each runtime eBPF alert, edge by edge and with checkable evidence, to the running image digest, the Sigstore-certified CI run and commit that built it, and the named Zero-Trust control that should have stopped it. This is demonstrated on a scripted live pipeline (one demo workload, one commit): on a kind + Tetragon cluster, one signed demo image (one digest, one Fulcio certificate) was replayed in 5 separate clusters, and all 55 alerts traced to the right commit read from that certificate, while an unsigned look-alike workload traces to none. No ablation yet isolates what each join edge adds over runtime-only or posture-only tools (see Roadmap).**
 
 STRATUM is an open mini-CNAPP, not a Wiz. It puts `commit → CI build → image → Kubernetes workload → pod → runtime event` into one graph and checks 13 Zero-Trust controls against it. The controls are written in Python and mirrored in Rego (also exported as a Gatekeeper ConstraintTemplate). For each runtime alert it reports the commit and PR that shipped the code where provenance exists, the failed control, the fix, and every other workload built on the same base OS release (the blast radius).
 
@@ -29,7 +29,7 @@ Documentation: **https://rakshit-737.github.io/stratum/**. Static consoles: [liv
 ## Try it in 60 seconds
 
 ```bash
-docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # :latest is still v1.0.0 until the next release; console on http://127.0.0.1:8000
+docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # console on http://127.0.0.1:8000
 ```
 
 or, with Python 3.10+ and only PyYAML as a dependency:
@@ -43,7 +43,7 @@ pip install -e . && python -m stratum demo      # five synthetic incidents, trac
 
 | What | Result | Baseline (previous version or naive method) |
 |---|---|---|
-| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **5 / 5** independent kind clusters trace every demo-pod incident (55 incidents) to the commit (Wilson 95% CI over runs 0.57-1.00; incidents within a run share one digest and certificate, so they are not independent); unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
+| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **5 / 5** kind clusters trace every demo-pod incident (55 incidents) to the commit; all 5 clusters ran the **same** signed image (one digest, one certificate, built in run 37005473899), so the trace check rests on one certificate and no CI over runs is given for it; unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
 | Policy engine vs upstream PSS conformance fixtures (148 pods, v1.37) | **F1 1.000** at baseline and restricted (a conformance gate) | v0.1 heuristic: recall 0.147 / 0.105 |
 | Posture of 31 real projects in their default configuration | **32 / 87** workloads not PSS-restricted (7 privileged); 26 of 29 namespaces with no egress policy; 24 workloads with cluster-wide secret read or RBAC escalation | v0.1 heuristic flags 7 / 87 |
 | Rego mirror vs Python engine on the full corpus | **292 / 292 identical findings** (OPA 1.21, [`results/opa.md`](results/opa.md)) | n/a |
@@ -285,8 +285,8 @@ The models were fit on the 833 normal training traces and scored on 4,372 normal
 
 | system | FAR @ 90% DR |
 |---|---:|
-| STIDE (published) | 0.23 |
-| STIDE n=6 (this repo, partial reproduction) | 0.267 [0.248, 0.306] |
+| STIDE (published, as quoted by Kim et al. arXiv:1611.01726 p.8; primary source not verified) | 0.23 |
+| STIDE n=6 (this repo; not a reproduction of Creech & Hu) | 0.267 [0.248, 0.306] |
 | STRATUM novelty n=5 | 0.278 [0.248, 0.338] |
 | HMM (published) | 0.42 |
 | ELM with semantic features (published) | 0.13 |
@@ -305,7 +305,7 @@ The result is **under-trained, inconclusive**, not a failed reproduction: it doe
 
 ### 6. Live cluster in CI: kind + Tetragon + Gatekeeper + cosign
 
-[`live.yml`](.github/workflows/live.yml) runs on every push and on demand with N independent clusters. It builds and pushes a demo image, signs it keyless with cosign (GitHub OIDC), deploys it to kind with Tetragon and Gatekeeper (using STRATUM's exported ConstraintTemplate), runs benign attack-shaped actions in the pod (a shell, a read of the pod's own service-account token, `nc` to an in-cluster sink), and runs STRATUM on the real Tetragon events. The image → CI run → commit edges are read from the verified Fulcio certificate; `github.sha` is only the expected value. Walkthrough: [docs/how-it-works.md](docs/how-it-works.md).
+[`live.yml`](.github/workflows/live.yml) runs on every push and on demand with N independent clusters. On HEAD each cluster builds and pushes its own nonce-tagged demo image and signs it (the committed results in `results/live.*` predate this: they come from commit c863fbc, where one image signed once was reused across all clusters) keyless with cosign (GitHub OIDC), deploys it to kind with Tetragon and Gatekeeper (using STRATUM's exported ConstraintTemplate), runs benign attack-shaped actions in the pod (a shell, a read of the pod's own service-account token, `nc` to an in-cluster sink), and runs STRATUM on the real Tetragon events. The image → CI run → commit edges are read from the verified Fulcio certificate; `github.sha` is only the expected value. Walkthrough: [docs/how-it-works.md](docs/how-it-works.md).
 
 | check (run [37005766853](https://github.com/rakshit-737/stratum/actions/runs/37005766853), 5 clusters) | result |
 |---|---:|
@@ -339,7 +339,9 @@ STRATUM does not compete with commercial CNAPPs. It is a small, readable, graph-
 - **Cluster state.** The CLI reads manifests or `kubectl get -o yaml` output; there is no continuous kube-API watcher. Helm charts are rendered with default values.
 - **Provenance trust.** Certificate-verified provenance exists only for the CI demo image in the live job. For the 86 third-party images, cosign signatures and attestations are only detected, and the commit edge rests on OCI labels confirmed by the GitHub API; labels could be forged.
 - **Runtime evaluation.** The Tetragon sample has 30 labelled events and the rules were written with them in view (in-sample). The live job is a scripted check with three known actions, not a held-out detection study. On the public sample 0 of 18 incidents reach a commit, because those images carry no provenance; runtime → commit is shown only on the live job.
-- **No container syscall dataset.** LID-DS is distributed only through Proton Drive shares (client-side encrypted, no direct URL) and no public CB-DS download exists, so neither could be fetched non-interactively. ADFA-LD is host-based, not container workloads.
+- **Live results predate HEAD.** `results/live.*` were produced at c863fbc with one signed image reused across 5 clusters. Per-run signing, the forged-label control and the A0-A4 join ablation (de1e438) are implemented but no aggregated run of them is committed yet, so no ablation number backs the novelty claim.
+- **Container syscall results not committed.** `syscalls.yml` (Tetragon raw syscalls recorded in Actions, leave-one-run-out) has run, but its results are not yet in `results/`.
+- **No downloadable container syscall dataset.** LID-DS is distributed only through Proton Drive shares (client-side encrypted, no direct URL) and no public CB-DS download exists, so neither could be fetched non-interactively. ADFA-LD is host-based, not container workloads.
 - **Weak syscall models**, and the Kim et al. LSTM reproduction falls well short of the paper (CPU-limited training).
 - **Scan budget.** The largest images (for example Jenkins, argo-cd and the Falco driver loader) were skipped.
 - **Prevention.** The replay models egress by CIDR only (no DNS, ports or L7); the live job checks one external and one in-cluster destination.

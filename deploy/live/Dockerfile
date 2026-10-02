@@ -5,6 +5,7 @@ ARG REVISION=unknown
 ARG NONCE=none
 LABEL org.opencontainers.image.source="https://github.com/rakshit-737/stratum" \
       org.opencontainers.image.revision="${REVISION}" \
-      org.opencontainers.image.version="${NONCE}" \n      org.opencontainers.image.description="STRATUM live-CI demo workload (lab only)"
+      org.opencontainers.image.version="${NONCE}" \
+      org.opencontainers.image.description="STRATUM live-CI demo workload (lab only)"
 USER 65534:65534
 CMD ["sleep", "infinity"]

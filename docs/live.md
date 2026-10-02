@@ -34,7 +34,7 @@ and Sigstore (Fulcio/Rekor) for keyless signing.
 `gatekeeper-result.json` derives `demo_admitted` from `kubectl rollout status`. Waits use `kubectl wait` and
 polling loops that fail the job on timeout.
 
-## Result: 5 independent runs
+## Result: one signed image replayed in 5 clusters (results predate per-run signing)
 
 --8<-- "results/live.md"
 

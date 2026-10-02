@@ -4,8 +4,13 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-02
+
 ### Added
-- Live CI job (`live.yml`): kind + Tetragon + OPA Gatekeeper on a GitHub runner. A demo image is pushed to GHCR and signed keyless with cosign; benign attack-shaped actions run in a pod; `stratum live-check` asserts detection and trace-to-commit on the real Tetragon events. 5/5 independent runs pass (`results/live.md`).
+- Live CI job (`live.yml`): kind + Tetragon + OPA Gatekeeper on a GitHub runner. A demo image is pushed to GHCR and signed keyless with cosign; benign attack-shaped actions run in a pod; `stratum live-check` asserts detection and trace-to-commit on the real Tetragon events. Committed result: one signed image replayed in 5 clusters, 5/5 pass (`results/live.md`).
+- Live job: per-run nonce-tagged image signed in each cluster, `--expect-build` check, unsigned forged-label negative control, A0-A4 join ablation (code only; no aggregated result committed yet).
+- `syscalls.yml`: container syscall traces (Tetragon raw syscalls) recorded in Actions with leave-one-run-out evaluation (results not yet committed).
+- Docs: novelty statement, ADR 0007 (certificate-derived provenance), mermaid parse check in docs CI, API docstrings.
 - `stratum/sigstore.py`: the `image -> build -> commit` edges for the live check are read from the verified Fulcio certificate (commit OID .1.3, run-invocation URI), not from workflow variables. Negative control: an unsigned digest-pinned `drift` workload never reaches a commit and names ZT-PROV-01.
 - Policy-as-prevention measured live: the `stratum prevent` NetworkPolicy blocks egress to an external sink and keeps in-cluster traffic.
 - Reproduction of Kim et al. 2016 (LSTM language-model ensemble on ADFA-LD) as a per-seed Actions workflow (`repro-kim.yml`, extra `lstm`); results in `results/kim_lstm.md`. The reproduction falls well short of the paper (AUC 0.709 vs 0.928).
@@ -18,7 +23,10 @@ All notable changes to this project are documented here. The format follows [Kee
 - **The Gatekeeper ConstraintTemplate exported by 1.0.0 does not load**: Gatekeeper parses template Rego as v0 and rejected `import rego.v1`. The export now uses `future.keywords`.
 - The 1.0.0 wheel omitted the Rego policies, so `stratum gatekeeper` and `opa-check` crashed after `pip install`. Policies now live in `stratum/policies/` and ship as package data.
 - R-SA-TOKEN now matches the projected token path (`.../serviceaccount/..<timestamp>/token`) seen by the kernel.
+- Live demo Dockerfile: a stray literal `
+` in the LABEL instruction broke the per-run image build in `live.yml`.
 - Release notes were empty (awk regex); the release image is now cosign-signed; registry token realms must be https; the GitHub token for provenance is opt-in (`STRATUM_GITHUB_TOKEN`).
+- Documentation: live trace-to-commit result now states it rests on one certificate reused across 5 clusters (no run-level CI); STIDE published figure cited as quoted by Kim et al.
 - Documentation: STIDE n=6 has a small but significant AUC edge over novelty n=5 (paired bootstrap), not "indistinguishable"; scan totals are per-image sums (unique pairs 10/156/157/98); 26 of 29 namespaces lack an egress policy.
 
 ## [1.0.0] - 2026-09-26

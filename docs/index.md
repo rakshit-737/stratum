@@ -1,7 +1,7 @@
 # STRATUM
 
 **STRATUM joins each runtime eBPF alert, edge by edge and with checkable evidence, to the running image digest, the Sigstore-certified CI run and commit that built it, and the named Zero-Trust control that should have stopped it.**
-On a live kind + Tetragon cluster in CI, 55 of 55 alerts over 5 independent runs trace to the right commit read
+On a live kind + Tetragon cluster in CI, one signed demo image (one digest, one certificate) replayed in 5 separate clusters: 55 of 55 alerts trace to the right commit read
 from the signing certificate, while an unsigned look-alike workload traces to none.
 
 [Try it in 60 seconds](#try-it-in-60-seconds){ .md-button .md-button--primary }
@@ -34,7 +34,7 @@ Every number, with its method and caveats, is on the [Evaluation](benchmarks.md)
 ## Try it in 60 seconds
 
 ```bash
-docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # :latest is still v1.0.0 until the next release; console on http://127.0.0.1:8000
+docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # console on http://127.0.0.1:8000
 ```
 
 or

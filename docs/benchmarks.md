@@ -5,7 +5,7 @@ All numbers come from `python -m stratum bench` on the real corpus, the live CI 
 
 | What | Result | Baseline (previous version or naive method) |
 |---|---|---|
-| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **5 / 5** independent kind clusters trace every demo-pod incident (55 incidents) to the commit (Wilson 95% CI over runs 0.57-1.00; incidents within a run share one digest and certificate, so they are not independent); unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
+| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **5 / 5** kind clusters trace every demo-pod incident (55 incidents) to the commit; all 5 clusters ran the **same** signed image (one digest, one certificate, built in run 37005473899), so the trace check rests on one certificate and no CI over runs is given for it; unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
 | Policy engine vs upstream PSS conformance fixtures (148 pods, v1.37) | **F1 1.000** at baseline and restricted (a conformance gate) | v0.1 heuristic: recall 0.147 / 0.105 |
 | Posture of 31 real projects in their default configuration | **32 / 87** workloads not PSS-restricted (7 privileged); 26 of 29 namespaces with no egress policy; 24 workloads with cluster-wide secret read or RBAC escalation | v0.1 heuristic flags 7 / 87 |
 | Rego mirror vs Python engine on the full corpus | **292 / 292 identical findings** (OPA 1.21, [`results/opa.md`](https://github.com/rakshit-737/stratum/blob/main/results/opa.md)) | n/a |
@@ -154,8 +154,8 @@ The models were fit on the 833 normal training traces and scored on 4,372 normal
 
 | system | FAR @ 90% DR |
 |---|---:|
-| STIDE (published) | 0.23 |
-| STIDE n=6 (this repo, partial reproduction) | 0.267 [0.248, 0.306] |
+| STIDE (published, as quoted by Kim et al. arXiv:1611.01726 p.8; primary source not verified) | 0.23 |
+| STIDE n=6 (this repo; not a reproduction of Creech & Hu) | 0.267 [0.248, 0.306] |
 | STRATUM novelty n=5 | 0.278 [0.248, 0.338] |
 | HMM (published) | 0.42 |
 | ELM with semantic features (published) | 0.13 |
@@ -174,7 +174,7 @@ The result is **under-trained, inconclusive**, not a failed reproduction: it doe
 
 ### 6. Live cluster in CI: kind + Tetragon + Gatekeeper + cosign
 
-[`live.yml`](https://github.com/rakshit-737/stratum/blob/main/.github/workflows/live.yml) runs on every push and on demand with N independent clusters. It builds and pushes a demo image, signs it keyless with cosign (GitHub OIDC), deploys it to kind with Tetragon and Gatekeeper (using STRATUM's exported ConstraintTemplate), runs benign attack-shaped actions in the pod (a shell, a read of the pod's own service-account token, `nc` to an in-cluster sink), and runs STRATUM on the real Tetragon events. The image → CI run → commit edges are read from the verified Fulcio certificate; `github.sha` is only the expected value. Walkthrough: [docs/how-it-works.md](how-it-works.md).
+[`live.yml`](https://github.com/rakshit-737/stratum/blob/main/.github/workflows/live.yml) runs on every push and on demand with N independent clusters. On HEAD each cluster builds and pushes its own nonce-tagged demo image and signs it (the committed results in `results/live.*` predate this: they come from commit c863fbc, where one image signed once was reused across all clusters) keyless with cosign (GitHub OIDC), deploys it to kind with Tetragon and Gatekeeper (using STRATUM's exported ConstraintTemplate), runs benign attack-shaped actions in the pod (a shell, a read of the pod's own service-account token, `nc` to an in-cluster sink), and runs STRATUM on the real Tetragon events. The image → CI run → commit edges are read from the verified Fulcio certificate; `github.sha` is only the expected value. Walkthrough: [docs/how-it-works.md](how-it-works.md).
 
 | check (run [37005766853](https://github.com/rakshit-737/stratum/actions/runs/37005766853), 5 clusters) | result |
 |---|---:|
