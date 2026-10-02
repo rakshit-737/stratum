@@ -27,11 +27,13 @@ POD_KINDS = [{"apiGroups": [""], "kinds": ["Pod"]},
 def template_rego() -> str:
     # Gatekeeper parses template Rego as v0 and rejects `import rego.v1` (found by the live kind job);
     # `import future.keywords` gives v0 the same keywords (if / contains / in / every).
+    """Rego source embedded in the Gatekeeper ConstraintTemplate."""
     src = PSS_REGO.read_text(encoding="utf-8").replace("package stratum.pss", f"package {KIND.lower()}", 1)
     return src.replace("import rego.v1", "import future.keywords", 1)
 
 
 def constraint_template() -> dict:
+    """The ``StratumPodSecurity`` ConstraintTemplate as a dict."""
     return {
         "apiVersion": "templates.gatekeeper.sh/v1",
         "kind": "ConstraintTemplate",
@@ -45,6 +47,7 @@ def constraint_template() -> dict:
 
 
 def constraint(level: str = "restricted", action: str = "dryrun", exclude_ns: tuple[str, ...] = ("kube-system",)) -> dict:
+    """A constraint instance for one PSS level and enforcement action."""
     return {
         "apiVersion": "constraints.gatekeeper.sh/v1beta1",
         "kind": KIND,
@@ -57,6 +60,7 @@ def constraint(level: str = "restricted", action: str = "dryrun", exclude_ns: tu
 
 def export_yaml(level: str = "restricted", action: str = "dryrun",
                 exclude_ns: tuple[str, ...] = ("kube-system",)) -> str:
+    """Template and constraint as one multi-document YAML string."""
     return yaml.safe_dump_all([constraint_template(), constraint(level, action, exclude_ns)], sort_keys=False)
 
 

@@ -213,6 +213,7 @@ def _kv(d: dict) -> str:
 
 
 def markdown(r: dict) -> str:
+    """Markdown summary of one live run's check result."""
     lines = [
         "### Live kind + Tetragon run (GitHub Actions)", "",
         "| Check | Result |", "|---|---|",
@@ -289,6 +290,7 @@ def aggregate(runs: list[dict], run_url: str = "") -> dict:
 
 
 def aggregate_markdown(a: dict) -> str:
+    """Markdown table for :func:`aggregate` output."""
     n = a["runs"]
 
     def ci(c):
@@ -343,5 +345,6 @@ def aggregate_markdown(a: dict) -> str:
 
 
 def wilson_(k: int, n: int):
+    """Wilson 95% CI, or None when ``n`` is 0."""
     from .bench.metrics import wilson
     return wilson(k, n) if n else None

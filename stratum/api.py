@@ -67,11 +67,13 @@ def _a():
 
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:
+    """Serve the incident console."""
     return FileResponse(WEB / "index.html")
 
 
 @app.get("/api/summary")
 def summary() -> dict:
+    """Counts of nodes, findings and incidents for the loaded dataset."""
     a, ds = _a(), _load(_source())
     return {
         "source": _source(), "version": __version__,
@@ -86,18 +88,21 @@ def summary() -> dict:
 
 @app.get("/api/controls")
 def controls() -> list[dict]:
+    """The Zero-Trust control catalogue."""
     counts = Counter(f.control_id for f in _a().findings)
     return [dict(to_dict(c), severity=SEV[c.id], findings=counts.get(c.id, 0)) for c in CONTROLS.values()]
 
 
 @app.get("/api/findings")
 def findings(control: str | None = None, limit: int = 500) -> list[dict]:
+    """Posture findings, optionally filtered by control id."""
     fs = [f for f in _a().findings if control in (None, f.control_id)]
     return [to_dict(f) for f in fs[:limit]]
 
 
 @app.get("/api/workloads")
 def workloads() -> list[dict]:
+    """Workloads with their images and failed controls."""
     a, ds = _a(), _load(_source())
     per = Counter(f.subject for f in a.findings)
     return [{"id": f"workload:{w.namespace}/{w.name}", "namespace": w.namespace, "name": w.name, "kind": w.kind,
@@ -108,11 +113,13 @@ def workloads() -> list[dict]:
 
 @app.get("/api/incidents")
 def incidents() -> list[dict]:
+    """Runtime incidents traced to commits."""
     return [to_dict(i) for i in _a().incidents]
 
 
 @app.get("/api/trace")
 def trace(node: str) -> dict:
+    """Upstream chain (pod -> ... -> commit) of a graph node."""
     g = _a().graph
     if node not in g.nodes:
         raise HTTPException(404, f"unknown node {node}")
@@ -122,6 +129,7 @@ def trace(node: str) -> dict:
 
 @app.get("/api/blast")
 def blast(base: str) -> dict:
+    """Workloads built on the given base image."""
     g = _a().graph
     nid = base if base.startswith(("base:", "image:", "commit:", "build:")) else f"base:{base}"
     if nid not in g.nodes:
@@ -131,6 +139,7 @@ def blast(base: str) -> dict:
 
 @app.get("/api/bases")
 def bases() -> list[dict]:
+    """Base images and how many workloads use each."""
     g = _a().graph
     return sorted(({"id": b, "workloads": len(g.blast_radius(b))} for b in g.of_type("base_image")),
                   key=lambda x: -x["workloads"])
@@ -138,10 +147,12 @@ def bases() -> list[dict]:
 
 @app.post("/api/prevent/{namespace}")
 def prevent(namespace: str) -> dict:
+    """Generated egress NetworkPolicy for a namespace."""
     ds = Dataset.from_json(_load(_source()).to_json())  # copy: replay mutates
     return replay_with_policy(ds, namespace)
 
 
 @app.get("/api/export/cypher", response_class=PlainTextResponse)
 def cypher() -> str:
+    """The graph as Neo4j Cypher statements."""
     return to_cypher(_a().graph)

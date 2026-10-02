@@ -16,6 +16,7 @@ POLICY_DIR = Path(__file__).resolve().parent / "policies"
 
 
 def find_opa() -> str | None:
+    """Path of an ``opa`` binary (PATH, then $STRATUM_DATA/tools), or None if absent."""
     cand = shutil.which("opa")
     if cand:
         return cand
@@ -27,6 +28,7 @@ def find_opa() -> str | None:
 
 
 def rego_input(ds: Dataset, deny_bases: tuple[str, ...] = ()) -> dict:
+    """Serialise a dataset into the ``input`` document the Rego mirror evaluates."""
     doc = json.loads(ds.to_json())
     doc.pop("events", None)
     doc["deny_bases"] = list(deny_bases)
@@ -34,6 +36,7 @@ def rego_input(ds: Dataset, deny_bases: tuple[str, ...] = ()) -> dict:
 
 
 def opa_findings(ds: Dataset, deny_bases: tuple[str, ...] = (), opa: str | None = None) -> set[tuple[str, str]]:
+    """Evaluate the Rego mirror with ``opa eval``; returns the set of (control_id, subject) findings."""
     opa = opa or find_opa()
     if not opa:
         raise FileNotFoundError("opa binary not found (PATH or $STRATUM_DATA/tools)")
@@ -49,6 +52,7 @@ def opa_findings(ds: Dataset, deny_bases: tuple[str, ...] = (), opa: str | None 
 
 
 def diff(ds: Dataset, deny_bases: tuple[str, ...] = (), opa: str | None = None) -> dict:
+    """Compare Python-engine and Rego findings: counts, the pairs only one side reports, and ``equivalent``."""
     py = {(f.control_id, f.subject) for f in evaluate(ds, build_graph(ds), deny_bases)}
     rg = opa_findings(ds, deny_bases, opa)
     return {"python": len(py), "rego": len(rg), "only_python": sorted(py - rg), "only_rego": sorted(rg - py),
