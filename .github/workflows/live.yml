@@ -106,7 +106,8 @@ jobs:
           kubectl create namespace stratum-live
           # wait until the constraint is enforced (server-side dry run of the privileged pod is rejected)
           ok=0; for i in $(seq 90); do
-            kubectl apply --dry-run=server -f deploy/live/denied-pod.yaml 2>&1 | grep -q stratum && { ok=1; break; }; sleep 2; done
+            out=$(kubectl apply --dry-run=server -f deploy/live/denied-pod.yaml 2>&1 || true)
+            grep -q stratum <<< "$out" && { ok=1; break; }; sleep 2; done
           [ $ok = 1 ] || { echo "Gatekeeper constraint never enforced"; kubectl get constrainttemplate stratumpodsecurity -o yaml; exit 1; }
       - name: deploy demo workloads
         run: |
@@ -124,7 +125,8 @@ jobs:
         run: |
           set -uo pipefail
           for i in $(seq 60); do
-            kubectl -n kube-system logs ds/tetragon -c export-stdout --tail=-1 2>/dev/null | grep -q '"namespace":"stratum-live"' && break; sleep 2; done
+            kubectl -n kube-system logs ds/tetragon -c export-stdout --tail=-1 > "$RUNNER_TEMP/t.json" 2>/dev/null || true
+            grep -q '"namespace":"stratum-live"' "$RUNNER_TEMP/t.json" && break; sleep 2; done
       - name: attack-shaped actions in the pods
         run: bash deploy/live/actions.sh
       - name: policy-as-prevention (live NetworkPolicy)
