@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,22 +7,28 @@ name = "stratum"
 version = "1.0.0"
 description = "Open mini-CNAPP: code-to-runtime lifecycle graph, Zero-Trust policy (Python + Rego), trace-to-commit"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Rakshit" }]
 requires-python = ">=3.10"
 dependencies = ["PyYAML>=6"]
 keywords = ["kubernetes", "cnapp", "supply-chain", "zero-trust", "runtime-security", "provenance"]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Security",
 ]
 
 [project.optional-dependencies]
 api = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27"]
-bench = ["scikit-learn>=1.4", "matplotlib>=3.8"]
+bench = ["scikit-learn>=1.5", "matplotlib>=3.8"]
+lstm = ["torch>=2.4,<3"]
 neo4j = ["neo4j>=5"]
-dev = ["pytest>=7", "ruff==0.8.4", "fastapi>=0.110", "httpx>=0.27"]
+dev = ["pytest>=8", "ruff==0.8.4", "fastapi>=0.110", "httpx>=0.27"]
 
 [project.urls]
 Homepage = "https://github.com/rakshit-737/stratum"
@@ -31,10 +37,10 @@ Homepage = "https://github.com/rakshit-737/stratum"
 stratum = "stratum.cli:main"
 
 [tool.setuptools]
-packages = ["stratum", "stratum.bench"]
+packages.find = { include = ["stratum*"] }
 
 [tool.setuptools.package-data]
-stratum = ["web/*.html"]
+stratum = ["web/*.html", "policies/*.rego", "policies/pss/*.rego"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

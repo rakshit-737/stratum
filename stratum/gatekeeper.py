@@ -1,6 +1,6 @@
-"""Export policies/pss/pss.rego as an OPA Gatekeeper ConstraintTemplate + Constraint, and evaluate it with opa.
+"""Export stratum/policies/pss/pss.rego as an OPA Gatekeeper ConstraintTemplate + Constraint, and evaluate it with opa.
 
-``policies/pss/pss.rego`` re-implements 8 of the 19 Pod Security Standards checks (the ones that are
+``stratum/policies/pss/pss.rego`` re-implements 8 of the 19 Pod Security Standards checks (the ones that are
 plain field tests); ``tests/test_gatekeeper.py`` diffs it against :mod:`stratum.pss` on the upstream
 fixtures when an ``opa`` binary is available.
 """
@@ -73,6 +73,6 @@ def rego_violations(objs: list[dict], opa: str | None = None) -> list[set[str]]:
         res = subprocess.run([opa, "eval", "--format", "json", "-d", str(PSS_REGO), "-d", str(data), query],
                              capture_output=True, text=True, timeout=600)
     if res.returncode != 0:
-        raise RuntimeError(res.stderr[-800:])
+        raise RuntimeError(f"opa eval failed (exit {res.returncode}): {(res.stderr or res.stdout)[-800:]}")
     vals = json.loads(res.stdout)["result"][0]["expressions"][0]["value"]
     return [{v[0] for v in vs} for vs in vals]

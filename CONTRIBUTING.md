@@ -24,7 +24,7 @@ python -m stratum bench                               # regenerate results/
 
 - **Tests first.** Every new rule, check or parser needs a test. Use a small *real* fixture under `tests/fixtures/` (a trimmed upstream manifest or event) rather than a hand-invented one. Keep each fixture under ~50 KB.
 - **CI must pass without the big datasets.** Tests that need the corpus must carry `@pytest.mark.realdata`. `tests/conftest.py` skips them automatically when `$STRATUM_DATA` is absent.
-- **Policy changes go in two places.** A change to `stratum/policy.py` needs the same change in `policies/stratum.rego`. `stratum opa-check` (run in CI) fails if the two diverge.
+- **Policy changes go in two places.** A change to `stratum/policy.py` needs the same change in `stratum/policies/stratum.rego`. `stratum opa-check` (run in CI) fails if the two diverge.
 - **Every control must be traceable.** A new control needs an id, a severity, an external reference (CIS, NIST, SLSA, ...) and a fix string in `stratum/incident.py`.
 - **No datasets or large files in git.** Add a `scripts/download_*.py` step that pins versions and verifies SHA-256 (see `scripts/_common.py`). Only small derived artefacts go in `results/`.
 - **Safety.** No malware, exploit code or offensive tooling. Never scan or connect to anything except public registries, public APIs and your own lab cluster.

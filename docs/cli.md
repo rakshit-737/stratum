@@ -13,7 +13,7 @@
 | `collect FILES... [--tetragon EVENTS...] --out cluster.json` | real manifests (+ Tetragon JSON) → dataset JSON |
 | `pss FILES... --level baseline\|restricted [--strict]` | Pod Security Standards check; `--strict` exits 1 on violations |
 | `export [--data] --format cypher\|json\|rego-input [--out]` | Neo4j Cypher / JSON / OPA input export |
-| `opa-check [--data]` | diff the Python engine against `policies/stratum.rego` (needs `opa`) |
+| `opa-check [--data]` | diff the Python engine against `stratum/policies/stratum.rego` (needs `opa`) |
 | `gatekeeper [--level] [--action dryrun\|warn\|deny] [--out]` | export PSS Rego as a Gatekeeper ConstraintTemplate + Constraint |
 | `bench [NAMES...] [--data-dir] [--out results]` | real-data benchmarks → `results/` |
 | `serve [--source synthetic\|real\|FILE] [--host] [--port]` | FastAPI + incident console |

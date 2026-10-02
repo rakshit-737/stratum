@@ -4,7 +4,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY stratum ./stratum
-COPY policies ./policies
 RUN pip install --no-cache-dir ".[api]" \
  && useradd --uid 10001 --no-create-home stratum
 USER 10001

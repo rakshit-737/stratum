@@ -1,6 +1,6 @@
 # Gatekeeper export
 
-`policies/pss/pss.rego` re-implements the eight Pod Security Standards checks that are plain field tests
+`stratum/policies/pss/pss.rego` re-implements the eight Pod Security Standards checks that are plain field tests
 (`hostnamespaces`, `privileged`, `capabilities_baseline`, `hostpathvolumes`, `hostports`,
 `allowprivilegeescalation`, `runasuser`, `runasnonroot`) in Rego v1, with the same check ids as `stratum/pss.py`.
 It accepts Pods and pod-template workloads (Deployment, StatefulSet, DaemonSet, ReplicaSet, Job, CronJob).

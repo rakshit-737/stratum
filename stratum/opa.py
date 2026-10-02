@@ -1,4 +1,4 @@
-"""Evaluate policies/stratum.rego with a real ``opa`` binary and diff against the Python engine."""
+"""Evaluate stratum/policies/stratum.rego with a real ``opa`` binary and diff against the Python engine."""
 from __future__ import annotations
 
 import json
@@ -12,14 +12,14 @@ from .dataset import Dataset
 from .graph import build_graph
 from .policy import evaluate
 
-POLICY_DIR = Path(__file__).resolve().parents[1] / "policies"
+POLICY_DIR = Path(__file__).resolve().parent / "policies"
 
 
 def find_opa() -> str | None:
     cand = shutil.which("opa")
     if cand:
         return cand
-    tools = Path(os.environ.get("STRATUM_DATA", Path(__file__).resolve().parents[1] / "data")) / "tools"
+    tools = Path(os.environ.get("STRATUM_DATA", Path.cwd() / "data")) / "tools"
     for n in ("opa.exe", "opa"):
         if (tools / n).exists():
             return str(tools / n)
@@ -43,7 +43,7 @@ def opa_findings(ds: Dataset, deny_bases: tuple[str, ...] = (), opa: str | None 
         res = subprocess.run([opa, "eval", "--format", "json", "-d", str(POLICY_DIR), "-i", str(inp),
                               "data.stratum.findings"], capture_output=True, text=True, timeout=300)
     if res.returncode != 0:
-        raise RuntimeError(res.stderr[-800:])
+        raise RuntimeError(f"opa eval failed (exit {res.returncode}): {(res.stderr or res.stdout)[-800:]}")
     val = json.loads(res.stdout)["result"][0]["expressions"][0]["value"]
     return {(f["control_id"], f["subject"]) for f in val}
 

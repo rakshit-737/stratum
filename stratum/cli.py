@@ -216,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("export", help="dataset / graph export")
     s.add_argument("--data"); s.add_argument("--format", choices=["json", "cypher", "rego-input"], default="cypher")
     s.add_argument("--out"); s.set_defaults(fn=cmd_export)
-    s = sub.add_parser("opa-check", help="diff Python policy engine vs policies/stratum.rego (needs opa)")
+    s = sub.add_parser("opa-check", help="diff Python policy engine vs stratum/policies/stratum.rego (needs opa)")
     s.add_argument("--data"); s.set_defaults(fn=cmd_opa_check)
     s = sub.add_parser("gatekeeper", help="export PSS Rego as a Gatekeeper ConstraintTemplate + Constraint")
     s.add_argument("--level", choices=["baseline", "restricted"], default="restricted")

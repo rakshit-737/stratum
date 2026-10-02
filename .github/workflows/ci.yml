@@ -33,7 +33,7 @@ jobs:
         with:
           version: 1.21.0
       - run: pip install -e ".[dev]"
-      - run: opa check policies/
+      - run: opa check stratum/policies/
       - run: python -m pytest -q tests/test_api_export.py -k rego
       - run: python -m pytest -q tests/test_gatekeeper.py
       - run: python -m stratum opa-check

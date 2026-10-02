@@ -1,7 +1,7 @@
 """Zero-Trust policy engine evaluated over the lifecycle graph + dataset.
 
 Rules are plain Python and are mirrored 1:1 by the Rego policies in
-``policies/stratum.rego`` (checked for equivalence by ``stratum opa-check`` when an
+``stratum/policies/stratum.rego`` (checked for equivalence by ``stratum opa-check`` when an
 ``opa`` binary is available). Each rule maps to a named control so every
 finding says *which* control is missing.
 """

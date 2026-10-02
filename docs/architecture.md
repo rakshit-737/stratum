@@ -19,7 +19,7 @@ flowchart LR
   ING --> DS
   DS --> G["graph.py lifecycle graph"]
   G --> POL["policy.py 13 ZT controls"]
-  POL -. "diffed in CI" .-> REGO["policies/stratum.rego via OPA"]
+  POL -. "diffed in CI" .-> REGO["stratum/policies/stratum.rego via OPA"]
   G --> DET["detect.py 9 rules + novelty"]
   DET --> INC["incident.py trace to commit, failed control, blast radius, fix"]
   POL --> INC

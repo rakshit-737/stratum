@@ -64,7 +64,7 @@ flowchart LR
   PROV --> G
   ING --> G
   G --> POL[Zero-Trust policy engine, 13 controls]
-  POL -. identical findings, diffed in CI .-> REGO[policies/stratum.rego on OPA]
+  POL -. identical findings, diffed in CI .-> REGO[stratum/policies/stratum.rego on OPA]
   G --> DET[runtime rules + anomaly scoring]
   DET --> INC[Incident: root commit, PR, failed control, blast radius, fix]
   POL --> INC
@@ -79,7 +79,7 @@ flowchart LR
 | Build provenance | `stratum/registry.py`, `stratum/provenance.py` | tag → digest → OCI source/revision → verified GitHub commit + PR; cosign `.sig`/`.att` presence; no layer pulls |
 | Scan + runtime ingest | `stratum/ingest.py` | Trivy JSON (CVEs, shells, base OS), CISA KEV join, Tetragon `process_exec/connect/kprobe`, runtime-only pods |
 | Lifecycle graph | `stratum/graph.py`, `stratum/neo4j.py` | Typed graph, upstream trace, downstream blast radius; Cypher export with `VIOLATES` edges |
-| Zero-Trust policy | `stratum/policy.py`, `policies/stratum.rego`, `stratum/opa.py` | 13 named controls (NIST 800-207, CIS K8s, SLSA, CISA BOD 22-01); a Rego v1 mirror and an OPA diff |
+| Zero-Trust policy | `stratum/policy.py`, `stratum/policies/stratum.rego`, `stratum/opa.py` | 13 named controls (NIST 800-207, CIS K8s, SLSA, CISA BOD 22-01); a Rego v1 mirror and an OPA diff |
 | Runtime detection | `stratum/detect.py`, `stratum/syscall.py` | 9 rules that name controls, a per-workload novelty model, STIDE / n-gram / Isolation Forest syscall models |
 | Incidents | `stratum/incident.py` | Trace-to-commit, failed controls, blast radius, fix, policy-as-prevention replay |
 | Interfaces | `stratum/cli.py`, `stratum/api.py`, `stratum/web/` | CLI, FastAPI, and a no-build incident console |

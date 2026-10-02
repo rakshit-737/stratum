@@ -1,0 +1,5 @@
+include LICENSE README.md CHANGELOG.md
+recursive-include stratum/policies *.rego
+recursive-include stratum/web *.html
+recursive-include tests *.py *.json *.yaml *.yml *.txt
+recursive-include deploy *.yaml *.sh Dockerfile

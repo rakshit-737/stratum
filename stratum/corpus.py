@@ -17,7 +17,7 @@ from .models import ImageReport
 
 
 def data_dir() -> Path:
-    return Path(os.environ.get("STRATUM_DATA", Path(__file__).resolve().parents[1] / "data"))
+    return Path(os.environ.get("STRATUM_DATA", Path.cwd() / "data"))
 
 
 def manifest_index(root: Path | None = None) -> dict:
