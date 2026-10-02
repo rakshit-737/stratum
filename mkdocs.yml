@@ -50,6 +50,7 @@ nav:
   - Datasets: datasets.md
   - Benchmarks: benchmarks.md
   - Live demo: demo.md
+  - Live CI (kind + Tetragon): live.md
   - Reference:
       - CLI: cli.md
       - Python API: api.md

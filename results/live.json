@@ -1,0 +1,43 @@
+{
+ "events_total": 23,
+ "events_in_namespace": 23,
+ "event_kinds": {
+  "exec": 21,
+  "open": 1,
+  "connect": 1
+ },
+ "events_on_target": 16,
+ "target_image_digests": [
+  "sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1"
+ ],
+ "connects_on_target": [
+  "10.96.227.241:8080"
+ ],
+ "rules_on_target": [
+  "R-NETTOOL",
+  "R-SA-TOKEN",
+  "R-SHELL"
+ ],
+ "incidents_on_target": 5,
+ "incidents_other_pods_in_namespace": 0,
+ "traced_to_commit": 5,
+ "example_chain": [
+  "pod:stratum-live/web-9dc6879bb-xl5nl",
+  "workload:stratum-live/web",
+  "image:ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1",
+  "build:36319470255",
+  "commit:6dd4b9b30f2404a974b0198a021ced3963a55516"
+ ],
+ "failed_controls": [
+  "ZT-ID-02",
+  "ZT-IMG-02",
+  "ZT-NET-01"
+ ],
+ "gatekeeper": {
+  "privileged_denied": true,
+  "demo_admitted": true
+ },
+ "cosign_verified": true,
+ "failures": [],
+ "passed": true
+}
