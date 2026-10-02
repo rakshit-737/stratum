@@ -174,12 +174,14 @@ def cmd_live_check(a) -> int:
     from pathlib import Path
 
     from .live import build_dataset, check, markdown
-    ds = build_dataset(a.manifests, a.pods, a.events, image_ref=a.image_ref, commit=a.commit, repo=a.repo,
-                       author=a.author, run_id=a.run_id, signed=a.cosign_ok == "true")
+    from .sigstore import parse_cosign_verify
+    sigs = parse_cosign_verify(a.cosign_json) if a.cosign_json else []
+    ds = build_dataset(a.manifests, a.pods, a.events, signatures=sigs, author=a.author)
     gk = json.loads(Path(a.gatekeeper).read_text(encoding="utf-8")) if a.gatekeeper else None
     cos = None if a.cosign_ok is None else a.cosign_ok == "true"
-    r = check(ds, namespace=a.namespace, workload=a.workload, image_digest=a.digest, commit=a.commit,
-              gatekeeper=gk, cosign_ok=cos)
+    r = check(ds, namespace=a.namespace, workload=a.workload, image_digest=a.digest, commit=a.expect_commit,
+              gatekeeper=gk, cosign_ok=cos, drift=a.drift,
+              prevention=json.loads(Path(a.prevention).read_text(encoding="utf-8")) if a.prevention else None)
     Path(a.out).write_text(json.dumps(r, indent=1), encoding="utf-8")
     print(markdown(r))
     return 0 if r["passed"] else 1
@@ -228,10 +230,13 @@ def main(argv: list[str] | None = None) -> int:
     s.set_defaults(fn=cmd_bench)
     s = sub.add_parser("live-check", help="assert on live kind + Tetragon evidence (CI)")
     s.add_argument("--manifests", nargs="+", required=True); s.add_argument("--pods", required=True)
-    s.add_argument("--events", nargs="+", required=True); s.add_argument("--image-ref", required=True)
-    s.add_argument("--digest", default=""); s.add_argument("--commit", required=True)
-    s.add_argument("--repo", default="rakshit-737/stratum"); s.add_argument("--author", default="")
-    s.add_argument("--run-id", default="live"); s.add_argument("--namespace", default="stratum-live")
+    s.add_argument("--events", nargs="+", required=True)
+    s.add_argument("--cosign-json", help="`cosign verify -o json` output: the only source of image->build->commit")
+    s.add_argument("--digest", default="", help="digest of the pushed demo image (expected in the events)")
+    s.add_argument("--expect-commit", required=True, help="commit the trace must reach (e.g. github.sha)")
+    s.add_argument("--drift", help="unsigned workload used as negative control (must not reach a commit)")
+    s.add_argument("--prevention", help="JSON with observed before/after connect results of the egress policy")
+    s.add_argument("--author", default=""); s.add_argument("--namespace", default="stratum-live")
     s.add_argument("--workload", default="web"); s.add_argument("--gatekeeper")
     s.add_argument("--cosign-ok", choices=["true", "false"]); s.add_argument("--out", default="live-result.json")
     s.set_defaults(fn=cmd_live_check)

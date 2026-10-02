@@ -16,6 +16,7 @@ from .incident import analyze
 from .ingest import tetragon_events
 from .k8s import collect_files
 from .models import Build, Commit, Image
+from .sigstore import SignedImage
 
 # rule -> what the scripted action inside the pod was
 EXPECTED = {"R-SHELL": "kubectl exec ... sh", "R-SA-TOKEN": "cat the projected SA token",
@@ -31,8 +32,13 @@ def _owner_workload(pod: dict) -> str | None:
 
 
 def build_dataset(manifests: list[str | Path], pods_json: str | Path, events: list[str | Path], *,
-                  image_ref: str, commit: str, repo: str, author: str = "", run_id: str = "live",
-                  signed: bool = False) -> Dataset:
+                  signatures: list[SignedImage], author: str = "") -> Dataset:
+    """Join manifests, pod state, Tetragon events and verified signatures into one :class:`Dataset`.
+
+    The ``image -> build -> commit`` edges come only from ``signatures`` (parsed from ``cosign verify``):
+    a workload whose image digest has no verified signature gets no build, so its incidents cannot
+    reach a commit. Nothing about the expected commit is passed in here.
+    """
     ds = collect_files(manifests, source="live")
     pods = json.loads(Path(pods_json).read_text(encoding="utf-8")).get("items", [])
     by_wl: dict[tuple[str, str], list[str]] = {}
@@ -43,15 +49,25 @@ def build_dataset(manifests: list[str | Path], pods_json: str | Path, events: li
             by_wl.setdefault((meta.get("namespace", ""), wl), []).append(meta.get("name", ""))
     for w in ds.workloads:
         w.pods = sorted(by_wl.get((w.namespace, w.name), w.pods))
-    ds.commits.append(Commit(commit, repo, author, "live CI build"))
-    ds.builds.append(Build(run_id, commit, "github-actions", signed=signed))
-    ds.images.append(Image(image_ref, image_ref, run_id))
+    seen: set[str] = set()
+    for sig in signatures:
+        build = sig.run_id or f"sig-{sig.digest[7:19]}"
+        if sig.commit not in {c.sha for c in ds.commits}:
+            ds.commits.append(Commit(sig.commit, sig.source_repo, author, f"signed by {sig.ref}"))
+        if build not in {b.id for b in ds.builds}:
+            ds.builds.append(Build(build, sig.commit, "github-actions", signed=True))
+        for w in ds.workloads:
+            if w.image_digest.endswith("@" + sig.digest) and w.image_digest not in seen:
+                seen.add(w.image_digest)
+                ds.images.append(Image(w.image_digest, w.image_digest, build))
     ds.events = tetragon_events(events)
     return ds
 
 
 def check(ds: Dataset, *, namespace: str, workload: str, image_digest: str, commit: str,
-          gatekeeper: dict | None = None, cosign_ok: bool | None = None) -> dict:
+          gatekeeper: dict | None = None, cosign_ok: bool | None = None, drift: str | None = None,
+          prevention: dict | None = None) -> dict:
+    """Assert on the joined evidence. ``commit`` is only the expected value (``github.sha``)."""
     a = analyze(ds, deny_bases=())
     ns_events = [e for e in ds.events if e.namespace == namespace]
     target = [e for e in ns_events if e.pod.startswith(workload + "-")]
@@ -73,7 +89,13 @@ def check(ds: Dataset, *, namespace: str, workload: str, image_digest: str, comm
         "example_chain": on_target[0].chain if on_target else [],
         "failed_controls": sorted({f.control_id for i in on_target for f in i.failed_controls}),
         "gatekeeper": gatekeeper or {}, "cosign_verified": cosign_ok,
+        "commit_source": "cosign certificate (OID 1.3.6.1.4.1.57264.1.3)",
     }
+    if drift:
+        d_incs = [i for i in incs if i.detection.event.pod.startswith(drift + "-")]
+        res["drift"] = {"workload": drift, "incidents": len(d_incs),
+                        "traced_to_any_commit": sum(i.root_commit is not None for i in d_incs),
+                        "failed_controls": sorted({f.control_id for i in d_incs for f in i.failed_controls})}
     fails = []
     for rule, action in EXPECTED.items():
         if rule not in rules:
@@ -86,6 +108,22 @@ def check(ds: Dataset, *, namespace: str, workload: str, image_digest: str, comm
         fails.append("no connect to the sink (:8080) captured")
     if gatekeeper is not None and not (gatekeeper.get("privileged_denied") and gatekeeper.get("demo_admitted")):
         fails.append(f"gatekeeper: {gatekeeper}")
+    if prevention is not None:
+        from .incident import replay_with_policy
+        pred = replay_with_policy(ds, namespace)
+        pred.pop("policy_yaml", None)
+        res["prevention"] = {"observed": prevention, "predicted_by_replay": pred}
+        if not (prevention.get("before") is True and prevention.get("after") is False
+                and prevention.get("in_cluster_after") is True):
+            fails.append(f"prevention: {prevention}")
+    if drift:
+        d = res["drift"]
+        if not d["incidents"]:
+            fails.append(f"negative control: no incident on unsigned workload {drift}")
+        if d["traced_to_any_commit"]:
+            fails.append(f"negative control: unsigned workload {drift} traced to a commit")
+        if "ZT-PROV-01" not in d["failed_controls"]:
+            fails.append(f"negative control: ZT-PROV-01 not named for {drift}")
     if cosign_ok is False:
         fails.append("cosign verify failed")
     res["failures"] = fails
@@ -93,14 +131,31 @@ def check(ds: Dataset, *, namespace: str, workload: str, image_digest: str, comm
     return res
 
 
+def _kv(d: dict) -> str:
+    return ", ".join(f"{k} {str(v).lower() if isinstance(v, bool) else v}" for k, v in d.items())
+
+
 def markdown(r: dict) -> str:
-    return "\n".join([
+    lines = [
         "### Live kind + Tetragon run (GitHub Actions)", "",
-        f"- Tetragon events: {r['events_total']} total, {r['events_in_namespace']} in the demo namespace "
-        f"({r['event_kinds']})",
-        f"- Rules raised on the demo pod: {', '.join(r['rules_on_target']) or '-'}",
-        f"- Incidents traced to the CI commit: {r['traced_to_commit']}/{r['incidents_on_target']}",
-        f"- Detections on other pods in the namespace (sink): {r['incidents_other_pods_in_namespace']}",
-        f"- Trace: {' -> '.join(r['example_chain'])}",
-        f"- Gatekeeper: {r['gatekeeper']}", f"- cosign keyless verify: {r['cosign_verified']}",
-        f"- Result: {'PASS' if r['passed'] else 'FAIL: ' + '; '.join(r['failures'])}"])
+        "| Check | Result |", "|---|---|",
+        f"| Tetragon events (total / demo namespace) | {r['events_total']} / {r['events_in_namespace']} ({_kv(r['event_kinds'])}) |",
+        f"| Rules raised on the demo pod | {', '.join(r['rules_on_target']) or '-'} |",
+        f"| Incidents traced to the expected commit (commit read from the cosign certificate) | "
+        f"{r['traced_to_commit']}/{r['incidents_on_target']} |",
+        f"| Detections on the sink pod | {r['incidents_other_pods_in_namespace'] - (r.get('drift') or {}).get('incidents', 0)} |",
+    ]
+    if r.get("drift"):
+        d = r["drift"]
+        lines.append(f"| Negative control: unsigned `{d['workload']}` incidents traced to a commit | "
+                     f"{d['traced_to_any_commit']}/{d['incidents']} (controls: {', '.join(d['failed_controls'])}) |")
+    if r.get("prevention"):
+        o = r["prevention"]["observed"]
+        lines.append(f"| Policy-as-prevention: connect to external sink before / after `stratum prevent` policy | "
+                     f"{'allowed' if o.get('before') else 'blocked'} / {'allowed' if o.get('after') else 'blocked'} "
+                     f"(in-cluster sink after: {'allowed' if o.get('in_cluster_after') else 'blocked'}) |")
+    lines += [f"| Gatekeeper | {_kv(r['gatekeeper'])} |",
+              f"| cosign keyless verify | {str(r['cosign_verified']).lower()} |",
+              f"| Result | {'PASS' if r['passed'] else 'FAIL: ' + '; '.join(r['failures'])} |", "",
+              f"Trace: `{' -> '.join(r['example_chain'])}`"]
+    return "\n".join(lines)

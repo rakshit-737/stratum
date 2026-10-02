@@ -5,6 +5,7 @@ from pathlib import Path
 from stratum.detect import rule_detect
 from stratum.live import build_dataset, check
 from stratum.models import RuntimeEvent
+from stratum.sigstore import SignedImage, parse_cosign_verify
 
 ROOT = Path(__file__).resolve().parents[1]
 DIG = "sha256:" + "ab" * 32
@@ -44,10 +45,40 @@ def test_live_check_end_to_end(tmp_path):
     pods.write_text(json.dumps({"items": [{"metadata": {"name": "web-5d9c7b-x1", "namespace": "stratum-live",
                                                         "ownerReferences": [{"kind": "ReplicaSet",
                                                                              "name": "web-5d9c7b"}]}}]}))
-    ds = build_dataset([man], pods, [ev], image_ref=REF, commit="c0ffee", repo="r", signed=True)
+    sig = SignedImage(DIG, "ghcr.io/rakshit-737/stratum-live-demo", "c0ffee", "r", "refs/heads/main", "i", "42", None)
+    ds = build_dataset([man], pods, [ev], signatures=[sig])
     r = check(ds, namespace="stratum-live", workload="web", image_digest=DIG, commit="c0ffee",
               gatekeeper={"privileged_denied": True, "demo_admitted": True}, cosign_ok=True)
     assert r["passed"], r["failures"]
     assert r["example_chain"][-1] == "commit:c0ffee"
     r = check(ds, namespace="stratum-live", workload="web", image_digest=DIG, commit="other")
     assert not r["passed"]
+
+
+FIX = ROOT / "tests/fixtures/live"
+LIVE_DIG = "sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1"
+LIVE_SHA = "6dd4b9b30f2404a974b0198a021ced3963a55516"
+
+
+def test_cosign_certificate_provenance():
+    (s,) = parse_cosign_verify(FIX / "cosign-verify.json")
+    assert (s.digest, s.commit, s.run_id, s.source_repo) == (LIVE_DIG, LIVE_SHA, "36319470255", "rakshit-737/stratum")
+    assert s.run_url.endswith("/actions/runs/36319470255/attempts/1")
+
+
+def _replay(sigs):
+    return build_dataset([FIX / "workloads.yaml"], FIX / "pods.json", [FIX / "tetragon-events.json"], signatures=sigs)
+
+
+def test_replay_real_live_run():
+    ds = _replay(parse_cosign_verify(FIX / "cosign-verify.json"))
+    r = check(ds, namespace="stratum-live", workload="web", image_digest=LIVE_DIG, commit=LIVE_SHA,
+              gatekeeper={"privileged_denied": True, "demo_admitted": True}, cosign_ok=True)
+    assert r["passed"], r["failures"]
+    assert r["traced_to_commit"] == r["incidents_on_target"] == 5
+    assert not check(ds, namespace="stratum-live", workload="web", image_digest=LIVE_DIG, commit="0" * 40)["passed"]
+
+
+def test_replay_without_signature_cannot_reach_commit():
+    r = check(_replay([]), namespace="stratum-live", workload="web", image_digest=LIVE_DIG, commit=LIVE_SHA)
+    assert r["traced_to_commit"] == 0 and not r["passed"]

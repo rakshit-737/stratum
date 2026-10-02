@@ -1,0 +1,4 @@
+Error from server (Forbidden): error when creating "deploy/live/denied-pod.yaml": admission webhook "validation.gatekeeper.sh" denied the request: [stratum-pss-restricted] PSS restricted/allowprivilegeescalation: container c allowPrivilegeEscalation!=false
+[stratum-pss-restricted] PSS restricted/hostnamespaces: hostPID=true
+[stratum-pss-restricted] PSS restricted/privileged: container c privileged
+[stratum-pss-restricted] PSS restricted/runasnonroot: container c runAsNonRoot unset
