@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use STRATUM, please cite it as below."
+title: "STRATUM: open mini-CNAPP joining runtime alerts to signed build provenance and Zero-Trust controls"
+authors:
+  - name: Rakshit
+version: 1.0.0
+date-released: 2026-09-26
+license: MIT
+repository-code: "https://github.com/rakshit-737/stratum"
+url: "https://rakshit-737.github.io/stratum/"
+keywords: [kubernetes, cnapp, supply-chain, sigstore, tetragon, zero-trust, provenance]
