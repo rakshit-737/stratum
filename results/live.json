@@ -27,11 +27,13 @@
  },
  "incidents_on_target": 55,
  "traced_to_commit": 55,
- "traced_ci95": [
-  0.9347,
+ "runs_fully_traced": 5,
+ "commit_head_sha": "c863fbc4af6d3a87b6946d84b6459d819e620c68",
+ "sink_detections": 0,
+ "traced_runs_ci95": [
+  0.5655,
   1.0
  ],
- "sink_detections": 0,
  "drift": {
   "incidents": 5,
   "traced_to_any_commit": 0,

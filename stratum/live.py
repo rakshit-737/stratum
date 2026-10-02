@@ -169,9 +169,14 @@ def aggregate(runs: list[dict], run_url: str = "") -> dict:
     traced = sum(r["traced_to_commit"] for r in runs)
     out = {"runs": n, "passed": sum(bool(r.get("passed")) for r in runs), "run_url": run_url,
            "rule_capture": {}, "incidents_on_target": inc, "traced_to_commit": traced,
-           "traced_ci95": wilson(traced, inc) if inc else None,
+           # Incidents within one run share one image digest and one Fulcio certificate, so the
+           # trace outcome is decided once per run: the CI is over runs, not over clustered incidents.
+           "runs_fully_traced": sum(r["incidents_on_target"] > 0 and r["traced_to_commit"] == r["incidents_on_target"]
+                                    for r in runs),
+           "commit_head_sha": (runs[0].get("example_chain") or [""])[-1].removeprefix("commit:") if runs else "",
            "sink_detections": sum(r["incidents_other_pods_in_namespace"] - (r.get("drift") or {}).get("incidents", 0)
                                   for r in runs)}
+    out["traced_runs_ci95"] = wilson(out["runs_fully_traced"], n) if n else None
     for rule in EXPECTED:
         k = sum(rule in r["rules_on_target"] for r in runs)
         out["rule_capture"][rule] = {"runs": k, "ci95": wilson(k, n)}
@@ -201,8 +206,10 @@ def aggregate_markdown(a: dict) -> str:
     for rule, v in a["rule_capture"].items():
         rows.append(f"| {rule} raised for its scripted action ({EXPECTED[rule]}) | {v['runs']}/{n} | {ci(v['ci95'])} |")
     rows += [
-        f"| Demo-pod incidents traced to the expected commit (commit read from the cosign certificate) | "
-        f"{a['traced_to_commit']}/{a['incidents_on_target']} | {ci(a['traced_ci95'])} |",
+        f"| Runs whose demo-pod incidents all trace to the expected commit (read from the cosign certificate) | "
+        f"{a['runs_fully_traced']}/{n} | {ci(a['traced_runs_ci95'])} |",
+        f"| Demo-pod incidents traced (count only; clustered by run, so no CI) | "
+        f"{a['traced_to_commit']}/{a['incidents_on_target']} | - |",
         f"| Detections on the benign sink pod | {a['sink_detections']} | - |",
         f"| Unsigned `drift` incidents traced to any commit (negative control, want 0) | "
         f"{a['drift']['traced_to_any_commit']}/{a['drift']['incidents']} | - |",
@@ -212,7 +219,9 @@ def aggregate_markdown(a: dict) -> str:
         f"| In-cluster sink still reachable after the policy | {a['prevention']['in_cluster_kept']}/{a['prevention']['runs']} | - |",
         f"| Gatekeeper denied the privileged pod | {a['gatekeeper_denied']}/{n} | - |",
         f"| cosign keyless verify (right identity passes, wrong identity fails) | {a['cosign_verified']}/{n} | - |",
-        "", f"Example trace: `{' -> '.join(a['example_chain'])}`", ""]
+        "", f"Example trace: `{' -> '.join(a['example_chain'])}`", "",
+        f"Results were produced at commit `{a.get('commit_head_sha', '')[:7]}` (the commit the demo image was built from); "
+        "later commits changed docs and aggregation only unless noted.", ""]
     if a.get("run_url"):
         rows.append(f"Run: {a['run_url']}")
     return "\n".join(rows)

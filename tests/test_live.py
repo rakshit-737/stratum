@@ -102,5 +102,6 @@ def test_aggregate_counts_runs():
          "gatekeeper": {"privileged_denied": True}, "cosign_verified": True}
     a = aggregate([r, r])
     assert a["runs"] == 2 and a["traced_to_commit"] == 8 and a["sink_detections"] == 0
+    assert a["runs_fully_traced"] == 2 and "traced_ci95" not in a and a["traced_runs_ci95"][1] == 1.0
     assert a["rule_capture"]["R-NETTOOL"]["runs"] == 0 and a["rule_capture"]["R-SHELL"]["runs"] == 2
     assert "8/8" in aggregate_markdown(a)
