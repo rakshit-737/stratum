@@ -24,6 +24,7 @@ from ..syscall import bootstrap_ci, load_adfa, roc_auc
 
 PAPER = {"LSTM ensemble (proposed)": 0.928, "averaging ensemble": 0.890, "voting ensemble": 0.859}
 CONFIGS = [(200, 1), (400, 1), (400, 2)]
+EPOCHS = 12
 
 
 def _model(vocab: int, cells: int, layers: int):
@@ -81,7 +82,7 @@ def score(model, traces, go, bs=64):
     return out
 
 
-def train(traces, vocab, cells, layers, seed, epochs=30, bs=32, log=print):
+def train(traces, vocab, cells, layers, seed, epochs=EPOCHS, bs=32, log=print):
     import torch
     import torch.nn.functional as F
     torch.manual_seed(seed)
@@ -93,7 +94,7 @@ def train(traces, vocab, cells, layers, seed, epochs=30, bs=32, log=print):
     go = vocab - 1
     model = _model(vocab, cells, layers)
     opt = torch.optim.Adam(model.parameters(), lr=1e-4)
-    best, best_state, bad = math.inf, None, 0
+    best, best_state, bad, best_ep = math.inf, None, 0, 0
     for ep in range(epochs):
         model.train()
         t0 = time.time()
@@ -107,13 +108,14 @@ def train(traces, vocab, cells, layers, seed, epochs=30, bs=32, log=print):
         h = sum(score(model, held, go)) / len(held)
         log(f"  LSTM {layers}x{cells} seed {seed} epoch {ep + 1}: held-out NLL {h:.4f} ({time.time() - t0:.0f}s)")
         if h < best - 1e-4:
-            best, bad = h, 0
+            best, bad, best_ep = h, 0, ep + 1
             best_state = {k2: v.clone() for k2, v in model.state_dict().items()}
         else:
             bad += 1
             if bad >= 3:
                 break
     model.load_state_dict(best_state)
+    model.best_epoch, model.n_fit, model.n_held = best_ep, len(fit), len(held)
     return model
 
 
@@ -121,7 +123,7 @@ def _leaky(v):
     return v if v > 0 else 0.001 * v
 
 
-def run(root: Path, seeds=(0, 1, 2), epochs=30, log=print, partial=None) -> dict:
+def run(root: Path, seeds=(0, 1, 2), epochs=EPOCHS, log=print, partial=None) -> dict:
     d = load_adfa(root / "adfa")
     tr, val = d["train"], d["val"]
     att = [t for _, t in d["attack"]]
@@ -135,7 +137,7 @@ def run(root: Path, seeds=(0, 1, 2), epochs=30, log=print, partial=None) -> dict
             s_tr, s_val, s_att = score(m, tr, go), score(m, val, go), score(m, att, go)
             b = sorted(s_tr)[len(s_tr) // 2]
             fs.append({"cfg": f"{layers}x{cells}", "b": b, "val": s_val, "att": s_att,
-                       "auc": roc_auc(s_val, s_att)})
+                       "auc": roc_auc(s_val, s_att), "best_epoch": m.best_epoch, "n_fit": m.n_fit, "n_held": m.n_held})
             log(f"  -> {layers}x{cells} seed {seed}: AUC {fs[-1]['auc']:.3f}")
         m = len(fs)
         ens_v = [sum(_leaky(f["val"][i] - f["b"]) for f in fs) / m for i in range(len(val))]
@@ -144,52 +146,80 @@ def run(root: Path, seeds=(0, 1, 2), epochs=30, log=print, partial=None) -> dict
         avg_a = [sum(f["att"][i] for f in fs) / m for i in range(len(att))]
         per_seed.append({
             "seed": seed, "single": {f["cfg"]: f["auc"] for f in fs},
+            "best_epoch": {f["cfg"]: f["best_epoch"] for f in fs}, "n_fit": fs[0]["n_fit"], "n_held": fs[0]["n_held"],
             "ensemble": roc_auc(ens_v, ens_a), "averaging": roc_auc(avg_v, avg_a),
             "ensemble_ci": bootstrap_ci(ens_v, ens_a, roc_auc, n_boot=200, seed=seed)})
         if partial:
             partial(per_seed)
         log(f"seed {seed}: ensemble AUC {per_seed[-1]['ensemble']:.3f}, averaging {per_seed[-1]['averaging']:.3f}")
 
-    def ms(xs):
-        mu = sum(xs) / len(xs)
-        sd = (sum((x - mu) ** 2 for x in xs) / (len(xs) - 1)) ** 0.5 if len(xs) > 1 else 0.0
-        return {"mean": mu, "sd": sd}
-    return {"paper": PAPER, "seeds": list(seeds), "per_seed": per_seed,
-            "ensemble": ms([p["ensemble"] for p in per_seed]),
-            "averaging": ms([p["averaging"] for p in per_seed]),
-            "single": {c: ms([p["single"][c] for p in per_seed]) for c in per_seed[0]["single"]},
-            "split": {"train": len(tr), "val_normal": len(val), "attack": len(att)}}
+    return summarise(per_seed, {"train": len(tr), "val_normal": len(val), "attack": len(att)}, epochs)
+
+
+def _ms(xs):
+    mu = sum(xs) / len(xs)
+    sd = (sum((x - mu) ** 2 for x in xs) / (len(xs) - 1)) ** 0.5 if len(xs) > 1 else 0.0
+    return {"mean": mu, "sd": sd, "min": min(xs), "max": max(xs)}
+
+
+def summarise(per_seed: list[dict], split: dict, epochs: int) -> dict:
+    """Aggregate per-seed results (also used to merge the per-seed CI jobs)."""
+    per_seed = sorted(per_seed, key=lambda p: p["seed"])
+    return {"paper": PAPER, "seeds": [p["seed"] for p in per_seed], "per_seed": per_seed, "epochs_max": epochs,
+            "ensemble": _ms([p["ensemble"] for p in per_seed]),
+            "averaging": _ms([p["averaging"] for p in per_seed]),
+            "single": {c: _ms([p["single"][c] for p in per_seed]) for c in per_seed[0]["single"]},
+            "split": split}
 
 
 def markdown(r: dict) -> str:
     e, a = r["ensemble"], r["averaging"]
     s = r["split"]
     lines = ["### Reproduction: Kim et al. 2016 (LSTM system-call language model ensemble) on ADFA-LD", "",
-             f"Split as in the paper: {s['train']} training normals, {s['val_normal']} validation normals, "
-             f"{s['attack']} attacks. Seeds {r['seeds']}; mean ± sd over seeds.", "",
+             f"Test split as in the paper: {s['val_normal']} validation normals vs {s['attack']} attacks. Training: of the "
+             f"{s['train']} training normals, {r['per_seed'][0].get('n_fit', '?')} are used to fit and "
+             f"{r['per_seed'][0].get('n_held', '?')} are held out for early stopping (the paper does not say how it stopped). "
+             f"Max {r.get('epochs_max', '?')} epochs, batch 32, CPU. Seeds {r['seeds']}; mean ± sd (min-max) over seeds; "
+             "per-seed bootstrap CIs in kim_lstm.json.", "",
              "| method | paper AUC | our reproduction AUC |", "|---|---:|---:|",
              f"| proposed leaky-ReLU ensemble (3 LSTMs) | {r['paper']['LSTM ensemble (proposed)']:.3f} | "
-             f"{e['mean']:.3f} ± {e['sd']:.3f} |",
-             f"| averaging ensemble | {r['paper']['averaging ensemble']:.3f} | {a['mean']:.3f} ± {a['sd']:.3f} |",
+             f"{e['mean']:.3f} ± {e['sd']:.3f} ({e['min']:.3f}-{e['max']:.3f}) |",
+             f"| averaging ensemble | {r['paper']['averaging ensemble']:.3f} | {a['mean']:.3f} ± {a['sd']:.3f} "
+             f"({a['min']:.3f}-{a['max']:.3f}) |",
              f"| voting ensemble | {r['paper']['voting ensemble']:.3f} | not reproduced (procedure not specified) |"]
     for c, v in r["single"].items():
         lines.append(f"| single LSTM {c} | (figure only) | {v['mean']:.3f} ± {v['sd']:.3f} |")
     return "\n".join(lines)
 
 
-if __name__ == "__main__":  # python -m stratum.bench.kim_lstm [epochs] [seeds...]
+def merge(files: list[Path], out: Path) -> dict:
+    """Merge per-seed JSON files (from separate CI jobs) into results/kim_lstm.{json,md}."""
+    import json
+    parts = [json.loads(Path(f).read_text(encoding="utf-8")) for f in files]
+    res = summarise([p for r in parts for p in r["per_seed"]], parts[0]["split"], parts[0]["epochs_max"])
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "kim_lstm.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
+    (out / "kim_lstm.md").write_text(markdown(res) + "\n", encoding="utf-8")
+    return res
+
+
+if __name__ == "__main__":  # python -m stratum.bench.kim_lstm [epochs] [seeds...]  |  merge OUT FILES...
     import json
     import sys
 
+    if sys.argv[1:2] == ["merge"]:
+        print(markdown(merge([Path(f) for f in sys.argv[3:]], Path(sys.argv[2]))))
+        raise SystemExit(0)
     import torch
 
     from ..corpus import data_dir
     torch.set_num_threads(max(1, torch.get_num_threads()))
-    ep = int(sys.argv[1]) if len(sys.argv) > 1 else 15
+    ep = int(sys.argv[1]) if len(sys.argv) > 1 else EPOCHS
     sd = tuple(int(x) for x in sys.argv[2:]) or (0, 1, 2)
     out = Path("results")
     res = run(data_dir(), seeds=sd, epochs=ep, log=lambda m: print(m, flush=True),
               partial=lambda ps: (data_dir() / "kim_lstm.partial.json").write_text(json.dumps(ps, indent=1), encoding="utf-8"))
-    (out / "kim_lstm.json").write_text(json.dumps(res | {"epochs_max": ep}, indent=1), encoding="utf-8")
+    out.mkdir(exist_ok=True)
+    (out / "kim_lstm.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
     (out / "kim_lstm.md").write_text(markdown(res) + "\n", encoding="utf-8")
     print(markdown(res))

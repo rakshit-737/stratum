@@ -1,0 +1,42 @@
+name: repro-kim
+# Reproduction of Kim et al. 2016 (arXiv:1611.01726) LSTM system-call LM ensemble on ADFA-LD.
+# CPU-only and long (hours), so it runs on demand: one job per seed, then a merge job that writes
+# results/kim_lstm.{json,md} as an artefact (commit those small files by hand).
+on:
+  workflow_dispatch:
+    inputs:
+      epochs: {description: "max epochs per LSTM (early stopping on held-out training normals)", default: "12"}
+permissions: {contents: read}
+jobs:
+  seed:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      matrix: {seed: [0, 1, 2]}
+    env:
+      STRATUM_DATA: ${{ github.workspace }}/../data
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with: {python-version: "3.12"}
+      - run: pip install -e . && pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: python scripts/download_adfa.py
+      - run: python -m stratum.bench.kim_lstm ${{ github.event.inputs.epochs || '12' }} ${{ matrix.seed }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with: {name: "kim-seed-${{ matrix.seed }}", path: results/kim_lstm.json}
+  merge:
+    needs: seed
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with: {python-version: "3.12"}
+      - run: pip install -e .
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with: {pattern: "kim-seed-*", path: parts}
+      - run: python -m stratum.bench.kim_lstm merge results parts/*/kim_lstm.json | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with: {name: kim-lstm-results, path: "results/kim_lstm.*"}
