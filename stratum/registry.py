@@ -96,8 +96,8 @@ class Registry:
         # https only: no file://, ftp:// or plain http handlers for a server-chosen URL
         opener = urllib.request.build_opener(urllib.request.HTTPSHandler)
         opener.handlers = [h for h in opener.handlers if not isinstance(
-            h, (urllib.request.FileHandler, urllib.request.FTPHandler, urllib.request.HTTPHandler,
-                urllib.request.DataHandler))]
+            h, urllib.request.FileHandler | urllib.request.FTPHandler | urllib.request.HTTPHandler
+                | urllib.request.DataHandler)]
         with opener.open(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=self.timeout) as r:
             body = json.load(r)
         return body.get("token") or body.get("access_token") or ""

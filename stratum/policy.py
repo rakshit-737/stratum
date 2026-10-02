@@ -96,7 +96,8 @@ def evaluate(ds: Dataset, g: LifecycleGraph, deny_bases: tuple[str, ...] = ()) -
         img = images.get(w.image_digest)
         rep = reports.get(w.image_digest)
         if img is None or img.build_id is None or img.build_id not in builds:
-            if not real or rep is not None:   # real data: only judge provenance for images we scanned
+            # real data: judge provenance only for images we scanned, or where signatures were verified (live)
+            if not real or rep is not None or w.source == "live":
                 ref = img.ref if img else w.image_digest
                 out.append(_f("ZT-PROV-01", wid, f"{wid} runs {ref} with no trusted-pipeline provenance"))
         else:
