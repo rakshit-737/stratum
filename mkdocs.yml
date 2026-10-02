@@ -49,7 +49,7 @@ nav:
   - Architecture: architecture.md
   - Datasets: datasets.md
   - Benchmarks: benchmarks.md
-  - Live demo: demo.md
+  - Live demo: live-demo.md
   - Live CI (kind + Tetragon): live.md
   - Reference:
       - CLI: cli.md

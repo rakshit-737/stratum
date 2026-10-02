@@ -18,5 +18,5 @@ v0.2 runs on real public data:
 - [Getting started](getting-started.md): install, demo, check your own manifests
 - [Architecture](architecture.md): the lifecycle graph, 13 Zero-Trust controls, Rego mirror
 - [Benchmarks](benchmarks.md): real-data results with confidence intervals
-- [Live demo](demo.md): the incident console on a static real-data snapshot
+- [Live demo](live-demo.md): the incident console on a static real-data snapshot
 - [Limitations & roadmap](limitations.md)
