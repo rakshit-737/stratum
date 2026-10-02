@@ -61,13 +61,21 @@ def cmd_trace(a) -> int:
     ds = _load(a.data, a.seed)
     g = analyze(ds).graph
     ns, _, pod = a.pod.partition("/")
-    print(" -> ".join(g.trace_upstream(f"pod:{ns}/{pod}")))
+    node = f"pod:{ns}/{pod}"
+    if node not in g.nodes:
+        print(f"stratum: unknown pod {a.pod!r} (use namespace/pod)", file=sys.stderr)
+        return 2
+    print(" -> ".join(g.trace_upstream(node)))
     return 0
 
 
 def cmd_blast(a) -> int:
     ds = _load(a.data, a.seed)
     g = analyze(ds).graph
+    if f"base:{a.base}" not in g.nodes:
+        print(f"stratum: unknown base image {a.base!r}; known: {', '.join(sorted(g.of_type('base_image')))[:400]}",
+              file=sys.stderr)
+        return 2
     for w in g.blast_radius(f"base:{a.base}"):
         print(w)
     return 0
@@ -190,43 +198,63 @@ def cmd_live_check(a) -> int:
 def cmd_serve(a) -> int:  # pragma: no cover - blocking server
     import os
 
-    import uvicorn
+    try:
+        import uvicorn
+    except ImportError:
+        print('stratum: the API needs extras: pip install "stratum[api]"', file=sys.stderr)
+        return 2
     os.environ["STRATUM_SOURCE"] = a.source
     uvicorn.run("stratum.api:app", host=a.host, port=a.port)
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="stratum", description="code-to-runtime lifecycle defense (mini-CNAPP)")
-    p.add_argument("--seed", type=int, default=7)
+    p = argparse.ArgumentParser(prog="stratum", description="code-to-runtime lifecycle defense (mini-CNAPP)",
+                                epilog="example: stratum demo | stratum pss deploy/k8s/*.yaml --strict")
+    seed = argparse.ArgumentParser(add_help=False)
+    seed.add_argument("--seed", type=int, default=argparse.SUPPRESS, help="synthetic scenario seed (default 7)")
+    p.add_argument("--seed", type=int, default=7, help="synthetic scenario seed (default 7)")
+    data_help = "dataset JSON (from `collect`), or 'real' for the $STRATUM_DATA corpus; default: synthetic scenario"
     sub = p.add_subparsers(dest="cmd", required=True)
-    s = sub.add_parser("generate"); s.add_argument("--out", default="scenario.json"); s.set_defaults(fn=cmd_generate)
-    s = sub.add_parser("analyze"); s.add_argument("--data", help="dataset JSON, or 'real' for the $STRATUM_DATA corpus")
-    s.add_argument("--json", action="store_true"); s.set_defaults(fn=cmd_analyze)
-    s = sub.add_parser("trace"); s.add_argument("pod", help="namespace/pod"); s.add_argument("--data"); s.set_defaults(fn=cmd_trace)
-    s = sub.add_parser("blast"); s.add_argument("base", help="base image ref"); s.add_argument("--data"); s.set_defaults(fn=cmd_blast)
-    s = sub.add_parser("prevent"); s.add_argument("namespace"); s.add_argument("--data"); s.set_defaults(fn=cmd_prevent)
-    s = sub.add_parser("demo"); s.set_defaults(fn=cmd_demo)
+    s = sub.add_parser("generate", parents=[seed], help="write the synthetic 5-scenario cluster as dataset JSON")
+    s.add_argument("--out", default="scenario.json", help="output path"); s.set_defaults(fn=cmd_generate)
+    s = sub.add_parser("analyze", parents=[seed], help="posture findings + runtime incidents traced to commits")
+    s.add_argument("--data", help=data_help)
+    s.add_argument("--json", action="store_true", help="machine-readable output"); s.set_defaults(fn=cmd_analyze)
+    s = sub.add_parser("trace", parents=[seed], help="pod -> workload -> image -> build -> commit chain")
+    s.add_argument("pod", help="namespace/pod"); s.add_argument("--data", help=data_help); s.set_defaults(fn=cmd_trace)
+    s = sub.add_parser("blast", parents=[seed], help="workloads built on a base image")
+    s.add_argument("base", help="base image ref, e.g. 'alpine 3.24.1'"); s.add_argument("--data", help=data_help)
+    s.set_defaults(fn=cmd_blast)
+    s = sub.add_parser("prevent", parents=[seed], help="egress NetworkPolicy for a namespace + replayed effect")
+    s.add_argument("namespace"); s.add_argument("--data", help=data_help); s.set_defaults(fn=cmd_prevent)
+    s = sub.add_parser("demo", parents=[seed], help="run the synthetic end-to-end demo (no cluster needed)")
+    s.set_defaults(fn=cmd_demo)
     s = sub.add_parser("collect", help="real K8s manifests (+ Tetragon JSON) -> dataset JSON")
-    s.add_argument("files", nargs="+"); s.add_argument("--out", default="cluster.json")
-    s.add_argument("--source", default=""); s.add_argument("--namespace", default="default")
-    s.add_argument("--tetragon", nargs="*", default=[]); s.set_defaults(fn=cmd_collect)
+    s.add_argument("files", nargs="+", help="manifest files (YAML/JSON, multi-doc, or kubectl get -o json)")
+    s.add_argument("--out", default="cluster.json", help="output dataset JSON")
+    s.add_argument("--source", default="", help="label recorded on the workloads")
+    s.add_argument("--namespace", default="default", help="namespace for objects that have none")
+    s.add_argument("--tetragon", nargs="*", default=[], help="Tetragon JSON export files"); s.set_defaults(fn=cmd_collect)
     s = sub.add_parser("pss", help="Pod Security Standards check of manifest files")
-    s.add_argument("files", nargs="+"); s.add_argument("--level", default="restricted",
+    s.add_argument("files", nargs="+", help="manifest files"); s.add_argument("--level", default="restricted",
                                                        choices=["baseline", "restricted"])
     s.add_argument("--strict", action="store_true", help="exit 1 on any violation"); s.set_defaults(fn=cmd_pss)
     s = sub.add_parser("export", help="dataset / graph export")
-    s.add_argument("--data"); s.add_argument("--format", choices=["json", "cypher", "rego-input"], default="cypher")
-    s.add_argument("--out"); s.set_defaults(fn=cmd_export)
+    s.add_argument("--data", help=data_help)
+    s.add_argument("--format", choices=["json", "cypher", "rego-input"], default="cypher", help="output format")
+    s.add_argument("--out", help="output path (default stdout)"); s.set_defaults(fn=cmd_export)
     s = sub.add_parser("opa-check", help="diff Python policy engine vs stratum/policies/stratum.rego (needs opa)")
-    s.add_argument("--data"); s.set_defaults(fn=cmd_opa_check)
+    s.add_argument("--data", help=data_help); s.set_defaults(fn=cmd_opa_check)
     s = sub.add_parser("gatekeeper", help="export PSS Rego as a Gatekeeper ConstraintTemplate + Constraint")
-    s.add_argument("--level", choices=["baseline", "restricted"], default="restricted")
-    s.add_argument("--action", choices=["dryrun", "warn", "deny"], default="dryrun")
-    s.add_argument("--exclude-namespace", nargs="*", default=["kube-system"])
-    s.add_argument("--out"); s.set_defaults(fn=cmd_gatekeeper)
+    s.add_argument("--level", choices=["baseline", "restricted"], default="restricted", help="PSS level to enforce")
+    s.add_argument("--action", choices=["dryrun", "warn", "deny"], default="dryrun", help="Gatekeeper enforcementAction")
+    s.add_argument("--exclude-namespace", nargs="*", default=["kube-system"], help="namespaces the constraint skips")
+    s.add_argument("--out", help="output YAML (default stdout)"); s.set_defaults(fn=cmd_gatekeeper)
     s = sub.add_parser("bench", help="run real-data benchmarks into results/")
-    s.add_argument("names", nargs="*"); s.add_argument("--data-dir"); s.add_argument("--out", default="results")
+    s.add_argument("names", nargs="*", help="pss posture provenance scans runtime adfa opa perf (default: all)")
+    s.add_argument("--data-dir", help="corpus directory (default $STRATUM_DATA or ./data)")
+    s.add_argument("--out", default="results", help="output directory")
     s.set_defaults(fn=cmd_bench)
     s = sub.add_parser("live-check", help="assert on live kind + Tetragon evidence (CI)")
     s.add_argument("--manifests", nargs="+", required=True); s.add_argument("--pods", required=True)
@@ -241,10 +269,20 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--cosign-ok", choices=["true", "false"]); s.add_argument("--out", default="live-result.json")
     s.set_defaults(fn=cmd_live_check)
     s = sub.add_parser("serve", help="API + incident console")
-    s.add_argument("--source", default="synthetic"); s.add_argument("--host", default="127.0.0.1")
-    s.add_argument("--port", type=int, default=8000); s.set_defaults(fn=cmd_serve)
+    s.add_argument("--source", default="synthetic", help="synthetic | real | path to dataset JSON")
+    s.add_argument("--host", default="127.0.0.1", help="bind address (default localhost only)")
+    s.add_argument("--port", type=int, default=8000, help="port"); s.set_defaults(fn=cmd_serve)
     a = p.parse_args(argv)
-    return a.fn(a)
+    try:
+        return a.fn(a)
+    except (FileNotFoundError, IsADirectoryError) as e:
+        print(f"stratum: no such file: {e.filename or e}", file=sys.stderr)
+        return 2
+    except OSError as e:
+        if e.filename and any(c in str(e.filename) for c in "*?["):
+            print(f"stratum: no file matches {e.filename!r}", file=sys.stderr)
+            return 2
+        raise
 
 
 if __name__ == "__main__":

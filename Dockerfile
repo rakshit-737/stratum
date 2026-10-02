@@ -1,5 +1,5 @@
-# STRATUM API + console (slim, non-root). Build: docker build -t stratum .   Run: docker run -p 8000:8000 stratum
-FROM python:3.12-slim AS base
+# STRATUM API + console (slim, non-root). Build: docker build -t stratum .   Run: docker run -p 127.0.0.1:8000:8000 stratum
+FROM python:3.12-slim@sha256:dddfd7e07f9d15aeeca61529320492139d21cac7f0070c00609243e51e4e0016 AS base
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY pyproject.toml README.md ./

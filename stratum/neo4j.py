@@ -58,8 +58,11 @@ def to_cypher(g: LifecycleGraph) -> str:
 
 
 def push(g: LifecycleGraph, uri: str = "bolt://localhost:7687", user: str = "neo4j",
-         password: str = "stratum-lab") -> int:  # pragma: no cover - needs a running Neo4j
+         password: str | None = None) -> int:  # pragma: no cover - needs a running Neo4j
+    import os
+
     from neo4j import GraphDatabase
+    password = password or os.environ["NEO4J_PASSWORD"]
 
     st = statements(g)
     with GraphDatabase.driver(uri, auth=(user, password)) as drv, drv.session() as s:

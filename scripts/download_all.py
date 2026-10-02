@@ -22,8 +22,10 @@ STEPS = ["download_tools", "download_pss", "download_tetragon", "download_adfa",
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-scan", action="store_true", help="skip pulling images for Trivy")
-    ap.add_argument("--only", nargs="*", help="run only these steps")
+    ap.add_argument("--only", nargs="*", choices=STEPS, help="run only these steps")
+    ap.add_argument("--keep-going", action="store_true", help="exit 0 even if a step fails")
     a = ap.parse_args()
+    failed = []
     for step in a.only or STEPS:
         if a.no_scan and step == "scan_images":
             continue
@@ -31,6 +33,11 @@ def main() -> None:
         rc = subprocess.run([sys.executable, str(HERE / f"{step}.py")], cwd=HERE).returncode
         if rc != 0:
             print(f"   {step} failed (exit {rc}); continuing", flush=True)
+            failed.append(step)
+    if failed:
+        print(f"failed steps: {', '.join(failed)}", flush=True)
+        if not a.keep_going:
+            sys.exit(1)
 
 
 if __name__ == "__main__":

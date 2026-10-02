@@ -1,7 +1,7 @@
 # Local lab only: STRATUM API/console + Neo4j for the lifecycle graph.
 #   docker compose up --build
 #   python -m stratum export --data real --format cypher --out graph.cypher
-#   docker compose exec -T neo4j cypher-shell -u neo4j -p stratum-lab < graph.cypher
+#   docker compose exec -T neo4j cypher-shell -u neo4j -p "$NEO4J_PASSWORD" < graph.cypher
 services:
   api:
     build: .
@@ -15,10 +15,10 @@ services:
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
   neo4j:
-    image: neo4j:5.26-community
+    image: neo4j:5.26-community  # pin by digest in production (ZT-PROV-03)
     ports: ["127.0.0.1:7474:7474", "127.0.0.1:7687:7687"]
     environment:
-      NEO4J_AUTH: neo4j/stratum-lab
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?set NEO4J_PASSWORD (e.g. in .env)}
     volumes:
       - neo4j-data:/data
 volumes:

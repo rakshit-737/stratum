@@ -27,6 +27,15 @@ app = FastAPI(title="STRATUM", version=__version__,
               description="Open mini-CNAPP: code -> CI -> image -> pod -> runtime lifecycle graph")
 
 
+@app.middleware("http")
+async def _security_headers(request, call_next):
+    resp = await call_next(request)
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "DENY")
+    resp.headers.setdefault("Referrer-Policy", "no-referrer")
+    return resp
+
+
 def _source() -> str:
     return os.environ.get("STRATUM_SOURCE", "synthetic")
 

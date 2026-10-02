@@ -17,8 +17,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
-import subprocess
 import time
 import urllib.error
 import urllib.request
@@ -51,12 +49,13 @@ class Provenance:
 
 
 def github_token() -> str:
-    tok = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
-    if not tok and shutil.which("gh"):
-        try:
-            tok = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, timeout=10).stdout.strip()
-        except (OSError, subprocess.SubprocessError):
-            tok = ""
+    """Opt-in token for api.github.com (rate limits only; public read access is enough).
+
+    Read from ``STRATUM_GITHUB_TOKEN`` (or ``GITHUB_TOKEN`` inside GitHub Actions). The gh CLI's own
+    token is not picked up automatically, because it usually carries far broader scopes."""
+    tok = os.environ.get("STRATUM_GITHUB_TOKEN", "")
+    if not tok and os.environ.get("GITHUB_ACTIONS") == "true":
+        tok = os.environ.get("GITHUB_TOKEN", "")
     return tok
 
 

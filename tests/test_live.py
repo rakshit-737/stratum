@@ -82,3 +82,12 @@ def test_replay_real_live_run():
 def test_replay_without_signature_cannot_reach_commit():
     r = check(_replay([]), namespace="stratum-live", workload="web", image_digest=LIVE_DIG, commit=LIVE_SHA)
     assert r["traced_to_commit"] == 0 and not r["passed"]
+
+
+def test_registry_refuses_non_https_token_realm():
+    import pytest
+
+    from stratum.registry import Registry
+    for realm in ("file:///etc/passwd", "http://169.254.169.254/token", "ftp://x/y"):
+        with pytest.raises(ValueError):
+            Registry()._token(f'Bearer realm="{realm}",service="x",scope="y"')

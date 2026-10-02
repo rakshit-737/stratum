@@ -89,9 +89,16 @@ class Registry:
     def _token(self, www: str) -> str:
         m = dict(re.findall(r'(\w+)="([^"]*)"', www))
         q = {k: m[k] for k in ("service", "scope") if k in m}
+        realm = urllib.parse.urlsplit(m.get("realm", ""))
+        if realm.scheme != "https" or not realm.hostname:
+            raise ValueError(f"refusing token realm {m.get('realm')!r}: must be an https URL")
         url = m["realm"] + ("?" + urllib.parse.urlencode(q) if q else "")
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}),
-                                    timeout=self.timeout) as r:
+        # https only: no file://, ftp:// or plain http handlers for a server-chosen URL
+        opener = urllib.request.build_opener(urllib.request.HTTPSHandler)
+        opener.handlers = [h for h in opener.handlers if not isinstance(
+            h, (urllib.request.FileHandler, urllib.request.FTPHandler, urllib.request.HTTPHandler,
+                urllib.request.DataHandler))]
+        with opener.open(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=self.timeout) as r:
             body = json.load(r)
         return body.get("token") or body.get("access_token") or ""
 
