@@ -1,6 +1,6 @@
 # ADR 0003: Re-implement Pod Security Standards and test them against upstream fixtures
 
-- Status: accepted (v0.2)
+- Status: accepted (v0.2); still in force in v1.x
 - Date: 2026-09-26
 
 ## Context

@@ -20,6 +20,24 @@ jobs:
           cache: pip
       - run: pip install -e . "mkdocs-material>=9.5,<10" "mkdocs<2" "mkdocstrings[python]>=0.26"
       - run: mkdocs build --strict
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with: {node-version: "22"}
+      - name: every mermaid block in README and docs parses
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/mmd"
+          python3 - "$RUNNER_TEMP/mmd" <<'EOF'
+          import pathlib, re, sys
+          out = pathlib.Path(sys.argv[1]); n = 0
+          for f in [pathlib.Path("README.md"), *sorted(pathlib.Path("docs").rglob("*.md"))]:
+              for i, b in enumerate(re.findall(r"```mermaid\n(.*?)```", f.read_text(encoding="utf-8"), re.S)):
+                  (out / f"{f.as_posix().replace('/', '_')}-{i}.mmd").write_text(b, encoding="utf-8"); n += 1
+          print(n, "mermaid blocks")
+          EOF
+          echo '{"args":["--no-sandbox"]}' > "$RUNNER_TEMP/pp.json"
+          for f in "$RUNNER_TEMP"/mmd/*.mmd; do
+            npx -y @mermaid-js/mermaid-cli@11.17.0 -p "$RUNNER_TEMP/pp.json" -q -i "$f" -o "$f.svg" || { echo "mermaid parse error: $f"; exit 1; }
+          done
       - name: the console must not be shadowed by a Markdown page
         run: grep -q '<title>STRATUM console</title>' site/demo/index.html && grep -q '<title>STRATUM console</title>' site/demo-live/index.html
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

@@ -1,6 +1,6 @@
 # ADR 0001: In-memory lifecycle graph, Neo4j as an export target
 
-- Status: accepted (v0.2)
+- Status: accepted (v0.2); still in force in v1.x
 - Date: 2026-09-26
 
 ## Context

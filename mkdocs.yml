@@ -68,5 +68,6 @@ nav:
       - adr/0004-provenance-sources.md
       - adr/0005-real-data-corpus.md
       - adr/0006-runtime-rules-plus-novelty.md
+      - adr/0007-certificate-derived-provenance.md
   - Limitations & roadmap: limitations.md
   - Changelog: changelog.md

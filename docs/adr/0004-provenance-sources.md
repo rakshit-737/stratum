@@ -1,6 +1,6 @@
 # ADR 0004: Build provenance from OCI labels + GitHub API; cosign presence only
 
-- Status: accepted (v0.2)
+- Status: accepted (v0.2); partly superseded by [ADR 0007](0007-certificate-derived-provenance.md) for images signed by the STRATUM pipeline
 - Date: 2026-09-26
 
 ## Context
@@ -19,7 +19,7 @@ Tracing a running pod to a commit needs an image -> commit edge, including for i
   - a revision is present, either as a label or as a SHA embedded in the source URL;
   - the GitHub API confirms that the commit exists in that repo.
 - For each accepted edge, record the author, the commit message and the merged PR.
-- Record whether a cosign signature artefact (`sha256-<digest>.sig`) and an attestation artefact (`.att`) exist. v0.2 does **not** verify them cryptographically. `ZT-PROV-02` therefore means "no signature artefact published", not "signature invalid".
+- Record whether a cosign signature artefact (`sha256-<digest>.sig`) and an attestation artefact (`.att`) exist. For third-party images STRATUM does **not** verify them cryptographically (for the live pipeline see ADR 0007). `ZT-PROV-02` therefore means "no signature artefact published", not "signature invalid".
 - Keep the tag heuristic as a measured baseline (`results/provenance.md`). It is never used to create an edge.
 
 ## Consequences

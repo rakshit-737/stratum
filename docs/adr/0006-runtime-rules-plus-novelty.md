@@ -1,6 +1,6 @@
 # ADR 0006: Deterministic runtime rules first, anomaly scoring second
 
-- Status: accepted (v0.2)
+- Status: accepted (v0.2); still in force in v1.x
 - Date: 2026-09-26
 
 ## Context

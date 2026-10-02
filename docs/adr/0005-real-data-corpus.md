@@ -1,6 +1,6 @@
 # ADR 0005: Real-data corpus and safety boundaries
 
-- Status: accepted (v0.2)
+- Status: accepted (v0.2); still in force in v1.x
 - Date: 2026-09-26
 
 ## Decision
