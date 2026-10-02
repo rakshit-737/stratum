@@ -1,43 +1,408 @@
 {
- "events_total": 23,
- "events_in_namespace": 23,
- "event_kinds": {
-  "exec": 21,
-  "open": 1,
-  "connect": 1
+ "runs": 5,
+ "passed": 5,
+ "run_url": "https://github.com/rakshit-737/stratum/actions/runs/37005766853",
+ "rule_capture": {
+  "R-SHELL": {
+   "runs": 5,
+   "ci95": [
+    0.5655,
+    1.0
+   ]
+  },
+  "R-SA-TOKEN": {
+   "runs": 5,
+   "ci95": [
+    0.5655,
+    1.0
+   ]
+  },
+  "R-NETTOOL": {
+   "runs": 5,
+   "ci95": [
+    0.5655,
+    1.0
+   ]
+  }
  },
- "events_on_target": 16,
- "target_image_digests": [
-  "sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1"
+ "incidents_on_target": 55,
+ "traced_to_commit": 55,
+ "traced_ci95": [
+  0.9347,
+  1.0
  ],
- "connects_on_target": [
-  "10.96.227.241:8080"
- ],
- "rules_on_target": [
-  "R-NETTOOL",
-  "R-SA-TOKEN",
-  "R-SHELL"
- ],
- "incidents_on_target": 5,
- "incidents_other_pods_in_namespace": 0,
- "traced_to_commit": 5,
+ "sink_detections": 0,
+ "drift": {
+  "incidents": 5,
+  "traced_to_any_commit": 0,
+  "zt_prov_01_named": 5,
+  "runs": 5
+ },
+ "prevention": {
+  "runs": 5,
+  "blocked_after": 5,
+  "allowed_before": 5,
+  "in_cluster_kept": 5
+ },
+ "gatekeeper_denied": 5,
+ "cosign_verified": 5,
  "example_chain": [
-  "pod:stratum-live/web-9dc6879bb-xl5nl",
+  "pod:stratum-live/web-648f98c58b-2d8pm",
   "workload:stratum-live/web",
-  "image:ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1",
-  "build:36319470255",
-  "commit:6dd4b9b30f2404a974b0198a021ced3963a55516"
+  "image:ghcr.io/rakshit-737/stratum-live-demo@sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5",
+  "build:37005473899",
+  "commit:c863fbc4af6d3a87b6946d84b6459d819e620c68"
  ],
- "failed_controls": [
-  "ZT-ID-02",
-  "ZT-IMG-02",
-  "ZT-NET-01"
- ],
- "gatekeeper": {
-  "privileged_denied": true,
-  "demo_admitted": true
- },
- "cosign_verified": true,
- "failures": [],
- "passed": true
+ "per_run": [
+  {
+   "events_total": 48,
+   "events_in_namespace": 48,
+   "event_kinds": {
+    "exec": 43,
+    "open": 1,
+    "connect": 4
+   },
+   "events_on_target": 31,
+   "target_image_digests": [
+    "sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5"
+   ],
+   "connects_on_target": [
+    "10.96.216.219:8080",
+    "172.18.0.3:8080"
+   ],
+   "rules_on_target": [
+    "R-NETTOOL",
+    "R-SA-TOKEN",
+    "R-SHELL"
+   ],
+   "incidents_on_target": 11,
+   "incidents_other_pods_in_namespace": 1,
+   "traced_to_commit": 11,
+   "example_chain": [
+    "pod:stratum-live/web-648f98c58b-2d8pm",
+    "workload:stratum-live/web",
+    "image:ghcr.io/rakshit-737/stratum-live-demo@sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5",
+    "build:37005473899",
+    "commit:c863fbc4af6d3a87b6946d84b6459d819e620c68"
+   ],
+   "failed_controls": [
+    "ZT-ID-02",
+    "ZT-IMG-02",
+    "ZT-NET-01"
+   ],
+   "gatekeeper": {
+    "privileged_denied": true,
+    "demo_admitted": true
+   },
+   "cosign_verified": true,
+   "commit_source": "cosign certificate (OID 1.3.6.1.4.1.57264.1.3)",
+   "drift": {
+    "workload": "drift",
+    "incidents": 1,
+    "traced_to_any_commit": 0,
+    "failed_controls": [
+     "ZT-ID-01",
+     "ZT-IMG-02",
+     "ZT-NET-01",
+     "ZT-PROV-01"
+    ]
+   },
+   "prevention": {
+    "observed": {
+     "external_sink": "172.18.0.3",
+     "before": true,
+     "after": false,
+     "in_cluster_after": true
+    },
+    "predicted_by_replay": {
+     "connects": 4,
+     "blocked": 3,
+     "blocked_malicious": 0,
+     "blocked_benign": 3
+    }
+   },
+   "failures": [],
+   "passed": true
+  },
+  {
+   "events_total": 48,
+   "events_in_namespace": 48,
+   "event_kinds": {
+    "exec": 43,
+    "open": 1,
+    "connect": 4
+   },
+   "events_on_target": 31,
+   "target_image_digests": [
+    "sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5"
+   ],
+   "connects_on_target": [
+    "10.96.216.215:8080",
+    "172.18.0.3:8080"
+   ],
+   "rules_on_target": [
+    "R-NETTOOL",
+    "R-SA-TOKEN",
+    "R-SHELL"
+   ],
+   "incidents_on_target": 11,
+   "incidents_other_pods_in_namespace": 1,
+   "traced_to_commit": 11,
+   "example_chain": [
+    "pod:stratum-live/web-648f98c58b-tsxjm",
+    "workload:stratum-live/web",
+    "image:ghcr.io/rakshit-737/stratum-live-demo@sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5",
+    "build:37005473899",
+    "commit:c863fbc4af6d3a87b6946d84b6459d819e620c68"
+   ],
+   "failed_controls": [
+    "ZT-ID-02",
+    "ZT-IMG-02",
+    "ZT-NET-01"
+   ],
+   "gatekeeper": {
+    "privileged_denied": true,
+    "demo_admitted": true
+   },
+   "cosign_verified": true,
+   "commit_source": "cosign certificate (OID 1.3.6.1.4.1.57264.1.3)",
+   "drift": {
+    "workload": "drift",
+    "incidents": 1,
+    "traced_to_any_commit": 0,
+    "failed_controls": [
+     "ZT-ID-01",
+     "ZT-IMG-02",
+     "ZT-NET-01",
+     "ZT-PROV-01"
+    ]
+   },
+   "prevention": {
+    "observed": {
+     "external_sink": "172.18.0.3",
+     "before": true,
+     "after": false,
+     "in_cluster_after": true
+    },
+    "predicted_by_replay": {
+     "connects": 4,
+     "blocked": 3,
+     "blocked_malicious": 0,
+     "blocked_benign": 3
+    }
+   },
+   "failures": [],
+   "passed": true
+  },
+  {
+   "events_total": 48,
+   "events_in_namespace": 48,
+   "event_kinds": {
+    "exec": 43,
+    "open": 1,
+    "connect": 4
+   },
+   "events_on_target": 31,
+   "target_image_digests": [
+    "sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5"
+   ],
+   "connects_on_target": [
+    "10.96.20.135:8080",
+    "172.18.0.3:8080"
+   ],
+   "rules_on_target": [
+    "R-NETTOOL",
+    "R-SA-TOKEN",
+    "R-SHELL"
+   ],
+   "incidents_on_target": 11,
+   "incidents_other_pods_in_namespace": 1,
+   "traced_to_commit": 11,
+   "example_chain": [
+    "pod:stratum-live/web-648f98c58b-rb6k2",
+    "workload:stratum-live/web",
+    "image:ghcr.io/rakshit-737/stratum-live-demo@sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5",
+    "build:37005473899",
+    "commit:c863fbc4af6d3a87b6946d84b6459d819e620c68"
+   ],
+   "failed_controls": [
+    "ZT-ID-02",
+    "ZT-IMG-02",
+    "ZT-NET-01"
+   ],
+   "gatekeeper": {
+    "privileged_denied": true,
+    "demo_admitted": true
+   },
+   "cosign_verified": true,
+   "commit_source": "cosign certificate (OID 1.3.6.1.4.1.57264.1.3)",
+   "drift": {
+    "workload": "drift",
+    "incidents": 1,
+    "traced_to_any_commit": 0,
+    "failed_controls": [
+     "ZT-ID-01",
+     "ZT-IMG-02",
+     "ZT-NET-01",
+     "ZT-PROV-01"
+    ]
+   },
+   "prevention": {
+    "observed": {
+     "external_sink": "172.18.0.3",
+     "before": true,
+     "after": false,
+     "in_cluster_after": true
+    },
+    "predicted_by_replay": {
+     "connects": 4,
+     "blocked": 3,
+     "blocked_malicious": 0,
+     "blocked_benign": 3
+    }
+   },
+   "failures": [],
+   "passed": true
+  },
+  {
+   "events_total": 48,
+   "events_in_namespace": 48,
+   "event_kinds": {
+    "exec": 43,
+    "open": 1,
+    "connect": 4
+   },
+   "events_on_target": 31,
+   "target_image_digests": [
+    "sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5"
+   ],
+   "connects_on_target": [
+    "10.96.69.200:8080",
+    "172.18.0.3:8080"
+   ],
+   "rules_on_target": [
+    "R-NETTOOL",
+    "R-SA-TOKEN",
+    "R-SHELL"
+   ],
+   "incidents_on_target": 11,
+   "incidents_other_pods_in_namespace": 1,
+   "traced_to_commit": 11,
+   "example_chain": [
+    "pod:stratum-live/web-648f98c58b-wvr78",
+    "workload:stratum-live/web",
+    "image:ghcr.io/rakshit-737/stratum-live-demo@sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5",
+    "build:37005473899",
+    "commit:c863fbc4af6d3a87b6946d84b6459d819e620c68"
+   ],
+   "failed_controls": [
+    "ZT-ID-02",
+    "ZT-IMG-02",
+    "ZT-NET-01"
+   ],
+   "gatekeeper": {
+    "privileged_denied": true,
+    "demo_admitted": true
+   },
+   "cosign_verified": true,
+   "commit_source": "cosign certificate (OID 1.3.6.1.4.1.57264.1.3)",
+   "drift": {
+    "workload": "drift",
+    "incidents": 1,
+    "traced_to_any_commit": 0,
+    "failed_controls": [
+     "ZT-ID-01",
+     "ZT-IMG-02",
+     "ZT-NET-01",
+     "ZT-PROV-01"
+    ]
+   },
+   "prevention": {
+    "observed": {
+     "external_sink": "172.18.0.3",
+     "before": true,
+     "after": false,
+     "in_cluster_after": true
+    },
+    "predicted_by_replay": {
+     "connects": 4,
+     "blocked": 3,
+     "blocked_malicious": 0,
+     "blocked_benign": 3
+    }
+   },
+   "failures": [],
+   "passed": true
+  },
+  {
+   "events_total": 48,
+   "events_in_namespace": 48,
+   "event_kinds": {
+    "exec": 43,
+    "open": 1,
+    "connect": 4
+   },
+   "events_on_target": 31,
+   "target_image_digests": [
+    "sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5"
+   ],
+   "connects_on_target": [
+    "10.96.63.251:8080",
+    "172.18.0.3:8080"
+   ],
+   "rules_on_target": [
+    "R-NETTOOL",
+    "R-SA-TOKEN",
+    "R-SHELL"
+   ],
+   "incidents_on_target": 11,
+   "incidents_other_pods_in_namespace": 1,
+   "traced_to_commit": 11,
+   "example_chain": [
+    "pod:stratum-live/web-648f98c58b-5xpmp",
+    "workload:stratum-live/web",
+    "image:ghcr.io/rakshit-737/stratum-live-demo@sha256:0af18ddccb7815d78022f7ab1ea48718d6b0d878441e96eab21740ce20e680b5",
+    "build:37005473899",
+    "commit:c863fbc4af6d3a87b6946d84b6459d819e620c68"
+   ],
+   "failed_controls": [
+    "ZT-ID-02",
+    "ZT-IMG-02",
+    "ZT-NET-01"
+   ],
+   "gatekeeper": {
+    "privileged_denied": true,
+    "demo_admitted": true
+   },
+   "cosign_verified": true,
+   "commit_source": "cosign certificate (OID 1.3.6.1.4.1.57264.1.3)",
+   "drift": {
+    "workload": "drift",
+    "incidents": 1,
+    "traced_to_any_commit": 0,
+    "failed_controls": [
+     "ZT-ID-01",
+     "ZT-IMG-02",
+     "ZT-NET-01",
+     "ZT-PROV-01"
+    ]
+   },
+   "prevention": {
+    "observed": {
+     "external_sink": "172.18.0.3",
+     "before": true,
+     "after": false,
+     "in_cluster_after": true
+    },
+    "predicted_by_replay": {
+     "connects": 4,
+     "blocked": 3,
+     "blocked_malicious": 0,
+     "blocked_benign": 3
+    }
+   },
+   "failures": [],
+   "passed": true
+  }
+ ]
 }

@@ -159,3 +159,65 @@ def markdown(r: dict) -> str:
               f"| Result | {'PASS' if r['passed'] else 'FAIL: ' + '; '.join(r['failures'])} |", "",
               f"Trace: `{' -> '.join(r['example_chain'])}`"]
     return "\n".join(lines)
+
+
+def aggregate(runs: list[dict], run_url: str = "") -> dict:
+    """Combine several independent live runs (separate kind clusters) into rates with Wilson 95% CIs."""
+    from .bench.metrics import wilson
+    n = len(runs)
+    inc = sum(r["incidents_on_target"] for r in runs)
+    traced = sum(r["traced_to_commit"] for r in runs)
+    out = {"runs": n, "passed": sum(bool(r.get("passed")) for r in runs), "run_url": run_url,
+           "rule_capture": {}, "incidents_on_target": inc, "traced_to_commit": traced,
+           "traced_ci95": wilson(traced, inc) if inc else None,
+           "sink_detections": sum(r["incidents_other_pods_in_namespace"] - (r.get("drift") or {}).get("incidents", 0)
+                                  for r in runs)}
+    for rule in EXPECTED:
+        k = sum(rule in r["rules_on_target"] for r in runs)
+        out["rule_capture"][rule] = {"runs": k, "ci95": wilson(k, n)}
+    d = [r["drift"] for r in runs if r.get("drift")]
+    out["drift"] = {"incidents": sum(x["incidents"] for x in d),
+                    "traced_to_any_commit": sum(x["traced_to_any_commit"] for x in d),
+                    "zt_prov_01_named": sum("ZT-PROV-01" in x["failed_controls"] for x in d), "runs": len(d)}
+    p = [r["prevention"]["observed"] for r in runs if r.get("prevention")]
+    out["prevention"] = {"runs": len(p), "blocked_after": sum(x.get("after") is False for x in p),
+                         "allowed_before": sum(x.get("before") is True for x in p),
+                         "in_cluster_kept": sum(x.get("in_cluster_after") is True for x in p)}
+    out["gatekeeper_denied"] = sum(bool((r.get("gatekeeper") or {}).get("privileged_denied")) for r in runs)
+    out["cosign_verified"] = sum(r.get("cosign_verified") is True for r in runs)
+    out["example_chain"] = runs[0]["example_chain"] if runs else []
+    out["per_run"] = runs
+    return out
+
+
+def aggregate_markdown(a: dict) -> str:
+    n = a["runs"]
+
+    def ci(c):
+        return f"[{c[0]:.2f}, {c[1]:.2f}]" if c else "-"
+    rows = [f"### Live kind + Tetragon: {n} independent runs (separate kind clusters, one GitHub Actions run)", "",
+            "| Check | Result | Wilson 95% CI |", "|---|---:|---:|",
+            f"| Runs passing every assertion | {a['passed']}/{n} | {ci(wilson_(a['passed'], n))} |"]
+    for rule, v in a["rule_capture"].items():
+        rows.append(f"| {rule} raised for its scripted action ({EXPECTED[rule]}) | {v['runs']}/{n} | {ci(v['ci95'])} |")
+    rows += [
+        f"| Demo-pod incidents traced to the expected commit (commit read from the cosign certificate) | "
+        f"{a['traced_to_commit']}/{a['incidents_on_target']} | {ci(a['traced_ci95'])} |",
+        f"| Detections on the benign sink pod | {a['sink_detections']} | - |",
+        f"| Unsigned `drift` incidents traced to any commit (negative control, want 0) | "
+        f"{a['drift']['traced_to_any_commit']}/{a['drift']['incidents']} | - |",
+        f"| `drift` incidents name ZT-PROV-01 | {a['drift']['zt_prov_01_named']}/{a['drift']['runs']} runs | - |",
+        f"| External egress allowed before, blocked after `stratum prevent` policy | "
+        f"{min(a['prevention']['allowed_before'], a['prevention']['blocked_after'])}/{a['prevention']['runs']} | - |",
+        f"| In-cluster sink still reachable after the policy | {a['prevention']['in_cluster_kept']}/{a['prevention']['runs']} | - |",
+        f"| Gatekeeper denied the privileged pod | {a['gatekeeper_denied']}/{n} | - |",
+        f"| cosign keyless verify (right identity passes, wrong identity fails) | {a['cosign_verified']}/{n} | - |",
+        "", f"Example trace: `{' -> '.join(a['example_chain'])}`", ""]
+    if a.get("run_url"):
+        rows.append(f"Run: {a['run_url']}")
+    return "\n".join(rows)
+
+
+def wilson_(k: int, n: int):
+    from .bench.metrics import wilson
+    return wilson(k, n) if n else None

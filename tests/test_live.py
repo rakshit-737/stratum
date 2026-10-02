@@ -91,3 +91,16 @@ def test_registry_refuses_non_https_token_realm():
     for realm in ("file:///etc/passwd", "http://169.254.169.254/token", "ftp://x/y"):
         with pytest.raises(ValueError):
             Registry()._token(f'Bearer realm="{realm}",service="x",scope="y"')
+
+
+def test_aggregate_counts_runs():
+    from stratum.live import aggregate, aggregate_markdown
+    r = {"incidents_on_target": 4, "traced_to_commit": 4, "incidents_other_pods_in_namespace": 1,
+         "rules_on_target": ["R-SHELL", "R-SA-TOKEN"], "passed": False, "example_chain": ["pod:x"],
+         "drift": {"incidents": 1, "traced_to_any_commit": 0, "failed_controls": ["ZT-PROV-01"]},
+         "prevention": {"observed": {"before": True, "after": False, "in_cluster_after": True}},
+         "gatekeeper": {"privileged_denied": True}, "cosign_verified": True}
+    a = aggregate([r, r])
+    assert a["runs"] == 2 and a["traced_to_commit"] == 8 and a["sink_detections"] == 0
+    assert a["rule_capture"]["R-NETTOOL"]["runs"] == 0 and a["rule_capture"]["R-SHELL"]["runs"] == 2
+    assert "8/8" in aggregate_markdown(a)

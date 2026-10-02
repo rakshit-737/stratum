@@ -2,7 +2,7 @@
 
 Run: ``uvicorn stratum.api:app`` (or ``python -m stratum serve``). The data
 source is chosen with ``STRATUM_SOURCE``: ``synthetic`` (default, no downloads
-needed), ``real`` (the $STRATUM_DATA corpus) or a path to a Dataset JSON.
+needed), ``real`` (the $STRATUM_DATA corpus), ``live`` (replay of a committed live CI run) or a path to a Dataset JSON.
 """
 from __future__ import annotations
 
@@ -47,6 +47,12 @@ def _load(src: str) -> Dataset:
     if src == "real":
         from .realdata import real_dataset
         return real_dataset()
+    if src == "live":   # replay of a committed live kind + Tetragon run (repo checkout only)
+        from .live import build_dataset
+        from .sigstore import parse_cosign_verify
+        fx = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "live"
+        return build_dataset([fx / "workloads.yaml"], fx / "pods.json", [fx / "tetragon-events.json"],
+                             signatures=parse_cosign_verify(fx / "cosign-verify.json"))
     return Dataset.load(src)
 
 
