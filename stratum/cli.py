@@ -166,8 +166,8 @@ def cmd_bench(a) -> int:
     from pathlib import Path
 
     from .bench.runner import run
-    run(a.names or None, Path(a.data_dir) if a.data_dir else None, Path(a.out))
-    return 0
+    done = run(a.names or None, Path(a.data_dir) if a.data_dir else None, Path(a.out))
+    return 0 if done else 1
 
 
 def cmd_live_check(a) -> int:

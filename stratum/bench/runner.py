@@ -6,12 +6,12 @@ import time
 from pathlib import Path
 
 from ..corpus import data_dir
-from . import adfa, perf, posture, provenance, pss, runtime, scans
+from . import adfa, opa_equiv, perf, posture, provenance, pss, runtime, scans
 
 BENCHES = {"pss": pss, "posture": posture, "provenance": provenance, "scans": scans, "runtime": runtime,
-           "adfa": adfa, "perf": perf}
+           "adfa": adfa, "opa": opa_equiv, "perf": perf}
 NEEDS = {"pss": "pss/testdata", "posture": "manifests/index.json", "provenance": "provenance/provenance.json",
-         "scans": "scans", "runtime": "tetragon", "adfa": "adfa", "perf": "manifests/index.json"}
+         "scans": "scans", "runtime": "tetragon", "adfa": "adfa", "opa": "manifests/index.json", "perf": "manifests/index.json"}
 
 
 def _strip(d):
@@ -28,12 +28,17 @@ def run(names: list[str] | None = None, root: Path | None = None, out: Path = Pa
         if not (root / NEEDS[name]).exists():
             print(f"[skip] {name}: {root / NEEDS[name]} missing")
             continue
+        if hasattr(BENCHES[name], "available") and not BENCHES[name].available():
+            print(f"[skip] {name}: opa binary not found")
+            continue
         t = time.perf_counter()
         r = BENCHES[name].run(root)
         (out / f"{name}.json").write_text(json.dumps(_strip(r), indent=1, default=str), encoding="utf-8")
         (out / f"{name}.md").write_text(BENCHES[name].markdown(r) + "\n", encoding="utf-8")
         done[name] = r
         print(f"[ok]   {name} ({time.perf_counter() - t:.1f}s)")
+    if not done:
+        print("[warn] no benchmark ran (set STRATUM_DATA or run scripts/download_all.py)")
     try:
         from .figures import render
         render(done, out / "figures")

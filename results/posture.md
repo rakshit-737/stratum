@@ -37,7 +37,9 @@ Workloads needing hardening flagged by the v0.1 heuristic vs full PSS: v0.1 heur
 | trivy-operator | trivy-operator-0.36.0 | 1 | 0/1/0 | ZT-ID-02:1, ZT-ID-04:1, ZT-NET-01:1, ZT-PROV-03:1, ZT-WL-02:1 |
 | vault | vault-0.34.1 | 3 | 0/3/0 | ZT-ID-01:1, ZT-NET-01:1, ZT-PROV-03:3, ZT-WL-02:3 |
 
-| control | title | findings |
+Findings per control are summed per project (a namespace shared by several projects, e.g. kube-system, is counted once per project). On the merged corpus, 26 of 29 distinct namespaces have no default-deny egress policy (ZT-NET-01).
+
+| control | title | findings (per-project sum) |
 |---|---|---:|
 | ZT-PROV-03 | Images pinned by immutable digest | 76 |
 | ZT-ID-02 | Disable SA token automount unless needed | 47 |

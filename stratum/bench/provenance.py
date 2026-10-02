@@ -15,6 +15,11 @@ from pathlib import Path
 from ..corpus import manifests_dataset, provenance_path
 from ..provenance import load
 from ..registry import parse_ref
+from .metrics import wilson
+
+# External reference point: Schorlemmer et al., "Signing in Four Public Software Package Registries"
+# (arXiv:2401.14635, Table 6): share of Docker Hub tags signed (Docker Content Trust) in 2023.
+DOCKER_HUB_SIGNED_2023 = 0.010
 
 
 def run(root: Path) -> dict:
@@ -37,6 +42,8 @@ def run(root: Path) -> dict:
     by_ref = {p.ref: p for p in provs}
     wl_traced = sum(bool(by_ref.get(w.image_digest) and by_ref[w.image_digest].commit.get("verified"))
                     for w in ds.workloads)
+    wl_pr = sum(bool(by_ref.get(w.image_digest) and by_ref[w.image_digest].commit.get("verified")
+                     and by_ref[w.image_digest].commit.get("pr")) for w in ds.workloads)
     registries = Counter(parse_ref(p.ref).registry for p in provs)
     pct = lambda a, b: round(100 * a / b, 1) if b else 0.0  # noqa: E731
     return {
@@ -50,7 +57,13 @@ def run(root: Path) -> dict:
             "cosign signature artefact": [len(signed), pct(len(signed), n)],
             "cosign attestation artefact": [len(attested), pct(len(attested), n)],
         },
+        "funnel_wilson95": {"commit verified on GitHub": wilson(len(verified), n),
+                            "cosign signature artefact": wilson(len(signed), n)},
+        "context": {"docker_hub_tags_signed_2023": DOCKER_HUB_SIGNED_2023,
+                    "source": "Schorlemmer et al. 2024, arXiv:2401.14635, Table 6 (DCT signatures; different population)"},
         "workloads": len(ds.workloads), "workloads_traced_to_commit": wl_traced,
+        "workloads_traced_to_commit_wilson95": wilson(wl_traced, len(ds.workloads)),
+        "workloads_traced_to_pr": wl_pr,
         "tag_heuristic": {"comparable": len(comparable), "git_tag_found": len(tag_found),
                           "agrees_with_embedded_revision": len(agree),
                           "images_with_any_tag_commit": len(heur_any)},
@@ -68,7 +81,13 @@ def markdown(r: dict) -> str:
         lines.append(f"| {k} | {c} | {p} |")
     th = r["tag_heuristic"]
     lines += ["", f"Workloads traced end-to-end (pod -> image -> verified commit): "
-              f"**{r['workloads_traced_to_commit']} / {r['workloads']}**.", "",
+              f"**{r['workloads_traced_to_commit']} / {r['workloads']}** "
+              f"(Wilson 95% CI {r['workloads_traced_to_commit_wilson95']}); {r['workloads_traced_to_pr']} of them on to a merged PR.", "",
+              f"Signature context: {r['funnel']['cosign signature artefact'][0]}/{r['images']} images carry a cosign signature "
+              f"artefact (Wilson 95% CI {r['funnel_wilson95']['cosign signature artefact']}), against "
+              f"{100 * r['context']['docker_hub_tags_signed_2023']:.1f}% of Docker Hub tags signed in 2023 "
+              f"({r['context']['source']}). This corpus is curated CNCF projects, so the gap is expected; "
+              "presence of a signature is not a verified signature.", "",
               f"Baseline, the `image tag == git tag` heuristic: of {th['comparable']} images with a verified embedded "
               f"commit, a same-named git tag existed for {th['git_tag_found']} and pointed at the embedded commit "
               f"for {th['agrees_with_embedded_revision']}."]

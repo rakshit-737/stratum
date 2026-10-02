@@ -1,0 +1,8 @@
+{
+ "opa": "1.21.0",
+ "python": 292,
+ "rego": 292,
+ "only_python": 0,
+ "only_rego": 0,
+ "equivalent": true
+}

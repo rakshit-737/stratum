@@ -35,7 +35,13 @@ def run(root: Path) -> dict:
         projects[name] = {"version": meta["version"], "category": meta["category"], "workloads": len(ds.workloads),
                           "pss": dict(lv), "findings": dict(sorted(by.items())),
                           "check_violations": dict(Counter(k for w in ds.workloads for k in w.pss_violations))}
-    return {"projects": projects, "n_projects": len(projects), "n_workloads": n_wl,
+    # ZT-NET-01 on the merged corpus: a namespace shared by several projects (kube-system) counts once
+    merged = manifests_dataset(root)
+    net01 = sorted({f.subject for f in evaluate(merged, build_graph(merged)) if f.control_id == "ZT-NET-01"})
+    namespaces = sorted({w.namespace for w in merged.workloads})
+    return {"projects": projects, "zt_net_01_distinct_namespaces": {"without_egress_policy": len(net01),
+                                                                     "namespaces_with_workloads": len(namespaces)},
+            "n_projects": len(projects), "n_workloads": n_wl,
             "pss_levels": dict(all_levels), "findings_by_control": dict(totals.most_common()),
             "workload_hardening_flagged": {"v0.1 heuristic": legacy_hits, "PSS restricted (v0.2)": pss_hits},
             "rbac_risks": dict(risks.most_common())}
@@ -54,7 +60,12 @@ def markdown(r: dict) -> str:
         f = ", ".join(f"{k}:{v}" for k, v in p["findings"].items())
         lines.append(f"| {n} | {p['version']} | {p['workloads']} | {s.get('restricted', 0)}/{s.get('baseline', 0)}/"
                      f"{s.get('privileged', 0)} | {f} |")
-    lines += ["", "| control | title | findings |", "|---|---|---:|"]
+    z = r.get("zt_net_01_distinct_namespaces")
+    lines += ["", "Findings per control are summed per project (a namespace shared by several projects, e.g. kube-system, "
+              "is counted once per project)."
+              + (f" On the merged corpus, {z['without_egress_policy']} of {z['namespaces_with_workloads']} distinct namespaces "
+                 "have no default-deny egress policy (ZT-NET-01)." if z else "")]
+    lines += ["", "| control | title | findings (per-project sum) |", "|---|---|---:|"]
     for c, v in r["findings_by_control"].items():
         lines.append(f"| {c} | {CONTROLS[c].title} | {v} |")
     return "\n".join(lines)

@@ -43,8 +43,27 @@
    32.6
   ]
  },
+ "funnel_wilson95": {
+  "commit verified on GitHub": [
+   0.2053,
+   0.394
+  ],
+  "cosign signature artefact": [
+   0.2775,
+   0.4777
+  ]
+ },
+ "context": {
+  "docker_hub_tags_signed_2023": 0.01,
+  "source": "Schorlemmer et al. 2024, arXiv:2401.14635, Table 6 (DCT signatures; different population)"
+ },
  "workloads": 87,
  "workloads_traced_to_commit": 23,
+ "workloads_traced_to_commit_wilson95": [
+  0.1831,
+  0.3656
+ ],
+ "workloads_traced_to_pr": 19,
  "tag_heuristic": {
   "comparable": 25,
   "git_tag_found": 21,

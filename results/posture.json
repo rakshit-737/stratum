@@ -529,6 +529,10 @@
    "check_violations": {}
   }
  },
+ "zt_net_01_distinct_namespaces": {
+  "without_egress_policy": 26,
+  "namespaces_with_workloads": 29
+ },
  "n_projects": 31,
  "n_workloads": 87,
  "pss_levels": {

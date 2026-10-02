@@ -174,3 +174,57 @@ def bootstrap_ci(neg: Sequence[float], pos: Sequence[float], stat, n_boot: int =
     lo = vals[int(alpha / 2 * (n_boot - 1))]
     hi = vals[int((1 - alpha / 2) * (n_boot - 1))]
     return lo, hi
+
+
+def roc_curve(neg: Sequence[float], pos: Sequence[float]) -> list[tuple[float, float]]:
+    """ROC vertices (FPR, TPR) for "score >= threshold", thresholds descending; tied scores form one
+    diagonal segment, i.e. the curve a random tie-break gives in expectation."""
+    from collections import Counter
+    cn, cp = Counter(neg), Counter(pos)
+    fp = tp = 0
+    pts = [(0.0, 0.0)]
+    for t in sorted(set(cn) | set(cp), reverse=True):
+        fp += cn.get(t, 0); tp += cp.get(t, 0)
+        pts.append((fp / len(neg), tp / len(pos)))
+    return pts
+
+
+def _interp(pts: list[tuple[float, float]], x: float, by: int) -> float:
+    o = 1 - by
+    for (a, b) in zip(pts, pts[1:]):
+        if a[by] <= x <= b[by]:
+            return a[o] if b[by] == a[by] else a[o] + (b[o] - a[o]) * (x - a[by]) / (b[by] - a[by])
+    return pts[-1][o]
+
+
+def tpr_at_fpr_interp(neg: Sequence[float], pos: Sequence[float], fpr: float) -> float:
+    """TPR at exactly ``fpr`` on the tie-interpolated ROC curve."""
+    return _interp(roc_curve(neg, pos), fpr, 0)
+
+
+def fpr_at_tpr(neg: Sequence[float], pos: Sequence[float], tpr: float) -> float:
+    """False-alarm rate needed to reach detection rate ``tpr`` (tie-interpolated ROC)."""
+    pts = roc_curve(neg, pos)
+    for (a, b) in zip(pts, pts[1:]):
+        if a[1] <= tpr <= b[1] and b[1] > a[1]:
+            return a[0] + (b[0] - a[0]) * (tpr - a[1]) / (b[1] - a[1])
+    return 1.0
+
+
+def paired_bootstrap_diff(neg_a, pos_a, neg_b, pos_b, stat, n_boot: int = 1000, seed: int = 0,
+                          alpha: float = 0.05) -> dict:
+    """Paired, stratified bootstrap of ``stat(A) - stat(B)`` for two detectors scored on the same traces.
+    Returns the observed difference, its percentile CI and a two-sided bootstrap p-value."""
+    import random
+    rng = random.Random(seed)
+    obs = stat(neg_a, pos_a) - stat(neg_b, pos_b)
+    diffs = []
+    for _ in range(n_boot):
+        ni = [rng.randrange(len(neg_a)) for _ in neg_a]
+        pi = [rng.randrange(len(pos_a)) for _ in pos_a]
+        diffs.append(stat([neg_a[i] for i in ni], [pos_a[i] for i in pi])
+                     - stat([neg_b[i] for i in ni], [pos_b[i] for i in pi]))
+    diffs.sort()
+    lo, hi = diffs[int(alpha / 2 * (n_boot - 1))], diffs[int((1 - alpha / 2) * (n_boot - 1))]
+    p = min(1.0, 2 * min(sum(d <= 0 for d in diffs), sum(d >= 0 for d in diffs)) / n_boot)
+    return {"diff": obs, "ci95": [lo, hi], "p_boot": p, "n_boot": n_boot}

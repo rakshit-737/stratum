@@ -1,8 +1,11 @@
 ### Trivy scans of 49 real images (+ CISA KEV join)
 
-| critical | high | medium | low | images w/ critical | images w/ KEV CVE | images shipping a shell |
-|---:|---:|---:|---:|---:|---:|---:|
-| 15 | 432 | 342 | 326 | 7 | 0 | 18 |
+| count | critical | high | medium | low |
+|---|---:|---:|---:|---:|
+| findings summed over images (each image counts a CVE x package pair once) | 15 | 432 | 342 | 326 |
+| unique CVE x package pairs across the corpus | 10 | 156 | 157 | 98 |
+
+Images with a critical CVE: 7; with a CISA KEV CVE: 0; shipping a shell: 18. Trivy 0.74.0; KEV catalog 2026.09.25 (1726 CVEs).
 
 Blast radius by base OS release as reported by Trivy (workloads whose image is built on it; grouped by OS family + version, not by layer digest):
 

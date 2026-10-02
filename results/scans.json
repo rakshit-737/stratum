@@ -9,6 +9,172 @@
   "LOW": 326,
   "UNKNOWN": 30
  },
+ "vulns_by_severity_note": "summed over images; each image counts a (CVE, package) pair once",
+ "unique_cve_package_pairs_by_severity": {
+  "CRITICAL": 10,
+  "HIGH": 156,
+  "MEDIUM": 157,
+  "LOW": 98,
+  "UNKNOWN": 4
+ },
+ "trivy_versions": {
+  "0.74.0": 49
+ },
+ "kev_catalog": {
+  "catalog_version": "2026.09.25",
+  "cves": 1726
+ },
+ "skipped_images": [
+  {
+   "ref": "mirror.gcr.io/aquasec/trivy-operator:0.34.0",
+   "size_mb": 51.4
+  },
+  {
+   "ref": "ghcr.io/fluxcd/helm-controller:v1.6.4",
+   "size_mb": 51.5
+  },
+  {
+   "ref": "ghcr.io/fluxcd/notification-controller:v1.9.4",
+   "size_mb": 52.0
+  },
+  {
+   "ref": "docker.io/goharbor/registry-photon:v2.15.2",
+   "size_mb": 54.5
+  },
+  {
+   "ref": "docker.io/traefik:v3.7.13",
+   "size_mb": 55.2
+  },
+  {
+   "ref": "ghcr.io/tektoncd/pipeline/webhook-d4749e605405422fd87700164e31b2d1:v1.16.0@sha256:cc0f3620092c91d8a2eb18a155fd0504dae7043a1fae9851dc7b5b9ed1ea3626",
+   "size_mb": 55.4
+  },
+  {
+   "ref": "ghcr.io/tektoncd/pipeline/events-a9042f7efb0cbade2a868a1ee5ddd52c:v1.16.0@sha256:3b4777e52b0fcf98c3a24d1227eedf2984a222c1af18ea0d5f56da0f4832b6d1",
+   "size_mb": 55.4
+  },
+  {
+   "ref": "quay.io/calico/kube-controllers:v3.32.2",
+   "size_mb": 63.2
+  },
+  {
+   "ref": "ghcr.io/fluxcd/source-controller:v1.9.5",
+   "size_mb": 64.8
+  },
+  {
+   "ref": "ghcr.io/tektoncd/pipeline/controller-10a3e32792f33651396d02b6855a6e36:v1.16.0@sha256:27458f2073bb6f826cbe7a97324ca5553d8d97e60f91f2b8dd37fea72c43fdf2",
+   "size_mb": 66.9
+  },
+  {
+   "ref": "quay.io/calico/cni:v3.32.2",
+   "size_mb": 69.9
+  },
+  {
+   "ref": "ghcr.io/fluxcd/kustomize-controller:v1.9.5",
+   "size_mb": 71.2
+  },
+  {
+   "ref": "quay.io/metallb/speaker:v0.16.0",
+   "size_mb": 71.9
+  },
+  {
+   "ref": "ghcr.io/tektoncd/pipeline/resolvers-ff86b24f130c42b88983d3c13993056d:v1.16.0@sha256:318c3caf89aec173b4c4bb69da60d09e1a1f8d8ffb4b9255982832d9c63b70c5",
+   "size_mb": 72.4
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-portal:v2.15.2",
+   "size_mb": 72.9
+  },
+  {
+   "ref": "ghcr.io/kedacore/keda-metrics-apiserver:2.21.0",
+   "size_mb": 72.9
+  },
+  {
+   "ref": "docker.io/longhornio/longhorn-ui:v1.12.1",
+   "size_mb": 75.5
+  },
+  {
+   "ref": "kubernetesui/dashboard:v2.7.0",
+   "size_mb": 75.8
+  },
+  {
+   "ref": "docker.io/goharbor/valkey-photon:v2.15.2",
+   "size_mb": 85.5
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-core:v2.15.2",
+   "size_mb": 87.2
+  },
+  {
+   "ref": "quay.io/cilium/tetragon:v1.7.1",
+   "size_mb": 88.3
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-registryctl:v2.15.2",
+   "size_mb": 90.8
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-jobservice:v2.15.2",
+   "size_mb": 98.8
+  },
+  {
+   "ref": "ghcr.io/kedacore/keda:2.21.0",
+   "size_mb": 98.8
+  },
+  {
+   "ref": "ghcr.io/external-secrets/external-secrets:v2.11.0",
+   "size_mb": 99.7
+  },
+  {
+   "ref": "us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/adservice:v0.10.7",
+   "size_mb": 109.9
+  },
+  {
+   "ref": "registry.k8s.io/ingress-nginx/controller:v1.15.1@sha256:594ceea76b01c592858f803f9ff4d2cb40542cae2060410b2c95f75907d659e1",
+   "size_mb": 116.0
+  },
+  {
+   "ref": "quay.io/calico/node:v3.32.2",
+   "size_mb": 123.4
+  },
+  {
+   "ref": "docker.io/longhornio/longhorn-share-manager:v1.12.1",
+   "size_mb": 125.6
+  },
+  {
+   "ref": "docker.io/longhornio/longhorn-manager:v1.12.1",
+   "size_mb": 134.3
+  },
+  {
+   "ref": "registry-1.docker.io/bitnami/postgresql:latest",
+   "size_mb": 135.1
+  },
+  {
+   "ref": "docker.io/goharbor/harbor-db:v2.15.2",
+   "size_mb": 139.6
+  },
+  {
+   "ref": "docker.io/goharbor/trivy-adapter-photon:v2.15.2",
+   "size_mb": 164.3
+  },
+  {
+   "ref": "hashicorp/vault:2.0.4",
+   "size_mb": 192.4
+  },
+  {
+   "ref": "quay.io/argoproj/argocd:v3.5.3",
+   "size_mb": 215.1
+  },
+  {
+   "ref": "docker.io/jenkins/jenkins:2.568.3-jdk21",
+   "size_mb": 293.4
+  },
+  {
+   "ref": "docker.io/falcosecurity/falco-driver-loader:0.45.0",
+   "size_mb": 341.3
+  }
+ ],
+ "failed_images": [],
  "images_with_critical": 7,
  "images_with_kev": 0,
  "kev_cves": {},
