@@ -19,14 +19,14 @@ runtime event` into one graph and checks 13 Zero-Trust controls against it, in P
 
 | What | Result |
 |---|---|
-| Live cluster: runtime alert → commit from the Sigstore certificate | **55 / 55** incidents over 5 kind clusters (Wilson 95% CI 0.93-1.00); unsigned control 0 / 5 traced |
+| Live cluster: runtime alert → commit from the Sigstore certificate | **5 / 5** kind clusters fully traced, 55 incidents (Wilson 95% CI over runs 0.57-1.00); unsigned control 0 / 5 traced |
 | Policy-as-prevention on the live cluster | `stratum prevent` egress policy blocks the external sink 5 / 5, in-cluster traffic kept 5 / 5 |
 | Exported Gatekeeper template, live | denies the privileged pod 5 / 5 |
 | PSS engine vs upstream conformance fixtures | F1 1.000 (a conformance gate) |
 | Rego mirror vs Python, full real corpus | 292 / 292 identical findings |
 | 87 workloads from 31 real projects traced pod → verified commit | 23 / 87 (CI 0.18-0.37); 0 of 18 public Tetragon incidents reach a commit |
 | ADFA-LD syscall models | STIDE n=6 AUC 0.827 edges novelty n=5 0.822 (paired diff +0.005, significant) |
-| Reproduction of Kim et al. 2016 LSTM ensemble | not reproduced: AUC 0.709 vs 0.928 published |
+| Reproduction of Kim et al. 2016 LSTM ensemble | under-trained, inconclusive: AUC 0.709 vs 0.928 published (convergence re-run queued) |
 
 Every number, with its method and caveats, is on the [Evaluation](benchmarks.md) page; the
 [Limitations](limitations.md) page lists what is not shown.
@@ -34,7 +34,7 @@ Every number, with its method and caveats, is on the [Evaluation](benchmarks.md)
 ## Try it in 60 seconds
 
 ```bash
-docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # console on http://127.0.0.1:8000
+docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # :latest is still v1.0.0 until the next release; console on http://127.0.0.1:8000
 ```
 
 or

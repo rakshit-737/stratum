@@ -16,6 +16,8 @@
 
 - [x] Live kind + Tetragon + Gatekeeper job with certificate-derived trace-to-commit and negative controls
 - [x] Gatekeeper `ConstraintTemplate` export, enforcing on a live Gatekeeper
+- [ ] Ablation on the live runs: runtime-only vs +cluster state vs +label provenance vs +certificate provenance, per-arm proportions with CIs
+- [ ] Container-native syscall dataset (Tetragon raw_syscalls recorded in Actions over 5+ runs, or DongTing fetched in Actions); LID-DS and CB-DS are not fetchable non-interactively
 - [ ] Verify cosign signatures and SLSA provenance for third-party images (sigstore-python); parse BuildKit attestations
 - [ ] Continuous kube-API watch plus Tetragon gRPC streaming
 - [ ] Labelled benign/attack action sets in the live job for per-rule FPR

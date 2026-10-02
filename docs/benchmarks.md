@@ -5,14 +5,14 @@ All numbers come from `python -m stratum bench` on the real corpus, the live CI 
 
 | What | Result | Baseline (previous version or naive method) |
 |---|---|---|
-| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **55 / 55** demo-pod incidents over 5 independent kind clusters (Wilson 95% CI 0.93-1.00); unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
+| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **5 / 5** independent kind clusters trace every demo-pod incident (55 incidents) to the commit (Wilson 95% CI over runs 0.57-1.00; incidents within a run share one digest and certificate, so they are not independent); unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
 | Policy engine vs upstream PSS conformance fixtures (148 pods, v1.37) | **F1 1.000** at baseline and restricted (a conformance gate) | v0.1 heuristic: recall 0.147 / 0.105 |
 | Posture of 31 real projects in their default configuration | **32 / 87** workloads not PSS-restricted (7 privileged); 26 of 29 namespaces with no egress policy; 24 workloads with cluster-wide secret read or RBAC escalation | v0.1 heuristic flags 7 / 87 |
 | Rego mirror vs Python engine on the full corpus | **292 / 292 identical findings** (OPA 1.21, [`results/opa.md`](https://github.com/rakshit-737/stratum/blob/main/results/opa.md)) | n/a |
 | Trace pod → verified commit (86 real images, no runtime event) | 25 images (29%) carry a revision that GitHub confirms; **23 / 87 workloads** (CI 0.18-0.37) traced end to end, 19 of them on to the merged PR | `tag == git tag`: right for 21 of those 25, no answer for 4 |
 | Runtime rules on real Tetragon events (30 events, 20 attack; **in-sample**, rules written on these events) | recall 0.80 [0.58, 0.92], precision 0.89 [0.67, 0.97]; **0 of 18 incidents reach a commit** (no provenance on those images) | v0.1 rules: recall 0.40 [0.22, 0.61], precision 0.80 [0.49, 0.94] |
 | Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty n=5: AUC 0.822 (0.803-0.841); n=3: TPR 0.18 at 1% FPR | **STIDE n=6 wins on AUC**: 0.827 (0.811-0.844), paired difference +0.005 (0.002-0.009) |
-| Reproduction of Kim et al. 2016 (LSTM ensemble, ADFA-LD) | **not reproduced**: AUC 0.709 ± 0.003 over 3 seeds (12 CPU epochs) | paper: 0.928 |
+| Reproduction of Kim et al. 2016 (LSTM ensemble, ADFA-LD) | **under-trained, inconclusive**: AUC 0.709 ± 0.003 over 3 seeds (max 12 CPU epochs, still improving); a convergence re-run is in progress | paper: 0.928 |
 | Trivy + CISA KEV on 49 real images | 10 critical / 156 high unique CVE × package pairs (15 / 432 summed per image); **0** KEV hits; Alpine 3.24.1 → 8-workload blast radius | n/a |
 | Latency, full analysis of the real corpus (470 nodes, 504 edges) | about 10 ms (3.5-14 ms across laptop runs), plus 1-8 s to load the corpus | n/a |
 
@@ -50,7 +50,7 @@ Every failing fixture is also attributed to the right check (100%). A faithful p
 |---|---:|---|
 | ZT-PROV-03 digest pinning | 76 | Only ingress-nginx, knative and tekton pin images by `@sha256` |
 | ZT-ID-02 token automount on privileged identity | 47 | Operators mount tokens for SAs that hold cluster-wide rights |
-| ZT-NET-01 default-deny egress | 29 | Only flux2 and the Bitnami charts ship NetworkPolicies by default |
+| ZT-NET-01 default-deny egress | 29 (per-project findings; 26 distinct namespaces) | Only flux2 and the Bitnami charts ship NetworkPolicies by default |
 | ZT-ID-04 cluster-wide secret read / escalation | 24 | 50 service-account grants include secret read; 9 have `*` verbs on `*` resources |
 | ZT-WL-02 not PSS-restricted | 24 | Online Boutique (12/12), Vault, Jenkins, dashboard, trivy-operator |
 | ZT-ID-01 default service account | 10 | Harbor (7 workloads) |
@@ -170,7 +170,7 @@ Our STIDE is close to the published STIDE but a few points worse; ELM uses seman
 | averaging ensemble | 0.890 | 0.634 ± 0.010 |
 | single LSTM 1×200 | figure only | 0.731 ± 0.018 |
 
-The reproduction falls far short. Known deviations: 12 epochs on CPU (every model was still improving at the last epoch, so they are under-trained), 750 traces for fitting with 83 held out for early stopping, batch 32, voting ensemble not reproduced. Full table: [`results/kim_lstm.md`](https://github.com/rakshit-737/stratum/blob/main/results/kim_lstm.md). This is why STRATUM alerts on rules and uses anomaly scores only as `medium` context.
+The result is **under-trained, inconclusive**, not a failed reproduction: it does not yet test the published setup. A re-run with early stopping to convergence (max 200 epochs, 3 seeds) is queued in [`repro-kim.yml`](https://github.com/rakshit-737/stratum/blob/main/.github/workflows/repro-kim.yml). Known deviations: 12 epochs on CPU (every model was still improving at the last epoch, so they are under-trained), 750 traces for fitting with 83 held out for early stopping, batch 32, voting ensemble not reproduced. Full table: [`results/kim_lstm.md`](https://github.com/rakshit-737/stratum/blob/main/results/kim_lstm.md). This is why STRATUM alerts on rules and uses anomaly scores only as `medium` context.
 
 ### 6. Live cluster in CI: kind + Tetragon + Gatekeeper + cosign
 
@@ -180,7 +180,7 @@ The reproduction falls far short. Known deviations: 12 epochs on CPU (every mode
 |---|---:|
 | runs passing every assertion | 5 / 5 (Wilson 0.57-1.00) |
 | R-SHELL, R-SA-TOKEN, R-NETTOOL raised for their scripted action | 5 / 5 each |
-| demo-pod incidents traced to the expected commit, from the certificate | **55 / 55** (0.93-1.00) |
+| demo-pod incidents traced to the expected commit, from the certificate | **5 / 5 runs** (Wilson 0.57-1.00); 55 / 55 incidents, count only |
 | detections on the benign sink pod | 0 |
 | unsigned `drift` workload (same command, digest-pinned busybox): traced to a commit / names ZT-PROV-01 | 0 / 5, 5 / 5 |
 | external egress allowed before, blocked after the `stratum prevent` policy; in-cluster sink kept | 5 / 5, 5 / 5 |

@@ -7,7 +7,7 @@
 [![docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://rakshit-737.github.io/stratum/)
 ![policy: OPA/Rego](https://img.shields.io/badge/policy-OPA%2FRego%20v1-7d4cdb)
 
-**Contribution: STRATUM joins each runtime eBPF alert, edge by edge and with checkable evidence, to the running image digest, the Sigstore-certified CI run and commit that built it, and the named Zero-Trust control that should have stopped it. On a live kind + Tetragon cluster, 55 of 55 alerts over 5 independent runs trace to the right commit read from the signing certificate, while an unsigned look-alike workload traces to none.**
+**Contribution: STRATUM joins each runtime eBPF alert, edge by edge and with checkable evidence, to the running image digest, the Sigstore-certified CI run and commit that built it, and the named Zero-Trust control that should have stopped it. This is demonstrated on a scripted live pipeline (one demo workload, one commit): on a kind + Tetragon cluster, every alert in 5 of 5 independent runs (55 alerts) traces to the right commit read from the signing certificate, while an unsigned look-alike workload traces to none. No ablation yet isolates what each join edge adds over runtime-only or posture-only tools (see Roadmap).**
 
 STRATUM is an open mini-CNAPP, not a Wiz. It puts `commit → CI build → image → Kubernetes workload → pod → runtime event` into one graph and checks 13 Zero-Trust controls against it. The controls are written in Python and mirrored in Rego (also exported as a Gatekeeper ConstraintTemplate). For each runtime alert it reports the commit and PR that shipped the code where provenance exists, the failed control, the fix, and every other workload built on the same base OS release (the blast radius).
 
@@ -29,7 +29,7 @@ Documentation: **https://rakshit-737.github.io/stratum/**. Static consoles: [liv
 ## Try it in 60 seconds
 
 ```bash
-docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # console on http://127.0.0.1:8000
+docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # :latest is still v1.0.0 until the next release; console on http://127.0.0.1:8000
 ```
 
 or, with Python 3.10+ and only PyYAML as a dependency:
@@ -43,14 +43,14 @@ pip install -e . && python -m stratum demo      # five synthetic incidents, trac
 
 | What | Result | Baseline (previous version or naive method) |
 |---|---|---|
-| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **55 / 55** demo-pod incidents over 5 independent kind clusters (Wilson 95% CI 0.93-1.00); unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
+| **Live cluster (CI): runtime alert → commit from the Sigstore certificate** | **5 / 5** independent kind clusters trace every demo-pod incident (55 incidents) to the commit (Wilson 95% CI over runs 0.57-1.00; incidents within a run share one digest and certificate, so they are not independent); unsigned `drift` control: 0 / 5 traced, ZT-PROV-01 named 5 / 5; Gatekeeper denies the privileged pod 5 / 5; `stratum prevent` egress policy blocks the external sink 5 / 5 | before this round the commit was injected by the workflow (circular) |
 | Policy engine vs upstream PSS conformance fixtures (148 pods, v1.37) | **F1 1.000** at baseline and restricted (a conformance gate) | v0.1 heuristic: recall 0.147 / 0.105 |
 | Posture of 31 real projects in their default configuration | **32 / 87** workloads not PSS-restricted (7 privileged); 26 of 29 namespaces with no egress policy; 24 workloads with cluster-wide secret read or RBAC escalation | v0.1 heuristic flags 7 / 87 |
 | Rego mirror vs Python engine on the full corpus | **292 / 292 identical findings** (OPA 1.21, [`results/opa.md`](results/opa.md)) | n/a |
 | Trace pod → verified commit (86 real images, no runtime event) | 25 images (29%) carry a revision that GitHub confirms; **23 / 87 workloads** (CI 0.18-0.37) traced end to end, 19 of them on to the merged PR | `tag == git tag`: right for 21 of those 25, no answer for 4 |
 | Runtime rules on real Tetragon events (30 events, 20 attack; **in-sample**, rules written on these events) | recall 0.80 [0.58, 0.92], precision 0.89 [0.67, 0.97]; **0 of 18 incidents reach a commit** (no provenance on those images) | v0.1 rules: recall 0.40 [0.22, 0.61], precision 0.80 [0.49, 0.94] |
 | Syscall anomaly model on ADFA-LD (4,372 normal / 746 attack) | n-gram novelty n=5: AUC 0.822 (0.803-0.841); n=3: TPR 0.18 at 1% FPR | **STIDE n=6 wins on AUC**: 0.827 (0.811-0.844), paired difference +0.005 (0.002-0.009) |
-| Reproduction of Kim et al. 2016 (LSTM ensemble, ADFA-LD) | **not reproduced**: AUC 0.709 ± 0.003 over 3 seeds (12 CPU epochs) | paper: 0.928 |
+| Reproduction of Kim et al. 2016 (LSTM ensemble, ADFA-LD) | **under-trained, inconclusive**: AUC 0.709 ± 0.003 over 3 seeds (max 12 CPU epochs, still improving); a convergence re-run is in progress | paper: 0.928 |
 | Trivy + CISA KEV on 49 real images | 10 critical / 156 high unique CVE × package pairs (15 / 432 summed per image); **0** KEV hits; Alpine 3.24.1 → 8-workload blast radius | n/a |
 | Latency, full analysis of the real corpus (470 nodes, 504 edges) | about 10 ms (3.5-14 ms across laptop runs), plus 1-8 s to load the corpus | n/a |
 
@@ -181,7 +181,7 @@ Every failing fixture is also attributed to the right check (100%). A faithful p
 |---|---:|---|
 | ZT-PROV-03 digest pinning | 76 | Only ingress-nginx, knative and tekton pin images by `@sha256` |
 | ZT-ID-02 token automount on privileged identity | 47 | Operators mount tokens for SAs that hold cluster-wide rights |
-| ZT-NET-01 default-deny egress | 29 | Only flux2 and the Bitnami charts ship NetworkPolicies by default |
+| ZT-NET-01 default-deny egress | 29 (per-project findings; 26 distinct namespaces) | Only flux2 and the Bitnami charts ship NetworkPolicies by default |
 | ZT-ID-04 cluster-wide secret read / escalation | 24 | 50 service-account grants include secret read; 9 have `*` verbs on `*` resources |
 | ZT-WL-02 not PSS-restricted | 24 | Online Boutique (12/12), Vault, Jenkins, dashboard, trivy-operator |
 | ZT-ID-01 default service account | 10 | Harbor (7 workloads) |
@@ -301,7 +301,7 @@ Our STIDE is close to the published STIDE but a few points worse; ELM uses seman
 | averaging ensemble | 0.890 | 0.634 ± 0.010 |
 | single LSTM 1×200 | figure only | 0.731 ± 0.018 |
 
-The reproduction falls far short. Known deviations: 12 epochs on CPU (every model was still improving at the last epoch, so they are under-trained), 750 traces for fitting with 83 held out for early stopping, batch 32, voting ensemble not reproduced. Full table: [`results/kim_lstm.md`](results/kim_lstm.md). This is why STRATUM alerts on rules and uses anomaly scores only as `medium` context.
+The result is **under-trained, inconclusive**, not a failed reproduction: it does not yet test the published setup. A re-run with early stopping to convergence (max 200 epochs, 3 seeds) is queued in [`repro-kim.yml`](.github/workflows/repro-kim.yml). Known deviations: 12 epochs on CPU (every model was still improving at the last epoch, so they are under-trained), 750 traces for fitting with 83 held out for early stopping, batch 32, voting ensemble not reproduced. Full table: [`results/kim_lstm.md`](results/kim_lstm.md). This is why STRATUM alerts on rules and uses anomaly scores only as `medium` context.
 
 ### 6. Live cluster in CI: kind + Tetragon + Gatekeeper + cosign
 
@@ -311,7 +311,7 @@ The reproduction falls far short. Known deviations: 12 epochs on CPU (every mode
 |---|---:|
 | runs passing every assertion | 5 / 5 (Wilson 0.57-1.00) |
 | R-SHELL, R-SA-TOKEN, R-NETTOOL raised for their scripted action | 5 / 5 each |
-| demo-pod incidents traced to the expected commit, from the certificate | **55 / 55** (0.93-1.00) |
+| demo-pod incidents traced to the expected commit, from the certificate | **5 / 5 runs** (Wilson 0.57-1.00); 55 / 55 incidents, count only |
 | detections on the benign sink pod | 0 |
 | unsigned `drift` workload (same command, digest-pinned busybox): traced to a commit / names ZT-PROV-01 | 0 / 5, 5 / 5 |
 | external egress allowed before, blocked after the `stratum prevent` policy; in-cluster sink kept | 5 / 5, 5 / 5 |
@@ -350,6 +350,8 @@ STRATUM does not compete with commercial CNAPPs. It is a small, readable, graph-
 
 - [x] Live kind + Tetragon + Gatekeeper job with certificate-derived trace-to-commit and negative controls
 - [x] Gatekeeper `ConstraintTemplate` export, enforcing on a live Gatekeeper
+- [ ] Ablation on the live runs: runtime-only vs +cluster state vs +label provenance vs +certificate provenance, per-arm proportions with CIs
+- [ ] Container-native syscall dataset (Tetragon raw_syscalls recorded in Actions over 5+ runs, or DongTing fetched in Actions); LID-DS and CB-DS are not fetchable non-interactively
 - [ ] Verify cosign signatures and SLSA provenance for third-party images (sigstore-python); parse BuildKit attestations
 - [ ] Continuous kube-API watch plus Tetragon gRPC streaming
 - [ ] Labelled benign/attack action sets in the live job for per-rule FPR
