@@ -121,7 +121,7 @@ def _leaky(v):
     return v if v > 0 else 0.001 * v
 
 
-def run(root: Path, seeds=(0, 1, 2), epochs=30, log=print) -> dict:
+def run(root: Path, seeds=(0, 1, 2), epochs=30, log=print, partial=None) -> dict:
     d = load_adfa(root / "adfa")
     tr, val = d["train"], d["val"]
     att = [t for _, t in d["attack"]]
@@ -146,6 +146,8 @@ def run(root: Path, seeds=(0, 1, 2), epochs=30, log=print) -> dict:
             "seed": seed, "single": {f["cfg"]: f["auc"] for f in fs},
             "ensemble": roc_auc(ens_v, ens_a), "averaging": roc_auc(avg_v, avg_a),
             "ensemble_ci": bootstrap_ci(ens_v, ens_a, roc_auc, n_boot=200, seed=seed)})
+        if partial:
+            partial(per_seed)
         log(f"seed {seed}: ensemble AUC {per_seed[-1]['ensemble']:.3f}, averaging {per_seed[-1]['averaging']:.3f}")
 
     def ms(xs):
@@ -185,8 +187,9 @@ if __name__ == "__main__":  # python -m stratum.bench.kim_lstm [epochs] [seeds..
     torch.set_num_threads(max(1, torch.get_num_threads()))
     ep = int(sys.argv[1]) if len(sys.argv) > 1 else 15
     sd = tuple(int(x) for x in sys.argv[2:]) or (0, 1, 2)
-    res = run(data_dir(), seeds=sd, epochs=ep, log=lambda m: print(m, flush=True))
     out = Path("results")
+    res = run(data_dir(), seeds=sd, epochs=ep, log=lambda m: print(m, flush=True),
+              partial=lambda ps: (data_dir() / "kim_lstm.partial.json").write_text(json.dumps(ps, indent=1), encoding="utf-8"))
     (out / "kim_lstm.json").write_text(json.dumps(res | {"epochs_max": ep}, indent=1), encoding="utf-8")
     (out / "kim_lstm.md").write_text(markdown(res) + "\n", encoding="utf-8")
     print(markdown(res))
