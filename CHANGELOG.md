@@ -4,12 +4,44 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- Live result from 5 per-run-signed jobs (run 37085766270): every job built its own image and read the commit from its own Fulcio certificate (5 certificates over 5 digests); 5/5 runs pass, 55/55 demo-pod incidents traced (run-level Wilson 95% CI 0.57-1.00). `drift` and `forged` controls 0/5 traced, ZT-PROV-01 named 5/5 each. A0-A4 ablation: label provenance (A2) and a repository join (A4) attribute the forged image to the commit in 5/5 runs, the digest-exact certificate join (A3) in 0/5.
+- Evidence files record each job's certificate (SHA-256 of the DER, serial, Rekor logIndex, run attempt); the aggregator reports certificates, digests and CI run ids separately and gives the trace-row CI only when every run has its own certificate.
+- Container syscall benchmark committed (`results/container_syscalls.*`, run 37089906503, seeds 1-5): STIDE n=6 AUC 0.900, novelty n=5 0.826; per-action separability (4/5 action types), cluster bootstrap instead of a pooled trace-level one.
+- Signature detection reads OCI 1.1 referrers (cosign v3 Sigstore bundles, in-toto attestations) and BuildKit in-index attestations; `scripts/recheck_signatures.py`.
+- Every `results/*.json` written by `stratum bench` records its run, commit and dataset manifest hash; the Kim and container syscall workflows write the run URL.
+- `stratum --version`; wildcard expansion in `collect`/`pss`; help text for every option; `serve --source live` works from the wheel and the container (the replay is package data naming its CI run).
+- Release workflow publishes the smoke-tested wheel and sdist with `SHA256SUMS` and SLSA build provenance (`actions/attest-build-provenance`).
+- Docs: forged-label control and A0-A4 table in How it works and Live CI; container syscall and Kim sections on Reproduce; the Evaluation page moved to `/evaluation/` (redirect from `/benchmarks/`); docs CI checks the static consoles' version.
+
+### Changed
+- **Distribution renamed to `stratum-cnapp`** (PyPI's `stratum` is an unrelated project); the import package and CLI stay `stratum`.
+- Kim et al. reproduction refreshed from the 200-epoch run 37007358324: ensemble AUC 0.812 ± 0.005 vs 0.928 published (was 0.709 from a 12-epoch run). Not reproduced; the 1x200 model hit the epoch cap in 2 of 3 seeds. The merge job now also records the false-alarm rate at 90% detection.
+- ADFA-LD: the paired comparison over 10 random re-splits is now tested (novelty n=5 minus STIDE n=6 +0.023, corrected CI [0.001, 0.046], p = 0.044, 10/10 splits); on the official split STIDE n=6 stays ahead (+0.005, p ≈ 0.004). The ranking is split-dependent. The Isolation Forest row shows the median seed (AUC 0.499) instead of the best one (0.568).
+- Provenance funnel after the referrer-aware re-check: signature artefacts 39/86 (was 32), attestation artefacts 44/86 (was 28). ZT-PROV-02 findings 11 -> 9 (cloudnative-pg and dex are signed with Sigstore bundles), so the corpus has 290 findings (Rego mirror 290/290).
+- The tag heuristic baseline is reported with its own coverage (36/86 images) next to STRATUM's (25/86); traced workloads are also reported per project (11/31).
+- Perf reports median and min-max over 20 repeats with the machine it ran on.
+- The packaged live replay, `/demo-live/` and the README screenshot now come from job 1 of run 37085766270.
+
+### Fixed
+- **Sink-pod detections included the `forged` control's incident** (the count subtracted only `drift`); it now counts `sink-*` pods directly.
+- The aggregator counted certificate run ids as certificates, so a runs=5 dispatch would have reported one certificate.
+- **NetworkPolicy YAML injection**: `prevent` interpolated the namespace into YAML; namespaces must now be RFC 1123 labels (CLI exit 2, API 422) and the policy is written with `yaml.safe_dump`.
+- `GET /api/findings?limit=` accepts only 1-10000 (a negative limit silently truncated).
+- Bootstrap p-values use the +1 correction (0.002 -> 0.004 for the official-split ADFA-LD comparison; can no longer be 0).
+- Re-split TPR intervals are clipped to [0, 1].
+- STRATUM reported its own cosign v3-signed v1.1.0 image as unsigned.
+- Template expressions moved out of `run:` scripts in live, syscalls, repro-kim and release workflows (zizmor clean); dispatch inputs are validated.
+- `serve --source live` failed outside a git checkout (FileNotFoundError on `tests/fixtures`).
+- Docs: the container syscall recorder is `strace` in Docker, not Tetragon raw syscalls; the drift control is an unsigned upstream image, not a look-alike; the latency row now quotes `results/perf.md`; Kim runtimes and `-f epochs=` on Reproduce; corpus size about 2 GB; missing references (Kim et al., Schorlemmer et al., Nadeau & Bengio) added; published ADFA-LD false-alarm rates marked approximate.
+- Security: private vulnerability reporting, Dependabot alerts and security updates, secret scanning and push protection enabled; SECURITY.md links the advisory form instead of an unnamed email.
+
 ## [1.1.0] - 2026-10-02
 
 ### Added
 - Live CI job (`live.yml`): kind + Tetragon + OPA Gatekeeper on a GitHub runner. A demo image is pushed to GHCR and signed keyless with cosign; benign attack-shaped actions run in a pod; `stratum live-check` asserts detection and trace-to-commit on the real Tetragon events. Committed result: one signed image replayed in 5 clusters, 5/5 pass (`results/live.md`).
-- Live job: per-run nonce-tagged image signed in each cluster, `--expect-build` check, unsigned forged-label negative control, A0-A4 join ablation (code only; no aggregated result committed yet).
-- `syscalls.yml`: container syscall traces (Tetragon raw syscalls) recorded in Actions with leave-one-run-out evaluation (results not yet committed).
+- Live job: per-run nonce-tagged image signed in each job, `--expect-build` check, unsigned forged-label negative control, A0-A4 join ablation (code only; no aggregated result committed yet).
+- `syscalls.yml`: container syscall traces (`strace -f` syscall names, recorded in Docker on the runner; not Tetragon) recorded in Actions with leave-one-run-out evaluation (results not yet committed).
 - Docs: novelty statement, ADR 0007 (certificate-derived provenance), mermaid parse check in docs CI, API docstrings.
 - `stratum/sigstore.py`: the `image -> build -> commit` edges for the live check are read from the verified Fulcio certificate (commit OID .1.3, run-invocation URI), not from workflow variables. Negative control: an unsigned digest-pinned `drift` workload never reaches a commit and names ZT-PROV-01.
 - Policy-as-prevention measured live: the `stratum prevent` NetworkPolicy blocks egress to an external sink and keeps in-cluster traffic.
@@ -23,8 +55,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - **The Gatekeeper ConstraintTemplate exported by 1.0.0 does not load**: Gatekeeper parses template Rego as v0 and rejected `import rego.v1`. The export now uses `future.keywords`.
 - The 1.0.0 wheel omitted the Rego policies, so `stratum gatekeeper` and `opa-check` crashed after `pip install`. Policies now live in `stratum/policies/` and ship as package data.
 - R-SA-TOKEN now matches the projected token path (`.../serviceaccount/..<timestamp>/token`) seen by the kernel.
-- Live demo Dockerfile: a stray literal `
-` in the LABEL instruction broke the per-run image build in `live.yml`.
+- Live demo Dockerfile: a stray literal backslash-n (`\n`) in the LABEL instruction broke the per-run image build in `live.yml`.
 - Release notes were empty (awk regex); the release image is now cosign-signed; registry token realms must be https; the GitHub token for provenance is opt-in (`STRATUM_GITHUB_TOKEN`).
 - Documentation: live trace-to-commit result now states it rests on one certificate reused across 5 clusters (no run-level CI); STIDE published figure cited as quoted by Kim et al.
 - Documentation: STIDE n=6 has a small but significant AUC edge over novelty n=5 (paired bootstrap), not "indistinguishable"; scan totals are per-image sums (unique pairs 10/156/157/98); 26 of 29 namespaces lack an egress policy.
