@@ -37,7 +37,7 @@ Documentation: **https://rakshit-737.github.io/stratum/**. Static consoles: [liv
 docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # console on http://127.0.0.1:8000
 ```
 
-The image is linux/amd64 only: on Apple silicon or other ARM hosts add `--platform linux/amd64`. To open the replay of a live CI job, build the image from the current main (`docker build -t stratum .`) and run it with `-e STRATUM_SOURCE=live`; the 1.1.0 image does not ship the replay yet.
+The image is linux/amd64 only: on Apple silicon or other ARM hosts add `--platform linux/amd64`. To open the replay of a live CI job, add `-e STRATUM_SOURCE=live` (images from 1.1.1 on ship the replay; 1.1.0 does not).
 
 Or, with Python 3.10+ and only PyYAML as a dependency:
 
@@ -220,7 +220,7 @@ Of the 87 workloads, 55 reach PSS *restricted*, 25 *baseline* and 7 only *privil
 | attestation artefact published (cosign `.att`, Sigstore bundle or in-toto referrer) | 44 | 51 |
 | BuildKit attestation manifest in the image index (unsigned) | 31 | 36 |
 
-Signature and attestation rows count published artefacts; none is verified for third-party images. Until this release only the legacy cosign tags were probed, which missed cosign v3 bundles: 22 images changed on re-check (signatures 32 → 39, attestations 28 → 44), and STRATUM's own signed v1.1.0 image had been reported as unsigned.
+Signature and attestation rows count published artefacts; none is verified for third-party images. Before 1.1.1 only the legacy cosign tags were probed, which missed cosign v3 bundles: 22 images changed on re-check (signatures 32 → 39, attestations 28 → 44), and STRATUM's own signed v1.1.0 image had been reported as unsigned.
 
 23 of 87 workloads trace end to end (Wilson 0.18-0.37). They come from 11 of 31 projects (0.21-0.53) and 22 images, so the workload interval treats correlated workloads as independent; the project-level rate is the safer figure. For example: `pod flux-system/kustomize-controller → image ghcr.io/fluxcd/kustomize-controller:v1.9.5 → commit d5d5d2b (PR #1732)`.
 

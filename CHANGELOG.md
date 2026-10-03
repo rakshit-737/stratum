@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-03
+
+### Fixed
+- README: the Docker quickstart said the live replay needs an image built from main; the 1.1.1 image already ships it (`-e STRATUM_SOURCE=live`).
+- README and docs/evaluation.md: "until this release" for the cosign-bundle re-check now names the release (1.1.1).
+
 ## [1.1.1] - 2026-10-03
 
 ### Added

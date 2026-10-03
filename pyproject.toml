@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 # distribution name; the import package and CLI are `stratum` (PyPI's "stratum" is an unrelated project)
 name = "stratum-cnapp"
-version = "1.1.1"
+version = "1.1.2"
 description = "Open mini-CNAPP: code-to-runtime lifecycle graph, Zero-Trust policy (Python + Rego), trace-to-commit"
 readme = "README.md"
 license = "MIT"
