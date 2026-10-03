@@ -1,9 +1,11 @@
 ### Runtime rules on real Tetragon events (30 security-relevant events, 20 labelled attack)
 
+In-sample: the rules were written with these events in view. Brackets: Wilson 95% CIs.
+
 | rule set | TP | FP | FN | precision | recall |
 |---|---:|---:|---:|---:|---:|
-| STRATUM v0.2 (9 rules) | 16 | 2 | 4 | 0.89 | 0.80 |
-| v0.1 rules (shell / SA token / egress) | 8 | 2 | 12 | 0.80 | 0.40 |
+| STRATUM v0.2 (9 rules) | 16 | 2 | 4 | 0.89 [0.67, 0.97] | 0.80 [0.58, 0.92] |
+| v0.1 rules (shell / SA token / egress) | 8 | 2 | 12 | 0.80 [0.49, 0.94] | 0.40 [0.22, 0.61] |
 
 Detections traced to the exact running image digest: 9/18.
 

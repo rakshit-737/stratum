@@ -5,7 +5,7 @@
  "detectors": {
   "STIDE n=6 (baseline, Forrest 1996)": {
    "auc": 0.8273,
-   "seconds": 5.3,
+   "seconds": 5.2,
    "tpr@0.01_interp": 0.0238,
    "far@dr0.9": 0.2667,
    "ties_at_max_normal_score": {
@@ -49,7 +49,7 @@
   },
   "STIDE n=3": {
    "auc": 0.6951,
-   "seconds": 5.0,
+   "seconds": 4.9,
    "tpr@0.01_interp": 0.1714,
    "far@dr0.9": 0.8687,
    "ties_at_max_normal_score": {
@@ -93,7 +93,7 @@
   },
   "STRATUM n-gram novelty n=3": {
    "auc": 0.7989,
-   "seconds": 8.6,
+   "seconds": 9.8,
    "tpr@0.01_interp": 0.1756,
    "far@dr0.9": 0.4115,
    "ties_at_max_normal_score": {
@@ -137,7 +137,7 @@
   },
   "STRATUM n-gram novelty n=5": {
    "auc": 0.822,
-   "seconds": 11.7,
+   "seconds": 11.3,
    "tpr@0.01_interp": 0.0818,
    "far@dr0.9": 0.2777,
    "ties_at_max_normal_score": {
@@ -180,8 +180,8 @@
    }
   },
   "Isolation Forest, TF-IDF 1..3-grams": {
-   "auc": 0.5679,
-   "seconds": 187.6,
+   "auc": 0.4991,
+   "seconds": 245.9,
    "seeds": [
     0,
     1,
@@ -189,47 +189,55 @@
     3,
     4
    ],
+   "auc_per_seed": [
+    0.5679,
+    0.4615,
+    0.5062,
+    0.3828,
+    0.4991
+   ],
    "auc_seed_mean": 0.4835,
    "auc_seed_sd": 0.068,
-   "tpr@0.01_interp": 0.0013,
-   "far@dr0.9": 0.9486,
+   "shown_seed": 4,
+   "tpr@0.01_interp": 0.008,
+   "far@dr0.9": 0.9527,
    "ties_at_max_normal_score": {
     "normal": 1,
     "attack": 0
    },
    "auc_ci95": [
-    0.547,
-    0.5884
+    0.4765,
+    0.5217
    ],
    "far@dr0.9_ci95": [
-    0.9314,
-    0.9544
+    0.9461,
+    0.9604
    ],
    "tpr@0.01_interp_ci95": [
-    0.0,
-    0.0054
+    0.0013,
+    0.0161
    ],
    "tpr@0.01_ci95": [
-    0.0,
-    0.0054
+    0.0013,
+    0.0161
    ],
    "tpr@0.05_ci95": [
-    0.0241,
-    0.0617
+    0.0335,
+    0.071
    ],
-   "tpr@0.01": 0.0013,
+   "tpr@0.01": 0.008,
    "fpr_real@0.01": 0.0098,
-   "tpr@0.05": 0.0389,
-   "fpr_real@0.05": 0.0499,
-   "tpr@0.15": 0.1716,
-   "fpr_real@0.15": 0.1496,
+   "tpr@0.05": 0.0509,
+   "fpr_real@0.05": 0.0492,
+   "tpr@0.15": 0.1917,
+   "fpr_real@0.15": 0.1494,
    "family_tpr@0.05": {
-    "Adduser": 0.0,
-    "Hydra_FTP": 0.025,
-    "Hydra_SSH": 0.131,
-    "Java_Meterpreter": 0.0,
+    "Adduser": 0.022,
+    "Hydra_FTP": 0.08,
+    "Hydra_SSH": 0.08,
+    "Java_Meterpreter": 0.016,
     "Meterpreter": 0.0,
-    "Web_Shell": 0.017
+    "Web_Shell": 0.059
    }
   }
  },
@@ -244,7 +252,7 @@
     0.0016,
     0.009
    ],
-   "p_boot": 0.002
+   "p_boot": 0.004
   },
   {
    "a": "STRATUM n-gram novelty n=3",
@@ -256,7 +264,7 @@
     -0.0214,
     0.0268
    ],
-   "p_boot": 0.958
+   "p_boot": 0.959
   }
  ],
  "published_far@dr0.9": {
@@ -287,6 +295,18 @@
      "ci95_corrected": [
       0.7496,
       0.8189
+     ],
+     "per_seed": [
+      0.7842,
+      0.7899,
+      0.7791,
+      0.7745,
+      0.7965,
+      0.7869,
+      0.7776,
+      0.7844,
+      0.7804,
+      0.7892
      ]
     },
     "tpr@0.01_interp": {
@@ -295,8 +315,20 @@
      "min": 0.0603,
      "max": 0.1515,
      "ci95_corrected": [
-      -0.0569,
+      0.0,
       0.2624
+     ],
+     "per_seed": [
+      0.0804,
+      0.1126,
+      0.0938,
+      0.064,
+      0.1354,
+      0.1099,
+      0.0603,
+      0.13,
+      0.1515,
+      0.0898
      ]
     }
    },
@@ -309,6 +341,18 @@
      "ci95_corrected": [
       0.6688,
       0.7557
+     ],
+     "per_seed": [
+      0.7191,
+      0.7209,
+      0.7096,
+      0.6989,
+      0.7238,
+      0.7133,
+      0.7037,
+      0.7142,
+      0.7161,
+      0.7028
      ]
     },
     "tpr@0.01_interp": {
@@ -317,8 +361,20 @@
      "min": 0.0697,
      "max": 0.1984,
      "ci95_corrected": [
-      -0.0715,
+      0.0,
       0.3809
+     ],
+     "per_seed": [
+      0.1662,
+      0.1743,
+      0.1488,
+      0.1287,
+      0.1783,
+      0.1984,
+      0.0697,
+      0.1984,
+      0.185,
+      0.0992
      ]
     }
    },
@@ -331,6 +387,18 @@
      "ci95_corrected": [
       0.7077,
       0.8007
+     ],
+     "per_seed": [
+      0.7558,
+      0.7618,
+      0.7622,
+      0.7487,
+      0.7698,
+      0.7479,
+      0.7389,
+      0.7486,
+      0.752,
+      0.7564
      ]
     },
     "tpr@0.01_interp": {
@@ -339,8 +407,20 @@
      "min": 0.0898,
      "max": 0.1769,
      "ci95_corrected": [
-      -0.0511,
+      0.0,
       0.3261
+     ],
+     "per_seed": [
+      0.1139,
+      0.1595,
+      0.1247,
+      0.1059,
+      0.1769,
+      0.1622,
+      0.0898,
+      0.1743,
+      0.1769,
+      0.0912
      ]
     }
    },
@@ -353,6 +433,18 @@
      "ci95_corrected": [
       0.7847,
       0.8305
+     ],
+     "per_seed": [
+      0.8078,
+      0.8109,
+      0.8095,
+      0.803,
+      0.8163,
+      0.8037,
+      0.8011,
+      0.8065,
+      0.8079,
+      0.8089
      ]
     },
     "tpr@0.01_interp": {
@@ -361,11 +453,60 @@
      "min": 0.0469,
      "max": 0.1555,
      "ci95_corrected": [
-      -0.0794,
+      0.0,
       0.293
+     ],
+     "per_seed": [
+      0.0885,
+      0.118,
+      0.0992,
+      0.0643,
+      0.1448,
+      0.1166,
+      0.0469,
+      0.1434,
+      0.1555,
+      0.0912
      ]
     }
    }
-  }
+  },
+  "paired": [
+   {
+    "a": "STRATUM n-gram novelty n=5",
+    "b": "STIDE n=6",
+    "metric": "auc",
+    "diff": 0.0233,
+    "ci95_corrected": [
+     0.0006,
+     0.046
+    ],
+    "t_corrected": 2.342,
+    "df": 9,
+    "p_corrected_t": 0.0439,
+    "positive_splits": 10,
+    "n_splits": 10,
+    "p_sign_test": 0.002,
+    "per_seed": [
+     0.0236,
+     0.021,
+     0.0304,
+     0.0285,
+     0.0198,
+     0.0168,
+     0.0235,
+     0.0221,
+     0.0275,
+     0.0197
+    ]
+   }
+  ],
+  "note": "TPR intervals are clipped to [0, 1]; with 10 re-splits the corrected interval for TPR at 1% FPR is too wide to be informative."
+ },
+ "provenance": {
+  "source_run": null,
+  "commit": "4b7d28078b21e1c8a393b98e047348e9d44951d6",
+  "code_modified": false,
+  "dataset_manifest_sha256": "00a2da526785ac42b7dcf89c325ec595767a40e20417b3050b71d1b7397a61cf"
  }
 }

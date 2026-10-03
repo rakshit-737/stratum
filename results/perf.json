@@ -4,9 +4,46 @@
  "workloads": 95,
  "events": 30,
  "incidents": 18,
- "load_ms": 8016.4,
- "graph_build_ms": 7.356,
- "policy_eval_ms": 1.591,
- "trace_per_pod_ms": 0.041,
- "full_analyze_ms": 14.087
+ "machine": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.14.3",
+  "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+  "cpus": 16
+ },
+ "load_ms": {
+  "median": 4800.896,
+  "min": 4688.153,
+  "max": 5354.721,
+  "n": 3
+ },
+ "graph_build_ms": {
+  "median": 8.978,
+  "min": 4.126,
+  "max": 33.933,
+  "n": 20
+ },
+ "policy_eval_ms": {
+  "median": 5.529,
+  "min": 1.529,
+  "max": 12.69,
+  "n": 20
+ },
+ "trace_per_pod_ms": {
+  "median": 0.052,
+  "min": 0.014,
+  "max": 0.124,
+  "n": 20
+ },
+ "full_analyze_ms": {
+  "median": 20.855,
+  "min": 11.969,
+  "max": 81.657,
+  "n": 20
+ },
+ "provenance": {
+  "source_run": null,
+  "commit": "2b1f99d8c577c6b3d5a0ae09019ef66a730dd7a7",
+  "code_modified": false,
+  "dataset_manifest_sha256": "00a2da526785ac42b7dcf89c325ec595767a40e20417b3050b71d1b7397a61cf"
+ }
 }

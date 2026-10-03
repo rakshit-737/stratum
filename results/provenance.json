@@ -34,23 +34,38 @@
    21,
    24.4
   ],
-  "cosign signature artefact": [
-   32,
-   37.2
+  "signature artefact (cosign / Sigstore)": [
+   39,
+   45.3
   ],
-  "cosign attestation artefact": [
-   28,
-   32.6
+  "attestation artefact (cosign / Sigstore / in-toto)": [
+   44,
+   51.2
+  ],
+  "BuildKit attestation (unsigned)": [
+   31,
+   36.0
   ]
+ },
+ "artefact_formats": {
+  "signature": {
+   "cosign-tag": 32,
+   "sigstore-bundle": 7
+  },
+  "attestation": {
+   "cosign-tag": 28,
+   "in-toto": 11,
+   "sigstore-bundle": 5
+  }
  },
  "funnel_wilson95": {
   "commit verified on GitHub": [
    0.2053,
    0.394
   ],
-  "cosign signature artefact": [
-   0.2775,
-   0.4777
+  "signature artefact": [
+   0.3525,
+   0.5584
   ]
  },
  "context": {
@@ -64,11 +79,30 @@
   0.3656
  ],
  "workloads_traced_to_pr": 19,
+ "projects": 31,
+ "projects_with_a_traced_workload": 11,
+ "projects_traced_wilson95": [
+  0.2112,
+  0.5305
+ ],
+ "images_of_traced_workloads": 22,
  "tag_heuristic": {
   "comparable": 25,
   "git_tag_found": 21,
   "agrees_with_embedded_revision": 21,
-  "images_with_any_tag_commit": 36
+  "images_with_any_tag_commit": 36,
+  "coverage_wilson95": [
+   0.32,
+   0.5242
+  ],
+  "answers_not_verifiable": 15
+ },
+ "stratum_coverage": {
+  "images": 25,
+  "wilson95": [
+   0.2053,
+   0.394
+  ]
  },
  "per_image": [
   {
@@ -128,7 +162,7 @@
    "verified": false,
    "author": "",
    "pr": null,
-   "signed": false,
+   "signed": true,
    "size_mb": 34.2
   },
   {
@@ -328,7 +362,7 @@
    "verified": true,
    "author": "cnpg-bot",
    "pr": 11554,
-   "signed": false,
+   "signed": true,
    "size_mb": 38.5
   },
   {
@@ -338,7 +372,7 @@
    "verified": true,
    "author": "nabokihms",
    "pr": 4604,
-   "signed": false,
+   "signed": true,
    "size_mb": 48.1
   },
   {
@@ -448,7 +482,7 @@
    "verified": false,
    "author": "",
    "pr": null,
-   "signed": false,
+   "signed": true,
    "size_mb": 72.9
   },
   {
@@ -458,7 +492,7 @@
    "verified": false,
    "author": "",
    "pr": null,
-   "signed": false,
+   "signed": true,
    "size_mb": 98.8
   },
   {
@@ -578,7 +612,7 @@
    "verified": false,
    "author": "",
    "pr": null,
-   "signed": false,
+   "signed": true,
    "size_mb": 215.1
   },
   {
@@ -698,7 +732,7 @@
    "verified": false,
    "author": "",
    "pr": null,
-   "signed": false,
+   "signed": true,
    "size_mb": 22.6
   },
   {
@@ -931,5 +965,11 @@
    "signed": false,
    "size_mb": 7.6
   }
- ]
+ ],
+ "provenance": {
+  "source_run": null,
+  "commit": "2b1f99d8c577c6b3d5a0ae09019ef66a730dd7a7",
+  "code_modified": false,
+  "dataset_manifest_sha256": "00a2da526785ac42b7dcf89c325ec595767a40e20417b3050b71d1b7397a61cf"
+ }
 }

@@ -1,8 +1,14 @@
 {
  "opa": "1.21.0",
- "python": 292,
- "rego": 292,
+ "python": 290,
+ "rego": 290,
  "only_python": 0,
  "only_rego": 0,
- "equivalent": true
+ "equivalent": true,
+ "provenance": {
+  "source_run": null,
+  "commit": "2b1f99d8c577c6b3d5a0ae09019ef66a730dd7a7",
+  "code_modified": false,
+  "dataset_manifest_sha256": "00a2da526785ac42b7dcf89c325ec595767a40e20417b3050b71d1b7397a61cf"
+ }
 }
