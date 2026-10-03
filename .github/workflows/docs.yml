@@ -19,6 +19,16 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e . "mkdocs-material>=9.5,<10" "mkdocs<2" "mkdocstrings[python]>=0.26"
+      - name: static consoles were rebuilt for this version
+        run: |
+          python - <<'EOF'
+          import json, stratum
+          for f in ("docs/demo/api/summary.json", "docs/demo-live/api/summary.json"):
+              v = json.load(open(f))["version"]
+              assert v == stratum.__version__, (f"{f} is from {v}, the package is {stratum.__version__}: run "
+                                                "scripts/build_static_demo.py --source real|live --out docs/demo|docs/demo-live")
+          print("consoles at", stratum.__version__)
+          EOF
       - run: mkdocs build --strict
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with: {node-version: "22"}

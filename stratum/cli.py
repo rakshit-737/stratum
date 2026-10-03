@@ -236,7 +236,8 @@ def cmd_serve(a) -> int:  # pragma: no cover - blocking server
         import uvicorn
     except ImportError:
         print('stratum: the API needs the [api] extra: pip install -e ".[api]" in a checkout, or '
-              '"<release wheel>[api]" (the PyPI name "stratum" is an unrelated project)', file=sys.stderr)
+              'pip install "stratum_cnapp-<version>-py3-none-any.whl[api]" from a GitHub release '
+              '(do not pip install "stratum" from PyPI: that name is an unrelated project)', file=sys.stderr)
         return 2
     os.environ["STRATUM_SOURCE"] = a.source
     uvicorn.run("stratum.api:app", host=a.host, port=a.port)

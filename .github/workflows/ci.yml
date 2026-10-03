@@ -54,11 +54,21 @@ jobs:
         run: |
           python -m venv /tmp/v && /tmp/v/bin/pip install dist/*.whl
           cd /tmp && /tmp/v/bin/stratum --help && /tmp/v/bin/stratum demo > /dev/null
+          /tmp/v/bin/stratum --version | grep -q "^stratum [0-9]"
           /tmp/v/bin/stratum gatekeeper --out /tmp/g.yaml && grep -q ConstraintTemplate /tmp/g.yaml
       - name: dependency audit
         run: |
           /tmp/v/bin/python -m pip install -U pip >/dev/null && /tmp/v/bin/pip install pip-audit "$(ls dist/*.whl)[api,bench]" >/dev/null
           /tmp/v/bin/pip-audit --progress-spinner off
+      - name: packaged live replay (serve --source live) works outside the checkout
+        run: |
+          cd /tmp && STRATUM_SOURCE=live /tmp/v/bin/python - <<'EOF'
+          from fastapi.testclient import TestClient
+          from stratum.api import app
+          s = TestClient(app).get("/api/summary").json()
+          assert s["incidents"] > 0 and s["replay"]["run_id"], s
+          print(s["replay"])
+          EOF
   docker:
     runs-on: ubuntu-24.04
     steps:
@@ -72,3 +82,7 @@ jobs:
           for i in $(seq 30); do curl -fsS http://127.0.0.1:8000/api/summary && break; sleep 1; done
           curl -fsS http://127.0.0.1:8000/api/summary | grep -q workloads
           docker rm -f stratum-smoke
+          docker run -d --name stratum-live -e STRATUM_SOURCE=live -p 127.0.0.1:8001:8000 stratum:ci
+          for i in $(seq 30); do curl -fsS http://127.0.0.1:8001/api/summary >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:8001/api/summary | grep -q '"replay"'
+          docker rm -f stratum-live
