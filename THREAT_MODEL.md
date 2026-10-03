@@ -30,7 +30,8 @@ STRATUM runs offline on a downloaded real-data corpus or on the synthetic scenar
 
 | Threat | Impact | Mitigation (current / planned) |
 | --- | --- | --- |
-| Forged OCI labels (fake source/revision) | Wrong root-cause commit | The commit must exist in the named repo (GitHub API). Planned: verify SLSA attestations and cosign signatures cryptographically. |
+| Forged OCI labels (fake source/revision) | Wrong root-cause commit | Third-party images: the commit must exist in the named repo (GitHub API), which a copied label still passes. Live pipeline: the commit is read only from the verified Fulcio certificate of the exact digest, and the `forged` control (right label, unsigned) is checked to reach no commit in every live run. Planned: verify SLSA attestations and signatures of third-party images cryptographically. |
+| Injection through user-supplied names | Extra YAML documents in a generated NetworkPolicy | Namespaces must be RFC 1123 labels (CLI exit 2, API 422); the policy is serialised with `yaml.safe_dump`. |
 | Tampered downloads | Poisoned corpus | SHA-256 pins in `scripts/checksums.json`; upstream checksum files for tools |
 | Attacker evades the rules (renamed binary, internal pivot) | Missed detection | Novelty scoring as a second layer; documented gap. ADFA-LD shows unsupervised models alone are weak (`results/adfa.md`). |
 | Baseline poisoning | Novelty model learns the attack as normal | Baseline only from a trusted window; drift checks planned |
