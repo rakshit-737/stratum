@@ -55,15 +55,36 @@ def test_live_check_end_to_end(tmp_path):
     assert not r["passed"]
 
 
-FIX = ROOT / "tests/fixtures/live"
+FIX = ROOT / "stratum/data/live"
 LIVE_DIG = "sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1"
 LIVE_SHA = "6dd4b9b30f2404a974b0198a021ced3963a55516"
+LIVE_RUN = "36319470255"
 
 
 def test_cosign_certificate_provenance():
     (s,) = parse_cosign_verify(FIX / "cosign-verify.json")
-    assert (s.digest, s.commit, s.run_id, s.source_repo) == (LIVE_DIG, LIVE_SHA, "36319470255", "rakshit-737/stratum")
-    assert s.run_url.endswith("/actions/runs/36319470255/attempts/1")
+    assert (s.digest, s.commit, s.run_id, s.source_repo) == (LIVE_DIG, LIVE_SHA, LIVE_RUN, "rakshit-737/stratum")
+    assert s.run_url.endswith(f"/actions/runs/{LIVE_RUN}/attempts/1") and s.run_attempt == "1"
+    # the certificate itself: SHA-256 of the DER, serial number and the Rekor entry
+    assert len(s.cert_sha256) == 64 and s.cert_serial and int(s.cert_serial, 16) > 0
+    assert isinstance(s.rekor_log_index, int) and s.rekor_log_index > 0
+    assert s.certificate()["cert_sha256"] == s.cert_sha256
+
+
+def test_check_records_certificate_and_sink():
+    sigs = parse_cosign_verify(FIX / "cosign-verify.json")
+    r = check(_replay(sigs), namespace="stratum-live", workload="web", image_digest=LIVE_DIG, commit=LIVE_SHA,
+              signatures=sigs)
+    (c,) = r["certificates_on_target"]
+    assert c["cert_sha256"] == sigs[0].cert_sha256 and c["run_id"] == LIVE_RUN
+    assert r["sink_incidents"] == 0
+
+
+def test_packaged_replay_matches_its_source_record():
+    from stratum.live import replay_dataset, replay_info
+    info = replay_info()
+    assert info["run_id"] == LIVE_RUN and info["commit"] == LIVE_SHA
+    assert replay_dataset().events
 
 
 def _replay(sigs):
@@ -93,18 +114,51 @@ def test_registry_refuses_non_https_token_realm():
             Registry()._token(f'Bearer realm="{realm}",service="x",scope="y"')
 
 
-def test_aggregate_counts_runs():
-    from stratum.live import aggregate, aggregate_markdown
+def _run(cert="c1", digest="sha256:d1", **kw):
     r = {"incidents_on_target": 4, "traced_to_commit": 4, "incidents_other_pods_in_namespace": 1,
-         "rules_on_target": ["R-SHELL", "R-SA-TOKEN"], "passed": False, "example_chain": ["pod:x"],
-         "drift": {"incidents": 1, "traced_to_any_commit": 0, "failed_controls": ["ZT-PROV-01"]},
+         "rules_on_target": ["R-SHELL", "R-SA-TOKEN"], "passed": True, "example_chain": ["pod:x", "commit:abc1234"],
+         "drift": {"workload": "drift", "incidents": 1, "traced_to_any_commit": 0, "failed_controls": ["ZT-PROV-01"]},
          "prevention": {"observed": {"before": True, "after": False, "in_cluster_after": True}},
-         "gatekeeper": {"privileged_denied": True}, "cosign_verified": True}
-    a = aggregate([r, r])
+         "gatekeeper": {"privileged_denied": True}, "cosign_verified": True, "builds_on_target": ["42"],
+         "target_image_digests": [digest],
+         "certificates_on_target": [{"digest": digest, "cert_sha256": cert, "cert_serial": cert.upper(),
+                                     "rekor_log_index": 7, "run_id": "42", "run_attempt": "1"}]}
+    r.update(kw)
+    return r
+
+
+def test_aggregate_shared_certificate_gets_no_trace_ci():
+    from stratum.live import aggregate, aggregate_markdown
+    a = aggregate([_run(), _run()])
     assert a["runs"] == 2 and a["traced_to_commit"] == 8 and a["sink_detections"] == 0
-    assert a["runs_fully_traced"] == 2 and "traced_ci95" not in a and a["traced_runs_ci95"][1] == 1.0
+    assert a["runs_fully_traced"] == 2 and not a["per_run_signed"]
+    assert a["traced_runs_ci95"] is None and a["passed_ci95"] is None and a["cosign_ci95"] is None
+    assert a["distinct_certificates"] == ["c1"] and a["distinct_digests"] == ["sha256:d1"]
+    md = aggregate_markdown(a)
+    assert "8/8" in md and "- (shared certificate)" in md and "docs and aggregation only" not in md
     assert a["rule_capture"]["R-NETTOOL"]["runs"] == 0 and a["rule_capture"]["R-SHELL"]["runs"] == 2
-    assert "8/8" in aggregate_markdown(a)
+
+
+def test_aggregate_per_run_certificates_get_trace_ci():
+    from stratum.live import aggregate, aggregate_markdown
+    a = aggregate([_run("c1", "sha256:d1"), _run("c2", "sha256:d2"), _run("c3", "sha256:d3")],
+                  "https://example/runs/42")
+    assert a["per_run_signed"] and a["traced_runs_ci95"][1] == 1.0 and a["passed_ci95"]
+    assert a["distinct_certificate_run_ids"] == ["42"] and len(a["distinct_certificates"]) == 3
+    md = aggregate_markdown(a)
+    assert "3 distinct certificates over 3 distinct image digests" in md and "1 workflow run" in md
+    assert "Run: https://example/runs/42" in md and md.count("| 4/4 |") == 3
+
+
+def test_sink_count_excludes_both_negative_controls():
+    from stratum.live import aggregate, markdown, sink_incidents
+    forged = {"workload": "forged", "incidents": 1, "traced_to_any_commit": 0, "failed_controls": ["ZT-PROV-01"]}
+    old = _run(incidents_other_pods_in_namespace=2, forged=forged)   # pre-sink_incidents result file
+    assert sink_incidents(old) == 0
+    assert sink_incidents(_run(sink_incidents=3)) == 3
+    assert aggregate([old] * 5)["sink_detections"] == 0
+    r = dict(old, events_total=1, events_in_namespace=1, event_kinds={}, failures=[], gatekeeper={})
+    assert "| Detections on the benign sink pod | 0 |" in markdown(r)
 
 
 def test_ablation_arms_on_real_replay():

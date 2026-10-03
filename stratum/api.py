@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from . import __version__
 from .dataset import Dataset
 from .incident import analyze, replay_with_policy
+from .live import replay_info
 from .models import to_dict
 from .neo4j import to_cypher
 from .policy import CONTROLS, SEV, valid_namespace
@@ -47,12 +48,9 @@ def _load(src: str) -> Dataset:
     if src == "real":
         from .realdata import real_dataset
         return real_dataset()
-    if src == "live":   # replay of a committed live kind + Tetragon run (repo checkout only)
-        from .live import build_dataset
-        from .sigstore import parse_cosign_verify
-        fx = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "live"
-        return build_dataset([fx / "workloads.yaml"], fx / "pods.json", [fx / "tetragon-events.json"],
-                             signatures=parse_cosign_verify(fx / "cosign-verify.json"))
+    if src == "live":   # packaged replay of one live kind + Tetragon CI job (stratum/data/live)
+        from .live import replay_dataset
+        return replay_dataset()
     return Dataset.load(src)
 
 
@@ -83,6 +81,7 @@ def summary() -> dict:
         "incidents": len(a.incidents),
         "findings_by_control": dict(Counter(f.control_id for f in a.findings).most_common()),
         "pss_levels": dict(Counter(w.pss_level or "n/a" for w in ds.workloads)),
+        **({"replay": replay_info()} if _source() == "live" else {}),
     }
 
 

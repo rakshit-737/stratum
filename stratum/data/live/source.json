@@ -1,0 +1,7 @@
+{
+ "run_id": "36319470255",
+ "run_url": "https://github.com/rakshit-737/stratum/actions/runs/36319470255",
+ "artifact": "live-evidence",
+ "commit": "6dd4b9b30f2404a974b0198a021ced3963a55516",
+ "note": "Tetragon events of the demo namespace, pod list, applied manifests and cosign verify output of one live.yml job"
+}

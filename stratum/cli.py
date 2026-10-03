@@ -210,7 +210,8 @@ def cmd_live_check(a) -> int:
     cos = None if a.cosign_ok is None else a.cosign_ok == "true"
     r = check(ds, namespace=a.namespace, workload=a.workload, image_digest=a.digest, commit=a.expect_commit,
               gatekeeper=gk, cosign_ok=cos, drift=a.drift, forged=a.forged, expect_build=a.expect_build,
-              prevention=json.loads(Path(a.prevention).read_text(encoding="utf-8")) if a.prevention else None)
+              prevention=json.loads(Path(a.prevention).read_text(encoding="utf-8")) if a.prevention else None,
+              signatures=sigs, sink=a.sink or None)
     if a.labels:
         labels = json.loads(Path(a.labels).read_text(encoding="utf-8"))
         r["ablation"] = ablation(a.manifests, a.pods, a.events, signatures=sigs, labels=labels,
@@ -306,12 +307,18 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--forged", help="unsigned workload whose image carries the right revision label (negative control)")
     s.add_argument("--expect-build", help="CI run id the certificate must name (e.g. github.run_id)")
     s.add_argument("--labels", help="JSON {digest: OCI revision label} for the A0-A4 ablation")
-    s.add_argument("--author", default=""); s.add_argument("--namespace", default="stratum-live")
-    s.add_argument("--workload", default="web"); s.add_argument("--gatekeeper")
-    s.add_argument("--cosign-ok", choices=["true", "false"]); s.add_argument("--out", default="live-result.json")
+    s.add_argument("--sink", default="sink", help="benign workload whose detections count as false positives")
+    s.add_argument("--author", default="", help="commit author recorded on the commit node")
+    s.add_argument("--namespace", default="stratum-live", help="demo namespace (default stratum-live)")
+    s.add_argument("--workload", default="web", help="workload whose incidents must trace to the commit")
+    s.add_argument("--gatekeeper", help="JSON {privileged_denied, demo_admitted} observed in the cluster")
+    s.add_argument("--cosign-ok", choices=["true", "false"], help="outcome of the `cosign verify` step")
+    s.add_argument("--out", default="live-result.json", help="result JSON (default live-result.json)")
     s.set_defaults(fn=cmd_live_check)
     s = sub.add_parser("serve", help="API + incident console")
-    s.add_argument("--source", default="synthetic", help="synthetic | real | path to dataset JSON")
+    s.add_argument("--source", default="synthetic",
+                   help="synthetic | real ($STRATUM_DATA corpus) | live (packaged replay of a live CI run) | "
+                        "path to a dataset JSON")
     s.add_argument("--host", default="127.0.0.1", help="bind address (default localhost only)")
     s.add_argument("--port", type=int, default=8000, help="port"); s.set_defaults(fn=cmd_serve)
     a = p.parse_args(argv)

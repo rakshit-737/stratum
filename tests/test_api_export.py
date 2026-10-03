@@ -61,3 +61,11 @@ def test_api_input_validation():
         assert client.post("/api/prevent/" + quote(bad, safe="")).status_code == 422, bad
     assert client.post("/api/prevent/" + "a" * 5000).status_code == 422
 
+
+def test_api_live_source_names_its_run(monkeypatch):
+    monkeypatch.setenv("STRATUM_SOURCE", "live")
+    s = client.get("/api/summary").json()
+    assert s["source"] == "live" and s["incidents"] > 0
+    assert s["replay"]["run_id"] and s["replay"]["commit"]
+    assert all(i["root_commit"] == s["replay"]["commit"] for i in client.get("/api/incidents").json()
+               if i["detection"]["event"]["pod"].startswith("web-"))

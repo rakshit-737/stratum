@@ -4,7 +4,7 @@ __pycache__/
 scenario.json
 *.egg-info/
 # real-data corpus lives outside git ($STRATUM_DATA, default ./data)
-data/
+/data/
 cluster.json
 *.part
 .ruff_cache/

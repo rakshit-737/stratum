@@ -40,7 +40,7 @@ stratum = "stratum.cli:main"
 packages.find = { include = ["stratum*"] }
 
 [tool.setuptools.package-data]
-stratum = ["web/*.html", "policies/*.rego", "policies/pss/*.rego"]
+stratum = ["web/*.html", "policies/*.rego", "policies/pss/*.rego", "data/live/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
