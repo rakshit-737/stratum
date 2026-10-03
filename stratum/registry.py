@@ -7,8 +7,10 @@ pulling any layers*:
 * the compressed image size,
 * the OCI config labels ``org.opencontainers.image.source`` / ``.revision``
   that link an image to the commit it was built from, and
-* whether a cosign signature (``sha256-<digest>.sig``) or attestation
-  (``.att``) artefact is published next to it.
+* whether a cosign signature or attestation is published next to it: the legacy cosign tags
+  ``sha256-<digest>.sig`` / ``.att``, or (cosign v3, ``--new-bundle-format``) a Sigstore bundle attached
+  through the OCI 1.1 referrers API or its ``sha256-<digest>`` fallback-tag index. BuildKit's in-index
+  attestation manifests (unsigned SLSA provenance / SBOM) are recorded separately.
 
 Only standard Distribution API GETs/HEADs are issued; no credentials are used.
 """
@@ -72,9 +74,49 @@ class Resolved:
     size: int = 0                    # compressed bytes of all layers
     labels: dict = field(default_factory=dict)
     created: str = ""
-    signed: bool = False             # cosign signature artefact published
-    attested: bool = False           # cosign attestation artefact published
+    signed: bool = False             # signature artefact published (cosign tag or Sigstore bundle)
+    attested: bool = False           # attestation artefact published (cosign tag, bundle or in-toto)
+    signature_format: str = ""       # "cosign-tag" (.sig) or "sigstore-bundle" (OCI referrer)
+    attestation_format: str = ""     # "cosign-tag" (.att), "sigstore-bundle" or "in-toto" (OCI referrer)
+    buildkit_attestation: bool = False  # unsigned attestation manifest inside the image index
     error: str = ""
+
+
+SIGSTORE_BUNDLE = "application/vnd.dev.sigstore.bundle"
+COSIGN_SIG_ARTIFACT = "application/vnd.dev.cosign.artifact.sig"
+COSIGN_SIGN_PREDICATE = "https://sigstore.dev/cosign/sign/v1"   # cosign v3 `sign`: a DSSE-wrapped signature
+INTOTO_TYPES = ("application/vnd.in-toto", "application/vnd.dsse.envelope")
+EMPTY = ("", "application/vnd.oci.empty.v1+json")
+
+
+def classify_referrers(index: dict, fetch=None, max_fetch: int = 10) -> tuple[str, str]:
+    """(signature_format, attestation_format) from an OCI referrers / fallback-tag index.
+
+    A Sigstore bundle is a signature when it carries no predicate type or cosign's own sign predicate
+    (``https://sigstore.dev/cosign/sign/v1``, what cosign v3 ``sign`` writes), and an attestation for any
+    other predicate (SLSA provenance, SBOM, ...). ``application/vnd.dev.cosign.artifact.sig*`` is cosign's
+    OCI 1.1 signature type. When an index entry has no artifact type (some registries and the fallback
+    tag schema leave it empty), ``fetch(digest)`` reads the referrer manifest itself.
+    """
+    sig = att = ""
+    for m in index.get("manifests") or []:
+        t, ann = (m.get("artifactType") or "").lower(), m.get("annotations") or {}
+        if t in EMPTY and fetch and max_fetch > 0:
+            max_fetch -= 1
+            body = fetch(m.get("digest", "")) or {}
+            t = (body.get("artifactType") or (body.get("config") or {}).get("artifactType") or "").lower()
+            ann = {**ann, **(body.get("annotations") or {})}
+        pred = next((v for k, v in ann.items() if k.lower().endswith("predicatetype")), "")
+        if t.startswith(SIGSTORE_BUNDLE):
+            if pred and pred != COSIGN_SIGN_PREDICATE:
+                att = att or "sigstore-bundle"
+            else:
+                sig = sig or "sigstore-bundle"
+        elif t.startswith(COSIGN_SIG_ARTIFACT):
+            sig = sig or "cosign-oci11"
+        elif t.startswith(INTOTO_TYPES):
+            att = att or "in-toto"
+    return sig, att
 
 
 class Registry:
@@ -143,12 +185,59 @@ class Registry:
         except urllib.error.HTTPError:
             return False
 
+    def referrers(self, ref: ImageRef, digest: str) -> dict:
+        """OCI 1.1 referrers of ``digest``: the ``sha256-<hex>`` fallback-tag index, else the referrers API.
+
+        The fallback tag is probed with HEAD first, so an image without referrers costs no manifest pull.
+        """
+        tag = "sha256-" + digest.split(":", 1)[1]
+        if self.exists(ref, tag):
+            try:
+                doc, _ = self._json(ref, f"manifests/{tag}")
+                if doc.get("manifests"):
+                    return doc
+            except (urllib.error.URLError, OSError, ValueError):
+                pass
+        try:
+            doc, _ = self._json(ref, f"referrers/{digest}", accept="application/vnd.oci.image.index.v1+json")
+            return doc if doc.get("manifests") else {}
+        except (urllib.error.URLError, OSError, ValueError):   # 404: the registry has no referrers API
+            return {}
+
+    def signature_artifacts(self, ref: ImageRef, out: Resolved, index: dict | None = None) -> Resolved:
+        """Fill ``out.signed`` / ``out.attested`` (and their formats) for ``out.index_digest``.
+
+        Legacy cosign tags first, then Sigstore bundles and in-toto attestations attached as OCI referrers.
+        ``index`` (the image index, if the tag pointed at one) is scanned for BuildKit attestation manifests.
+        """
+        h = out.index_digest.split(":", 1)[1]
+        if self.exists(ref, f"sha256-{h}.sig"):
+            out.signed, out.signature_format = True, "cosign-tag"
+        if self.exists(ref, f"sha256-{h}.att"):
+            out.attested, out.attestation_format = True, "cosign-tag"
+        if not (out.signed and out.attested):
+            def fetch(digest: str) -> dict:
+                try:
+                    return self._json(ref, f"manifests/{digest}", accept="application/vnd.oci.image.manifest.v1+json")[0]
+                except (urllib.error.URLError, OSError, ValueError):
+                    return {}
+            sig, att = classify_referrers(self.referrers(ref, out.index_digest), fetch)
+            if sig and not out.signed:
+                out.signed, out.signature_format = True, sig
+            if att and not out.attested:
+                out.attested, out.attestation_format = True, att
+        if index is not None:
+            out.buildkit_attestation = any((m.get("annotations") or {}).get("vnd.docker.reference.type")
+                                           == "attestation-manifest" for m in index.get("manifests") or [])
+        return out
+
     def resolve(self, image: str, *, arch: str = "amd64", check_signatures: bool = True) -> Resolved:
         ref = parse_ref(image)
         out = Resolved(image)
         try:
             doc, top = self._json(ref, f"manifests/{ref.digest or ref.tag}")
             out.index_digest = ref.digest or top
+            index = doc if "manifests" in doc else None
             if "manifests" in doc:  # index / manifest list -> pick linux/<arch>
                 cand = [m for m in doc["manifests"]
                         if (m.get("platform") or {}).get("os") == "linux"
@@ -168,9 +257,7 @@ class Registry:
                 out.created = cfg.get("created", "")
             out.labels = {**(doc.get("annotations") or {}), **out.labels}
             if check_signatures and out.index_digest.startswith("sha256:"):
-                h = out.index_digest.split(":", 1)[1]
-                out.signed = self.exists(ref, f"sha256-{h}.sig")
-                out.attested = self.exists(ref, f"sha256-{h}.att")
+                self.signature_artifacts(ref, out, index)
         except (urllib.error.URLError, OSError, ValueError, KeyError) as e:
             out.error = f"{type(e).__name__}: {e}"[:200]
         return out
