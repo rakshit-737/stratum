@@ -1,0 +1,348 @@
+{
+ "runs": 5,
+ "seeds": [
+  1,
+  2,
+  3,
+  4,
+  5
+ ],
+ "traces": {
+  "run-1": {
+   "normal": 120,
+   "attack": 40
+  },
+  "run-2": {
+   "normal": 120,
+   "attack": 40
+  },
+  "run-3": {
+   "normal": 120,
+   "attack": 40
+  },
+  "run-4": {
+   "normal": 120,
+   "attack": 40
+  },
+  "run-5": {
+   "normal": 120,
+   "attack": 40
+  }
+ },
+ "distinct_normal_sequences": 14,
+ "attack_actions": {
+  "0": "shell + recon (id, uname, read /etc/passwd)",
+  "1": "cat the dummy service-account token",
+  "2": "nc to the in-cluster sink",
+  "3": "fetch a dummy script and chmod +x it",
+  "4": "find token files + ps"
+ },
+ "protocol": "leave-one-run-out; fit on normal traces of the other runs",
+ "detectors": {
+  "STIDE n=6 (baseline)": {
+   "folds": [
+    {
+     "run": "run-1",
+     "auc": 0.9,
+     "tpr@0.01": 0.802
+    },
+    {
+     "run": "run-2",
+     "auc": 0.8991666666666667,
+     "tpr@0.01": 0.8003361344537816
+    },
+    {
+     "run": "run-3",
+     "auc": 0.9,
+     "tpr@0.01": 0.802
+    },
+    {
+     "run": "run-4",
+     "auc": 0.9,
+     "tpr@0.01": 0.802
+    },
+    {
+     "run": "run-5",
+     "auc": 0.9,
+     "tpr@0.01": 0.802
+    }
+   ],
+   "auc_mean": 0.8998333333333333,
+   "auc_min": 0.8991666666666667,
+   "auc_max": 0.9,
+   "tpr@0.01_mean": 0.8016672268907563,
+   "tpr@0.01_min": 0.8003361344537816,
+   "tpr@0.01_max": 0.802,
+   "auc_cluster_ci95": [
+    0.8196,
+    0.96
+   ],
+   "tpr@0.01_cluster_ci95": [
+    0.6429,
+    0.9208
+   ],
+   "clusters": {
+    "normal": 59,
+    "attack": 25
+   },
+   "per_action": {
+    "0": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "1": {
+     "auc_mean": 0.4992,
+     "separated_in_every_fold": false
+    },
+    "2": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "3": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "4": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    }
+   },
+   "actions_separated": 4,
+   "actions": 5,
+   "actions_separated_wilson95": [
+    0.3755,
+    0.9638
+   ]
+  },
+  "STIDE n=3": {
+   "folds": [
+    {
+     "run": "run-1",
+     "auc": 0.9,
+     "tpr@0.01": 0.802
+    },
+    {
+     "run": "run-2",
+     "auc": 0.8991666666666667,
+     "tpr@0.01": 0.8003361344537816
+    },
+    {
+     "run": "run-3",
+     "auc": 0.9,
+     "tpr@0.01": 0.802
+    },
+    {
+     "run": "run-4",
+     "auc": 0.9,
+     "tpr@0.01": 0.802
+    },
+    {
+     "run": "run-5",
+     "auc": 0.9,
+     "tpr@0.01": 0.802
+    }
+   ],
+   "auc_mean": 0.8998333333333333,
+   "auc_min": 0.8991666666666667,
+   "auc_max": 0.9,
+   "tpr@0.01_mean": 0.8016672268907563,
+   "tpr@0.01_min": 0.8003361344537816,
+   "tpr@0.01_max": 0.802,
+   "auc_cluster_ci95": [
+    0.8196,
+    0.96
+   ],
+   "tpr@0.01_cluster_ci95": [
+    0.6429,
+    0.9208
+   ],
+   "clusters": {
+    "normal": 59,
+    "attack": 25
+   },
+   "per_action": {
+    "0": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "1": {
+     "auc_mean": 0.4992,
+     "separated_in_every_fold": false
+    },
+    "2": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "3": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "4": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    }
+   },
+   "actions_separated": 4,
+   "actions": 5,
+   "actions_separated_wilson95": [
+    0.3755,
+    0.9638
+   ]
+  },
+  "STRATUM n-gram novelty n=3": {
+   "folds": [
+    {
+     "run": "run-1",
+     "auc": 0.845,
+     "tpr@0.01": 0.8
+    },
+    {
+     "run": "run-2",
+     "auc": 0.8466666666666667,
+     "tpr@0.01": 0.8
+    },
+    {
+     "run": "run-3",
+     "auc": 0.8441666666666666,
+     "tpr@0.01": 0.8
+    },
+    {
+     "run": "run-4",
+     "auc": 0.85,
+     "tpr@0.01": 0.8
+    },
+    {
+     "run": "run-5",
+     "auc": 0.8525,
+     "tpr@0.01": 0.8
+    }
+   ],
+   "auc_mean": 0.8476666666666667,
+   "auc_min": 0.8441666666666666,
+   "auc_max": 0.8525,
+   "tpr@0.01_mean": 0.8,
+   "tpr@0.01_min": 0.8,
+   "tpr@0.01_max": 0.8,
+   "auc_cluster_ci95": [
+    0.7065,
+    0.9455
+   ],
+   "tpr@0.01_cluster_ci95": [
+    0.64,
+    0.92
+   ],
+   "clusters": {
+    "normal": 59,
+    "attack": 25
+   },
+   "per_action": {
+    "0": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "1": {
+     "auc_mean": 0.2383,
+     "separated_in_every_fold": false
+    },
+    "2": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "3": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "4": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    }
+   },
+   "actions_separated": 4,
+   "actions": 5,
+   "actions_separated_wilson95": [
+    0.3755,
+    0.9638
+   ]
+  },
+  "STRATUM n-gram novelty n=5": {
+   "folds": [
+    {
+     "run": "run-1",
+     "auc": 0.82,
+     "tpr@0.01": 0.8
+    },
+    {
+     "run": "run-2",
+     "auc": 0.8466666666666667,
+     "tpr@0.01": 0.8
+    },
+    {
+     "run": "run-3",
+     "auc": 0.8208333333333333,
+     "tpr@0.01": 0.8
+    },
+    {
+     "run": "run-4",
+     "auc": 0.82,
+     "tpr@0.01": 0.8
+    },
+    {
+     "run": "run-5",
+     "auc": 0.8208333333333333,
+     "tpr@0.01": 0.8
+    }
+   ],
+   "auc_mean": 0.8256666666666665,
+   "auc_min": 0.82,
+   "auc_max": 0.8466666666666667,
+   "tpr@0.01_mean": 0.8,
+   "tpr@0.01_min": 0.8,
+   "tpr@0.01_max": 0.8,
+   "auc_cluster_ci95": [
+    0.6714,
+    0.938
+   ],
+   "tpr@0.01_cluster_ci95": [
+    0.64,
+    0.92
+   ],
+   "clusters": {
+    "normal": 59,
+    "attack": 25
+   },
+   "per_action": {
+    "0": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "1": {
+     "auc_mean": 0.1283,
+     "separated_in_every_fold": false
+    },
+    "2": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "3": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    },
+    "4": {
+     "auc_mean": 1.0,
+     "separated_in_every_fold": true
+    }
+   },
+   "actions_separated": 4,
+   "actions": 5,
+   "actions_separated_wilson95": [
+    0.3755,
+    0.9638
+   ]
+  }
+ },
+ "provenance": {
+  "source_run": "https://github.com/rakshit-737/stratum/actions/runs/37089906503",
+  "commit": "4795f5c98ecf3fd8b74f641d5a3269ab0b7723e7",
+  "traces_run": "https://github.com/rakshit-737/stratum/actions/runs/37089906503"
+ }
+}
