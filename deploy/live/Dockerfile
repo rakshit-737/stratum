@@ -1,5 +1,5 @@
 # Demo workload image for the live CI job (.github/workflows/live.yml). busybox = shell + nc + httpd.
-FROM busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+FROM busybox:1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
 ARG REVISION=unknown
 # per-run nonce: every live run gets its own digest, so each run reads its own Fulcio certificate
 ARG NONCE=none
