@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 # distribution name; the import package and CLI are `stratum` (PyPI's "stratum" is an unrelated project)
 name = "stratum-cnapp"
-version = "1.1.2"
+version = "1.1.3"
 description = "Open mini-CNAPP: code-to-runtime lifecycle graph, Zero-Trust policy (Python + Rego), trace-to-commit"
 readme = "README.md"
 license = "MIT"
@@ -32,7 +32,7 @@ neo4j = ["neo4j>=5"]
 dev = ["pytest>=8", "ruff==0.8.4", "fastapi>=0.110", "httpx>=0.27"]
 
 [project.urls]
-Homepage = "https://github.com/rakshit-737/stratum"
+Homepage = "https://github.com/rakshit-737/stratum-cloud-security"
 
 [project.scripts]
 stratum = "stratum.cli:main"

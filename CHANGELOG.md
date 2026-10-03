@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-10-03
+
+### Changed
+- The GitHub repository was renamed to `rakshit-737/stratum-cloud-security`. Repo, docs-site (https://rakshit-737.github.io/stratum-cloud-security/), badge, CITATION, mkdocs, pyproject and Docker label links now use the new name; release images publish to `ghcr.io/rakshit-737/stratum-cloud-security`.
+- Note: entries below are historical and keep the old names (`rakshit-737/stratum`, `ghcr.io/rakshit-737/stratum`); GitHub redirects the old repo URL, the old Pages URL no longer resolves. Recorded live-run evidence (run URLs, `stratum-live-demo` image digests) is left as captured.
+
 ## [1.1.2] - 2026-10-03
 
 ### Fixed
