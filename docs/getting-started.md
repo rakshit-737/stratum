@@ -44,7 +44,7 @@ The scripts pin versions and verify SHA-256 against `scripts/checksums.json` or 
 
 ```bash
 docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # synthetic source
-docker run --rm -p 127.0.0.1:8000:8000 -e STRATUM_SOURCE=live ghcr.io/rakshit-737/stratum:latest  # live CI replay
+docker build -t stratum . && docker run --rm -p 127.0.0.1:8000:8000 -e STRATUM_SOURCE=live stratum  # live CI replay (main)
 NEO4J_PASSWORD='choose-one' docker compose up                  # API + Neo4j 5 (compose refuses to start without it)
 ```
 

@@ -37,7 +37,7 @@ def main() -> None:
         "# Getting started\n\n## Install and first run\n" + sec("Quickstart") + "## Reproducing the results\n"
         + sec("Reproducing the results") + "## Docker\n\n```bash\n"
         "docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # synthetic source\n"
-        "docker run --rm -p 127.0.0.1:8000:8000 -e STRATUM_SOURCE=live ghcr.io/rakshit-737/stratum:latest  # live CI replay\n"
+        "docker build -t stratum . && docker run --rm -p 127.0.0.1:8000:8000 -e STRATUM_SOURCE=live stratum  # live CI replay (main)\n"
         "NEO4J_PASSWORD='choose-one' docker compose up                  # API + Neo4j 5 (compose refuses to start without it)\n"
         "```\n\nThe image is built for linux/amd64 only; on ARM hosts (Apple silicon, Graviton) add "
         "`--platform linux/amd64`. `NEO4J_PASSWORD` can also go in a `.env` file next to `docker-compose.yml`.\n"),

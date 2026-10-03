@@ -37,7 +37,7 @@ Documentation: **https://rakshit-737.github.io/stratum/**. Static consoles: [liv
 docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # console on http://127.0.0.1:8000
 ```
 
-The image is linux/amd64 only: on Apple silicon or other ARM hosts add `--platform linux/amd64`. Add `-e STRATUM_SOURCE=live` to open the replay of a live CI job.
+The image is linux/amd64 only: on Apple silicon or other ARM hosts add `--platform linux/amd64`. To open the replay of a live CI job, build the image from the current main (`docker build -t stratum .`) and run it with `-e STRATUM_SOURCE=live`; the 1.1.0 image does not ship the replay yet.
 
 Or, with Python 3.10+ and only PyYAML as a dependency:
 
