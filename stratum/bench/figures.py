@@ -31,7 +31,7 @@ def _style(ax):
 def render(results: dict, out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
     if "adfa" in results:
-        fig, ax = plt.subplots(figsize=(5.2, 4.2), dpi=130)
+        fig, ax = plt.subplots(figsize=(5.6, 5.4), dpi=130)
         for i, (name, d) in enumerate(results["adfa"]["detectors"].items()):
             xs, ys = zip(*d["_roc"])
             ax.plot(xs, ys, color=SERIES[i % len(SERIES)], lw=1.8, label=_roc_label(name, d))
@@ -39,10 +39,10 @@ def render(results: dict, out: Path) -> None:
         ax.set_xlabel("false-positive rate (normal traces)", color=INK)
         ax.set_ylabel("detection rate (attack traces)", color=INK)
         ax.set_title("ADFA-LD: syscall anomaly models", color=INK, fontsize=11, loc="left")
-        ax.legend(fontsize=7, frameon=False, loc="lower right")
+        ax.legend(fontsize=7, frameon=False, loc="upper left", bbox_to_anchor=(0.0, -0.14))
         _style(ax)
         fig.tight_layout()
-        fig.savefig(out / "adfa_roc.png")
+        fig.savefig(out / "adfa_roc.png", bbox_inches="tight")
         plt.close(fig)
     if "pss" in results:
         fig, ax = plt.subplots(figsize=(5.2, 3.2), dpi=130)
