@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-03
+
 ### Added
 - Live result from 5 per-run-signed jobs (run 37085766270): every job built its own image and read the commit from its own Fulcio certificate (5 certificates over 5 digests); 5/5 runs pass, 55/55 demo-pod incidents traced (run-level Wilson 95% CI 0.57-1.00). `drift` and `forged` controls 0/5 traced, ZT-PROV-01 named 5/5 each. A0-A4 ablation: label provenance (A2) and a repository join (A4) attribute the forged image to the commit in 5/5 runs, the digest-exact certificate join (A3) in 0/5.
 - Evidence files record each job's certificate (SHA-256 of the DER, serial, Rekor logIndex, run attempt); the aggregator reports certificates, digests and CI run ids separately and gives the trace-row CI only when every run has its own certificate.
