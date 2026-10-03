@@ -2,6 +2,8 @@
 
 ## Install and first run
 
+The Python distribution is named `stratum-cnapp` (the PyPI name `stratum` belongs to an unrelated project, so do not `pip install stratum`); the import package and the CLI are `stratum`. Install from a checkout or from the wheel attached to a GitHub release.
+
 ```bash
 pip install -e ".[dev,api,bench]"
 python -m stratum demo                  # synthetic 5-scenario walkthrough, no downloads
@@ -9,7 +11,7 @@ python -m pytest -q                     # runs on small committed fixtures; test
 python -m stratum serve                 # console on http://127.0.0.1:8000
 ```
 
-Check your own manifests:
+Check your own manifests (wildcards are expanded by STRATUM, so the commands also work in PowerShell):
 
 ```bash
 python -m stratum pss deploy/k8s/*.yaml --level restricted --strict        # PSS gate for CI (exit 1 here: 3 violations)
@@ -22,12 +24,14 @@ python -m stratum opa-check --data live.json                               # Reg
 python -m stratum gatekeeper --level restricted --out stratum-pss.yaml     # Gatekeeper ConstraintTemplate
 ```
 
+`live.yaml` is a full cluster dump and can contain secrets from pod environment variables: keep it out of version control (`live.yaml`, `live.json`, `stratum-pss.yaml`, `cluster.json` and `*.cypher` are in `.gitignore`) and delete it when done.
+
 ## Reproducing the results
 
 `make` targets are listed. On machines without `make`, run the command in the comment.
 
 ```bash
-export STRATUM_DATA=$PWD/data           # anywhere outside git; ~3 GB with the Trivy cache
+export STRATUM_DATA=$PWD/data           # anywhere outside git; about 2 GB with the Trivy cache
 make data        # python scripts/download_all.py   (tools, datasets, provenance, Trivy scans)
 make bench       # python -m stratum bench          (writes results/*.json|md, results/figures/*.png)
 make test        # python -m pytest -q              (realdata tests run automatically when data is present)
@@ -40,5 +44,8 @@ The scripts pin versions and verify SHA-256 against `scripts/checksums.json` or 
 
 ```bash
 docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # synthetic source
-docker compose up                                              # API + Neo4j 5
+docker run --rm -p 127.0.0.1:8000:8000 -e STRATUM_SOURCE=live ghcr.io/rakshit-737/stratum:latest  # live CI replay
+NEO4J_PASSWORD='choose-one' docker compose up                  # API + Neo4j 5 (compose refuses to start without it)
 ```
+
+The image is built for linux/amd64 only; on ARM hosts (Apple silicon, Graviton) add `--platform linux/amd64`. `NEO4J_PASSWORD` can also go in a `.env` file next to `docker-compose.yml`.

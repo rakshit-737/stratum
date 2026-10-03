@@ -11,7 +11,7 @@ The spec asks for Zero-Trust checks "as OPA policies evaluated against the graph
 
 - `stratum/policy.py` is the reference implementation. Every rule maps to a named control (`ZT-NET-01` ... `ZT-IMG-03`) with a severity and an external reference (NIST SP 800-207, CIS Kubernetes Benchmark, SLSA, CISA BOD 22-01).
 - `stratum/policies/stratum.rego` (Rego v1) implements the same rules over the same JSON document (`stratum export --format rego-input`).
-- `stratum opa-check` evaluates both engines and diffs the `(control, subject)` sets. CI runs it with OPA 1.21 on the synthetic scenario and on committed real-manifest fixtures. On the full real corpus both engines produce the same 292 findings.
+- `stratum opa-check` evaluates both engines and diffs the `(control, subject)` sets. CI runs it with OPA 1.21 on the synthetic scenario and on committed real-manifest fixtures. On the full real corpus both engines produce the same 290 findings (292 before the 1.1.x signature re-check; `results/opa.md`).
 
 ## Consequences
 

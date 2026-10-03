@@ -5,6 +5,8 @@ names the evidence it rests on. Hops that are only asserted, not checked against
 
 ![Live-cluster console: incidents traced to the CI run and commit](figures/console_live_incidents.png)
 
+*The console replaying job 1 of live run [37085766270](https://github.com/rakshit-737/stratum/actions/runs/37085766270) (commit 38cc4a3).*
+
 ```mermaid
 flowchart TB
   E["Tetragon process_exec: /bin/sh in pod web-..."] --> P["pod stratum-live/web-..."]
@@ -48,8 +50,35 @@ exact workflow identity. **The build and commit nodes are built only from that c
 `github.sha` is passed to `live-check` only as the expected value, so the check fails if the running image
 was built by a different commit, or not signed at all.
 
-*Negative control:* a digest-pinned upstream `busybox` workload (`drift`) runs the same command. It has no
-signature, so its incidents reach no commit and name `ZT-PROV-01` (image not from the trusted pipeline).
+Each live job builds and signs its own image (a per-job nonce makes the digest unique), and
+`--expect-build` requires the certificate to name this CI run, so a certificate from an earlier run cannot be
+reused. In the committed 5-job run the commit hop was read from 5 distinct certificates over 5 distinct digests
+([results/live.md](https://github.com/rakshit-737/stratum/blob/main/results/live.md)).
+
+*Negative controls,* both running the same shell command as the demo pod:
+
+- `drift`: the upstream, digest-pinned `busybox:1.36.1` image. No signature and no revision label, so its
+  incidents reach no commit and name `ZT-PROV-01` (image not from the trusted pipeline).
+- `forged`: built in the same job from the same Dockerfile, **with the right `org.opencontainers.image.revision`
+  label**, pushed to the same repository, never signed. It is the look-alike that label-based provenance cannot
+  tell apart from the real image.
+
+### What each join edge adds (A0-A4)
+
+On the same run's evidence, `stratum.live.ablation` re-joins the incidents with less, or looser, provenance:
+
+| Arm | Evidence | Demo pod to workload | Demo pod to the right commit | `forged` wrongly traced | Gap named on the controls |
+|---|---|:-:|:-:|:-:|:-:|
+| A0 | runtime events only | no | no | no | no |
+| A1 | + cluster state (manifests, pods) | yes | no | no | yes |
+| A2 | + label provenance (OCI revision label, unverified) | yes | yes | **yes** | yes |
+| A3 | + certificate provenance, digest-exact (STRATUM) | yes | yes | **no** | yes |
+| A4 | certificate provenance joined by repository | yes | yes | **yes** | no |
+
+Each cell held in 5 of 5 runs of the committed dispatch. The outcomes are fixed by construction (the forged
+image has the right label and the same repository), so the table demonstrates the join semantics on real sensor
+output; it does not estimate a rate. Only A3 both traces the real image and refuses the forged one. A2 is what a
+scanner or SBOM tool that reads the revision label would conclude.
 
 ## 5. Failed controls and fix
 
@@ -67,6 +96,9 @@ reachable. kind enforces NetworkPolicy natively (kube-network-policies).
 ## What this does not show
 
 - It is a scripted pipeline check on real sensor output, not a detection-rate study; the actions are few and
-  known in advance. Detection rates on attack data are in [Evaluation](benchmarks.md).
+  known in advance. Detection rates on attack data are in [Evaluation](evaluation.md).
 - Only the CI demo image carries a verifiable certificate. For the 86 third-party images in the real corpus,
-  the commit edge rests on OCI labels confirmed by the GitHub API, and cosign signatures are only detected.
+  the commit edge rests on OCI labels confirmed by the GitHub API, and signatures (cosign tags or Sigstore
+  bundles) are only detected, not verified.
+- All five live images were built from one commit, so the run-level intervals cover detection, capture and the
+  certificate join, not a variety of commits or workloads.

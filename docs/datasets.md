@@ -33,6 +33,11 @@ Tools (not data): Trivy 0.74.0, Syft 1.52.0, Helm 4.3.0 and OPA 1.21.0 are fetch
 - G. Creech and J. Hu. "Generation of a new IDS test dataset: Time to retire the KDD collection." IEEE WCNC 2013.
 - G. Creech and J. Hu. "A Semantic Approach to Host-Based Intrusion Detection Systems Using Contiguous and Discontiguous System Call Patterns." IEEE Transactions on Computers 63(4), 2014.
 - S. Forrest, S. Hofmeyr, A. Somayaji, T. Longstaff. "A Sense of Self for Unix Processes." IEEE S&P 1996 (STIDE).
+- G. Kim, H. Yi, J. Lee, Y. Paek, S. Yoon. "LSTM-Based System-Call Language Modeling and Robust Ensemble Method for Designing Host-Based Intrusion Detection Systems." arXiv:1611.01726, 2016 (reproduced in `results/kim_lstm.md`; also the source of the published ADFA-LD false-alarm rates we quote).
+- T. R. Schorlemmer et al. "Signing in Four Public Software Package Registries: Quantity, Quality, and Influencing Factors." IEEE S&P 2024, arXiv:2401.14635 (Docker Hub signing rate used as context in the provenance benchmark).
+- C. Nadeau and Y. Bengio. "Inference for the Generalization Error." Machine Learning 52(3):239-281, 2003 (corrected resampled t for the ADFA-LD re-splits).
+- A. C. Davison and D. V. Hinkley. *Bootstrap Methods and their Application.* Cambridge University Press, 1997 (Monte Carlo p-values with the +1 correction).
+- E. B. Wilson. "Probable Inference, the Law of Succession, and Statistical Inference." JASA 22(158):209-212, 1927 (score intervals for proportions).
 - Kubernetes SIG Auth. *Pod Security Standards*, <https://kubernetes.io/docs/concepts/security/pod-security-standards/>
 - CISA. *Known Exploited Vulnerabilities Catalog*, <https://www.cisa.gov/known-exploited-vulnerabilities-catalog>
 - J. Salazar and N. R. Ivánkó. *Security Observability with eBPF*, O'Reilly / Isovalent 2022 (Tetragon sample events).
