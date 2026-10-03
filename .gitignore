@@ -27,3 +27,7 @@ live-out/
 .coverage
 htmlcov/
 .mypy_cache/
+# Quickstart outputs (a cluster dump can contain secrets from pod env vars)
+/live.yaml
+/live.json
+/stratum-pss.yaml
