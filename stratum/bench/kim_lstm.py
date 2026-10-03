@@ -20,9 +20,11 @@ import random
 import time
 from pathlib import Path
 
-from ..syscall import bootstrap_ci, load_adfa, roc_auc
+from ..syscall import bootstrap_ci, fpr_at_tpr, load_adfa, roc_auc
 
 PAPER = {"LSTM ensemble (proposed)": 0.928, "averaging ensemble": 0.890, "voting ensemble": 0.859}
+# Kim et al. 2016, Sec. 3.2 (p. 8): "about 16%" false-alarm rate at 90% detection for the proposed ensemble
+PAPER_FAR_AT_90 = 0.16
 CONFIGS = [(200, 1), (400, 1), (400, 2)]
 EPOCHS = 12
 
@@ -148,7 +150,9 @@ def run(root: Path, seeds=(0, 1, 2), epochs=EPOCHS, log=print, partial=None) -> 
             "seed": seed, "single": {f["cfg"]: f["auc"] for f in fs},
             "best_epoch": {f["cfg"]: f["best_epoch"] for f in fs}, "n_fit": fs[0]["n_fit"], "n_held": fs[0]["n_held"],
             "ensemble": roc_auc(ens_v, ens_a), "averaging": roc_auc(avg_v, avg_a),
-            "ensemble_ci": bootstrap_ci(ens_v, ens_a, roc_auc, n_boot=200, seed=seed)})
+            "ensemble_ci": bootstrap_ci(ens_v, ens_a, roc_auc, n_boot=200, seed=seed),
+            "far_at_90dr": {"ensemble": fpr_at_tpr(ens_v, ens_a, 0.9), "averaging": fpr_at_tpr(avg_v, avg_a, 0.9),
+                            **{f["cfg"]: fpr_at_tpr(f["val"], f["att"], 0.9) for f in fs}}})
         if partial:
             partial(per_seed)
         log(f"seed {seed}: ensemble AUC {per_seed[-1]['ensemble']:.3f}, averaging {per_seed[-1]['averaging']:.3f}")
@@ -165,11 +169,16 @@ def _ms(xs):
 def summarise(per_seed: list[dict], split: dict, epochs: int) -> dict:
     """Aggregate per-seed results (also used to merge the per-seed CI jobs)."""
     per_seed = sorted(per_seed, key=lambda p: p["seed"])
-    return {"paper": PAPER, "seeds": [p["seed"] for p in per_seed], "per_seed": per_seed, "epochs_max": epochs,
-            "ensemble": _ms([p["ensemble"] for p in per_seed]),
-            "averaging": _ms([p["averaging"] for p in per_seed]),
-            "single": {c: _ms([p["single"][c] for p in per_seed]) for c in per_seed[0]["single"]},
-            "split": split}
+    out = {"paper": PAPER, "paper_far_at_90dr": PAPER_FAR_AT_90, "seeds": [p["seed"] for p in per_seed],
+           "per_seed": per_seed, "epochs_max": epochs,
+           "ensemble": _ms([p["ensemble"] for p in per_seed]),
+           "averaging": _ms([p["averaging"] for p in per_seed]),
+           "single": {c: _ms([p["single"][c] for p in per_seed]) for c in per_seed[0]["single"]},
+           "best_epoch_at_cap": {c: sum(p["best_epoch"][c] >= epochs for p in per_seed) for c in per_seed[0]["best_epoch"]},
+           "split": split}
+    if all("far_at_90dr" in p for p in per_seed):
+        out["far_at_90dr"] = {k: _ms([p["far_at_90dr"][k] for p in per_seed]) for k in per_seed[0]["far_at_90dr"]}
+    return out
 
 
 def markdown(r: dict) -> str:
@@ -189,6 +198,20 @@ def markdown(r: dict) -> str:
              f"| voting ensemble | {r['paper']['voting ensemble']:.3f} | not reproduced (procedure not specified) |"]
     for c, v in r["single"].items():
         lines.append(f"| single LSTM {c} | (figure only) | {v['mean']:.3f} ± {v['sd']:.3f} |")
+    cap = {c: k for c, k in (r.get("best_epoch_at_cap") or {}).items() if k}
+    if cap:
+        lines += ["", "Early stopping reached the epoch cap (best held-out epoch = max) for "
+                  + ", ".join(f"{c} in {k} of {len(r['seeds'])} seeds" for c, k in cap.items())
+                  + ", so those models were still improving when training stopped."]
+    far = r.get("far_at_90dr")
+    if far:
+        e = far["ensemble"]
+        lines += ["", f"False-alarm rate at 90% detection, proposed ensemble: {e['mean']:.3f} ± {e['sd']:.3f} "
+                  f"({e['min']:.3f}-{e['max']:.3f}) against about {r.get('paper_far_at_90dr', PAPER_FAR_AT_90):.2f} "
+                  "in the paper (p. 8)."]
+    prov = r.get("provenance") or {}
+    if prov.get("source_run"):
+        lines += ["", f"Source: {prov['source_run']} (commit `{(prov.get('commit') or '?')[:7]}`)."]
     return "\n".join(lines)
 
 
@@ -196,7 +219,9 @@ def merge(files: list[Path], out: Path) -> dict:
     """Merge per-seed JSON files (from separate CI jobs) into results/kim_lstm.{json,md}."""
     import json
     parts = [json.loads(Path(f).read_text(encoding="utf-8")) for f in files]
+    from .meta import provenance
     res = summarise([p for r in parts for p in r["per_seed"]], parts[0]["split"], parts[0]["epochs_max"])
+    res["provenance"] = provenance()
     out.mkdir(parents=True, exist_ok=True)
     (out / "kim_lstm.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
     (out / "kim_lstm.md").write_text(markdown(res) + "\n", encoding="utf-8")

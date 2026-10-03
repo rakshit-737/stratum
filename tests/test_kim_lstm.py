@@ -18,4 +18,7 @@ def test_kim_lstm_smoke(monkeypatch):
     monkeypatch.setattr(kim_lstm, "load_adfa", small)
     r = kim_lstm.run(Path(__file__).parent / "fixtures", seeds=(0,), epochs=1, log=lambda m: None)
     assert 0.0 <= r["ensemble"]["mean"] <= 1.0 and r["per_seed"][0]["best_epoch"]
-    assert "held out for early stopping" in kim_lstm.markdown(r)
+    md = kim_lstm.markdown(r)
+    assert "held out for early stopping" in md
+    assert 0.0 <= r["far_at_90dr"]["ensemble"]["mean"] <= 1.0 and "False-alarm rate at 90% detection" in md
+    assert r["best_epoch_at_cap"]["1x8"] == 1 and "reached the epoch cap" in md   # 1 epoch max: always at the cap

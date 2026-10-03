@@ -1,7 +1,8 @@
 name: repro-kim
 # Reproduction of Kim et al. 2016 (arXiv:1611.01726) LSTM system-call LM ensemble on ADFA-LD.
 # CPU-only and long (hours), so it runs on demand: one job per seed, then a merge job that writes
-# results/kim_lstm.{json,md} as an artefact (commit those small files by hand).
+# results/kim_lstm.{json,md} as an artefact (commit those small files by hand); the merged JSON records
+# this run's URL and commit. Converged setting: -f epochs=200 or more (about 2-3.5 h per seed job).
 on:
   workflow_dispatch:
     inputs:
@@ -23,7 +24,12 @@ jobs:
         with: {python-version: "3.12"}
       - run: pip install -e . && pip install torch --index-url https://download.pytorch.org/whl/cpu
       - run: python scripts/download_adfa.py
-      - run: python -m stratum.bench.kim_lstm ${{ github.event.inputs.epochs || '12' }} ${{ matrix.seed }}
+      - env:
+          EPOCHS: ${{ github.event.inputs.epochs || '12' }}
+          SEED: ${{ matrix.seed }}
+        run: |
+          [[ "$EPOCHS" =~ ^[1-9][0-9]{0,2}$ ]] || { echo "epochs must be 1-999, got '$EPOCHS'"; exit 1; }
+          python -m stratum.bench.kim_lstm "$EPOCHS" "$SEED"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with: {name: "kim-seed-${{ matrix.seed }}", path: results/kim_lstm.json}
   merge:

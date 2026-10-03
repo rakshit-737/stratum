@@ -42,6 +42,27 @@ def test_container_syscalls_leave_one_run_out(tmp_path):
     assert "2 runs" in markdown(res)
 
 
+def test_container_syscalls_per_action_and_cluster_ci(tmp_path):
+    from stratum.bench.container_syscalls import evaluate, load, markdown
+    for r in (1, 2, 3):
+        d = tmp_path / f"run-{r}"
+        d.mkdir()
+        for i in range(6):
+            (d / f"normal-{i}.txt").write_text("openat read close write " * 3 if i % 2 else "stat close write")
+        for i in range(3):
+            (d / f"attack0-{i}.txt").write_text("execve clone connect execve socket")   # novel calls
+            (d / f"attack1-{i}.txt").write_text("stat close write")                      # same as a normal trace
+    res = evaluate(load(tmp_path), n_boot=50)
+    assert res["seeds"] == [1, 2, 3] and res["distinct_normal_sequences"] == 2
+    v = res["detectors"]["STIDE n=3"]
+    assert v["per_action"]["0"]["separated_in_every_fold"] and not v["per_action"]["1"]["separated_in_every_fold"]
+    assert v["actions_separated"] == 1 and v["actions"] == 2 and v["clusters"] == {"normal": 6, "attack": 6}
+    lo, hi = v["auc_cluster_ci95"]
+    assert 0 <= lo <= v["auc_mean"] <= hi <= 1
+    md = markdown(res)
+    assert "1/2" in md and "strace" in md and "not eBPF" in md
+
+
 def test_paired_bootstrap_p_value_never_zero():
     from stratum.syscall import paired_bootstrap_diff, roc_auc
     neg, good, bad = [0.0, 0.1, 0.2, 0.3], [0.9, 0.8, 0.95, 0.85], [-1.0, -2.0, -3.0, -4.0]
