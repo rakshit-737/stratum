@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
-BLOB = "https://github.com/rakshit-737/stratum/blob/main/"
+BLOB = "https://github.com/rakshit-737/stratum-cloud-security/blob/main/"
 
 
 def main() -> None:
@@ -36,7 +36,7 @@ def main() -> None:
     (DOCS / "getting-started.md").write_text(fix(
         "# Getting started\n\n## Install and first run\n" + sec("Quickstart") + "## Reproducing the results\n"
         + sec("Reproducing the results") + "## Docker\n\n```bash\n"
-        "docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # synthetic source\n"
+        "docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum-cloud-security:latest   # synthetic source\n"
         "docker build -t stratum . && docker run --rm -p 127.0.0.1:8000:8000 -e STRATUM_SOURCE=live stratum  # live CI replay (main)\n"
         "NEO4J_PASSWORD='choose-one' docker compose up                  # API + Neo4j 5 (compose refuses to start without it)\n"
         "```\n\nThe image is built for linux/amd64 only; on ARM hosts (Apple silicon, Graviton) add "

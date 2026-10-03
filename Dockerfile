@@ -7,7 +7,7 @@ COPY stratum ./stratum
 RUN pip install --no-cache-dir ".[api]" \
  && useradd --uid 10001 --no-create-home stratum
 USER 10001
-LABEL org.opencontainers.image.source="https://github.com/rakshit-737/stratum" \
+LABEL org.opencontainers.image.source="https://github.com/rakshit-737/stratum-cloud-security" \
       org.opencontainers.image.description="STRATUM open mini-CNAPP API and console" \
       org.opencontainers.image.licenses="MIT"
 EXPOSE 8000

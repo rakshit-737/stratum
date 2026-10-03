@@ -1,15 +1,15 @@
 # STRATUM
 
-[![ci](https://github.com/rakshit-737/stratum/actions/workflows/ci.yml/badge.svg)](https://github.com/rakshit-737/stratum/actions/workflows/ci.yml)
-[![live kind + Tetragon](https://github.com/rakshit-737/stratum/actions/workflows/live.yml/badge.svg)](https://github.com/rakshit-737/stratum/actions/workflows/live.yml)
+[![ci](https://github.com/rakshit-737/stratum-cloud-security/actions/workflows/ci.yml/badge.svg)](https://github.com/rakshit-737/stratum-cloud-security/actions/workflows/ci.yml)
+[![live kind + Tetragon](https://github.com/rakshit-737/stratum-cloud-security/actions/workflows/live.yml/badge.svg)](https://github.com/rakshit-737/stratum-cloud-security/actions/workflows/live.yml)
 ![python](https://img.shields.io/badge/python-3.10%E2%80%933.14-blue)
 [![license: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://rakshit-737.github.io/stratum/)
+[![docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://rakshit-737.github.io/stratum-cloud-security/)
 ![policy: OPA/Rego](https://img.shields.io/badge/policy-OPA%2FRego%20v1-7d4cdb)
 
 **Contribution: STRATUM joins each runtime eBPF alert to the running image digest, the CI run and commit named by that digest's verified Sigstore certificate, and the Zero-Trust control that should have stopped it.**
 
-Evidence: in 5 live kind + Tetragon jobs, each with its own signed image and Fulcio certificate, all 55 demo-pod alerts traced to the right commit (5 / 5 runs, Wilson 95% CI 0.57-1.00). An unsigned image carrying the *right* revision label traced to none: label provenance (ablation arm A2) and a repository-level signature join (A4) attributed it to the commit in 5 / 5 runs, the digest-exact certificate join (A3) in 0 / 5 ([`results/live.md`](results/live.md), run [37085766270](https://github.com/rakshit-737/stratum/actions/runs/37085766270)). The forged image has the right label by construction, so this shows the join semantics on real sensor output; it is not a rate.
+Evidence: in 5 live kind + Tetragon jobs, each with its own signed image and Fulcio certificate, all 55 demo-pod alerts traced to the right commit (5 / 5 runs, Wilson 95% CI 0.57-1.00). An unsigned image carrying the *right* revision label traced to none: label provenance (ablation arm A2) and a repository-level signature join (A4) attributed it to the commit in 5 / 5 runs, the digest-exact certificate join (A3) in 0 / 5 ([`results/live.md`](results/live.md), run [37085766270](https://github.com/rakshit-737/stratum-cloud-security/actions/runs/37085766270)). The forged image has the right label by construction, so this shows the join semantics on real sensor output; it is not a rate.
 
 STRATUM is an open mini-CNAPP, not a Wiz. It puts `commit → CI build → image → Kubernetes workload → pod → runtime event` into one graph and checks 13 Zero-Trust controls against it. The controls are written in Python and mirrored in Rego (also exported as a Gatekeeper ConstraintTemplate). For each runtime alert it reports the commit and PR that shipped the code where provenance exists, the failed control, the fix, and every other workload built on the same base OS release (the blast radius).
 
@@ -23,7 +23,7 @@ It is evaluated on real public data:
 - container syscall traces recorded with `strace` in Docker on 5 GitHub runners
 - a live kind cluster in CI with Tetragon, Gatekeeper and cosign keyless signing, 5 independent jobs
 
-Documentation: **https://rakshit-737.github.io/stratum/**. Static consoles: [live-cluster incidents traced to commits](https://rakshit-737.github.io/stratum/demo-live/) and the [real-data snapshot](https://rakshit-737.github.io/stratum/demo/).
+Documentation: **https://rakshit-737.github.io/stratum-cloud-security/**. Static consoles: [live-cluster incidents traced to commits](https://rakshit-737.github.io/stratum-cloud-security/demo-live/) and the [real-data snapshot](https://rakshit-737.github.io/stratum-cloud-security/demo/).
 
 <img src="docs/figures/console_live_incidents.png" width="100%" alt="STRATUM console: live Tetragon incidents traced pod to workload to image digest to CI run to commit">
 
@@ -34,7 +34,7 @@ Documentation: **https://rakshit-737.github.io/stratum/**. Static consoles: [liv
 ## Try it in 60 seconds
 
 ```bash
-docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum:latest   # console on http://127.0.0.1:8000
+docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/rakshit-737/stratum-cloud-security:latest   # console on http://127.0.0.1:8000
 ```
 
 The image is linux/amd64 only: on Apple silicon or other ARM hosts add `--platform linux/amd64`. To open the replay of a live CI job, add `-e STRATUM_SOURCE=live` (images from 1.1.1 on ship the replay; 1.1.0 does not).
@@ -42,7 +42,7 @@ The image is linux/amd64 only: on Apple silicon or other ARM hosts add `--platfo
 Or, with Python 3.10+ and only PyYAML as a dependency:
 
 ```bash
-git clone https://github.com/rakshit-737/stratum && cd stratum
+git clone https://github.com/rakshit-737/stratum-cloud-security && cd stratum
 pip install -e . && python -m stratum demo      # five synthetic incidents, traced to commits, in about a second
 ```
 
@@ -61,8 +61,8 @@ STRATUM's syscall configuration is fixed in advance as n-gram novelty n=5; other
 | Trace pod → verified commit (86 real images, no runtime event) | 25 / 86 images (Wilson 0.21-0.39) carry a revision GitHub confirms; 23 / 87 workloads (0.18-0.37) from **11 / 31 projects** (0.21-0.53) traced end to end | `tag == git tag` answers for 36 / 86 images (0.32-0.52) and agrees 21 / 21 where both answer; its other 15 answers cannot be verified |
 | Runtime rules on real Tetragon events (30 events, 20 attack; **in-sample**, rules written on these events) | recall 0.80 [0.58, 0.92], precision 0.89 [0.67, 0.97]; **0 of 18 incidents reach a commit** (no provenance on those images) | v0.1 rules: recall 0.40 [0.22, 0.61], precision 0.80 [0.49, 0.94] |
 | Syscall model on ADFA-LD (4,372 normal / 746 attack), novelty n=5 | AUC 0.822 [0.803, 0.841]; TPR 0.082 [0.055, 0.133] at 1% FPR | **split-dependent**: STIDE n=6 ahead on the official split (0.827, paired +0.005 [0.002, 0.009], p ≈ 0.004); novelty n=5 ahead on 10 / 10 random re-splits (+0.023, corrected CI [0.001, 0.046], p ≈ 0.04) |
-| Container syscall traces (`strace` in Docker, 5 runs, leave-one-run-out), novelty n=5 | AUC 0.826 (0.820-0.847 over runs; cluster bootstrap 0.67-0.94); separates 4 / 5 scripted action types (0.38-0.96) | **STIDE n=6 is better**: 0.900 (0.820-0.960); one action (`cat` of the token) is syscall-identical to a routine `cat` ([run 37089906503](https://github.com/rakshit-737/stratum/actions/runs/37089906503)) |
-| Reproduction of Kim et al. 2016 (LSTM ensemble, ADFA-LD) | **not reproduced**: AUC 0.812 ± 0.005 over 3 seeds; every per-seed bootstrap CI (0.790-0.838) excludes 0.928 ([run 37007358324](https://github.com/rakshit-737/stratum/actions/runs/37007358324), max 200 epochs) | paper: 0.928 |
+| Container syscall traces (`strace` in Docker, 5 runs, leave-one-run-out), novelty n=5 | AUC 0.826 (0.820-0.847 over runs; cluster bootstrap 0.67-0.94); separates 4 / 5 scripted action types (0.38-0.96) | **STIDE n=6 is better**: 0.900 (0.820-0.960); one action (`cat` of the token) is syscall-identical to a routine `cat` ([run 37089906503](https://github.com/rakshit-737/stratum-cloud-security/actions/runs/37089906503)) |
+| Reproduction of Kim et al. 2016 (LSTM ensemble, ADFA-LD) | **not reproduced**: AUC 0.812 ± 0.005 over 3 seeds; every per-seed bootstrap CI (0.790-0.838) excludes 0.928 ([run 37007358324](https://github.com/rakshit-737/stratum-cloud-security/actions/runs/37007358324), max 200 epochs) | paper: 0.928 |
 | Trivy + CISA KEV on 49 real images | 10 critical / 156 high unique CVE × package pairs (15 / 432 summed per image); **0** KEV hits; Alpine 3.24.1 → 8-workload blast radius (counts) | n/a |
 | Latency, full analysis of the real corpus (470 nodes, 504 edges) | median 21 ms (12-82 ms over 20 repeats) plus 4.8 s (4.7-5.4 s) to load the corpus, on a shared Windows laptop ([`results/perf.md`](results/perf.md)) | n/a |
 
@@ -317,7 +317,7 @@ The models were fit on the 833 normal training traces and scored on 4,372 normal
 
 Our STIDE is close to the published STIDE but a few points worse; ELM uses semantic features and a different decision engine.
 
-**Reproduction of Kim et al. 2016** (G. Kim, H. Yi, J. Lee, Y. Paek, S. Yoon, "LSTM-Based System-Call Language Modeling and Robust Ensemble Method for Designing Host-Based Intrusion Detection Systems", arXiv:1611.01726). Same split (833 / 4,372 / 746), architectures (1×200, 1×400, 2×400 LSTMs), optimiser and ensemble rule; run per seed in GitHub Actions on CPU (`repro-kim.yml`), early stopping on 83 held-out training normals, at most 200 epochs ([run 37007358324](https://github.com/rakshit-737/stratum/actions/runs/37007358324), commit 0c3983f).
+**Reproduction of Kim et al. 2016** (G. Kim, H. Yi, J. Lee, Y. Paek, S. Yoon, "LSTM-Based System-Call Language Modeling and Robust Ensemble Method for Designing Host-Based Intrusion Detection Systems", arXiv:1611.01726). Same split (833 / 4,372 / 746), architectures (1×200, 1×400, 2×400 LSTMs), optimiser and ensemble rule; run per seed in GitHub Actions on CPU (`repro-kim.yml`), early stopping on 83 held-out training normals, at most 200 epochs ([run 37007358324](https://github.com/rakshit-737/stratum-cloud-security/actions/runs/37007358324), commit 0c3983f).
 
 | method | paper AUC | reproduction AUC (3 seeds, mean ± sd, min-max) |
 |---|---:|---:|
@@ -329,7 +329,7 @@ Our STIDE is close to the published STIDE but a few points worse; ELM uses seman
 
 ### 7. Container syscall traces recorded in CI
 
-LID-DS and CB-DS cannot be fetched non-interactively, so [`syscalls.yml`](.github/workflows/syscalls.yml) records a small container dataset on 5 GitHub runners ([run 37089906503](https://github.com/rakshit-737/stratum/actions/runs/37089906503), seeds 1-5 = run numbers). Each run starts an Alpine workload container and a sink on an internal Docker network and records, with `strace -f` (syscall names only, not eBPF/Tetragon), 120 traces of 9 routine commands and 8 traces each of 5 benign attack-shaped commands. Protocol: leave-one-run-out, fit on the other runs' normal traces. The 600 normal traces contain only 14 distinct sequences, so intervals resample whole clusters (attack: action × run; normal: identical sequence × run), not traces.
+LID-DS and CB-DS cannot be fetched non-interactively, so [`syscalls.yml`](.github/workflows/syscalls.yml) records a small container dataset on 5 GitHub runners ([run 37089906503](https://github.com/rakshit-737/stratum-cloud-security/actions/runs/37089906503), seeds 1-5 = run numbers). Each run starts an Alpine workload container and a sink on an internal Docker network and records, with `strace -f` (syscall names only, not eBPF/Tetragon), 120 traces of 9 routine commands and 8 traces each of 5 benign attack-shaped commands. Protocol: leave-one-run-out, fit on the other runs' normal traces. The 600 normal traces contain only 14 distinct sequences, so intervals resample whole clusters (attack: action × run; normal: identical sequence × run), not traces.
 
 | detector | action types separated (Wilson 95% CI) | AUC mean (min-max over runs) | AUC cluster 95% CI | TPR at 1% FPR mean |
 |---|---:|---:|---:|---:|
@@ -344,7 +344,7 @@ LID-DS and CB-DS cannot be fetched non-interactively, so [`syscalls.yml`](.githu
 
 [`live.yml`](.github/workflows/live.yml) runs on every push and on demand with N jobs, each on its own runner with its own kind cluster. Each job builds and pushes its own demo image (a per-job nonce makes the digest unique) and signs it keyless with cosign (GitHub OIDC), so each job has its own Fulcio certificate. It deploys the image to kind with Tetragon and Gatekeeper (using STRATUM's exported ConstraintTemplate), runs benign attack-shaped actions in the pod (a shell, a read of the pod's own service-account token, `nc` to an in-cluster sink), and runs STRATUM on the real Tetragon events. The image → CI run → commit edges are read from the verified Fulcio certificate; `github.sha` is only the expected value, and the job fails if the certificate names another CI run. Two unsigned control workloads run the same shell: `drift` (upstream busybox) and `forged` (built in the same job from the same Dockerfile, with the right revision label). Walkthrough: [docs/how-it-works.md](docs/how-it-works.md).
 
-| check (run [37085766270](https://github.com/rakshit-737/stratum/actions/runs/37085766270), commit 38cc4a3, 5 jobs) | result | Wilson 95% CI |
+| check (run [37085766270](https://github.com/rakshit-737/stratum-cloud-security/actions/runs/37085766270), commit 38cc4a3, 5 jobs) | result | Wilson 95% CI |
 |---|---:|---:|
 | runs passing every assertion | 5 / 5 | 0.57-1.00 |
 | R-SHELL, R-SA-TOKEN, R-NETTOOL raised for their scripted action | 5 / 5 each | 0.57-1.00 |

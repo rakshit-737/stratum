@@ -5,7 +5,7 @@
 services:
   api:
     build: .
-    image: ghcr.io/rakshit-737/stratum:latest
+    image: ghcr.io/rakshit-737/stratum-cloud-security:latest
     ports: ["127.0.0.1:8000:8000"]
     environment:
       STRATUM_SOURCE: ${STRATUM_SOURCE:-synthetic}

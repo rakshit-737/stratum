@@ -2,8 +2,8 @@
 
 One dispatch with ``runs=N`` (N matrix jobs of one workflow run):
 
-    gh run download <run-id> -R rakshit-737/stratum -D live-runs
-    python scripts/aggregate_live.py live-runs --run-url https://github.com/rakshit-737/stratum/actions/runs/<id>
+    gh run download <run-id> -R rakshit-737/stratum-cloud-security -D live-runs
+    python scripts/aggregate_live.py live-runs --run-url https://github.com/rakshit-737/stratum-cloud-security/actions/runs/<id>
 
 Several dispatches: download each into its own sub-directory (``live-runs/<run-id>/``) and pass one
 ``--run-url`` per run. results/live.md is written only by this script.

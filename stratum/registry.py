@@ -30,7 +30,7 @@ ACCEPT = ", ".join([
     "application/vnd.oci.image.manifest.v1+json",
     "application/vnd.docker.distribution.manifest.v2+json",
 ])
-UA = "stratum-provenance/0.2 (+https://github.com/rakshit-737/stratum)"
+UA = "stratum-provenance/0.2 (+https://github.com/rakshit-737/stratum-cloud-security)"
 
 
 @dataclass

@@ -19,7 +19,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 CHECKSUMS = REPO / "scripts" / "checksums.json"
-UA = {"User-Agent": "stratum-dataset-fetcher/0.2 (+https://github.com/rakshit-737/stratum)"}
+UA = {"User-Agent": "stratum-dataset-fetcher/0.2 (+https://github.com/rakshit-737/stratum-cloud-security)"}
 
 
 def data_dir() -> Path:

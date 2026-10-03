@@ -1,8 +1,8 @@
 site_name: STRATUM
 site_description: "Open mini-CNAPP: code-to-runtime lifecycle graph, Zero-Trust policy (Python + Rego), trace-to-commit"
-site_url: https://rakshit-737.github.io/stratum/
-repo_url: https://github.com/rakshit-737/stratum
-repo_name: rakshit-737/stratum
+site_url: https://rakshit-737.github.io/stratum-cloud-security/
+repo_url: https://github.com/rakshit-737/stratum-cloud-security
+repo_name: rakshit-737/stratum-cloud-security
 edit_uri: edit/main/docs/
 copyright: MIT licensed. Lab-only, defensive tool.
 

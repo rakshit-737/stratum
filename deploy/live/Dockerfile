@@ -4,7 +4,7 @@ ARG REVISION=unknown
 # per-run nonce: every live run gets its own digest, so each run reads its own Fulcio certificate
 ARG NONCE=none
 ARG DESCRIPTION="STRATUM live-CI demo workload (lab only)"
-LABEL org.opencontainers.image.source="https://github.com/rakshit-737/stratum" \
+LABEL org.opencontainers.image.source="https://github.com/rakshit-737/stratum-cloud-security" \
       org.opencontainers.image.revision="${REVISION}" \
       org.opencontainers.image.version="${NONCE}" \
       org.opencontainers.image.description="${DESCRIPTION}"

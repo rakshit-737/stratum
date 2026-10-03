@@ -6,7 +6,7 @@ STRATUM is a defensive portfolio and research tool. Use it only on clusters and 
 
 ## Reporting a vulnerability
 
-Report privately through GitHub's private vulnerability reporting: [open a draft security advisory](https://github.com/rakshit-737/stratum/security/advisories/new) (Security tab, "Report a vulnerability"). Please do not file public issues for vulnerabilities. We aim to acknowledge reports within 7 days.
+Report privately through GitHub's private vulnerability reporting: [open a draft security advisory](https://github.com/rakshit-737/stratum-cloud-security/security/advisories/new) (Security tab, "Report a vulnerability"). Please do not file public issues for vulnerabilities. We aim to acknowledge reports within 7 days.
 
 The repository has Dependabot alerts and security updates, secret scanning and push protection enabled.
 

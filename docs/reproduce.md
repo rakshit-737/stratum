@@ -7,7 +7,7 @@ produced it (a `provenance` block, or `run_url` / `source_runs` for the live res
 ## 1. Real-data corpus and benchmarks (local)
 
 ```bash
-git clone https://github.com/rakshit-737/stratum && cd stratum
+git clone https://github.com/rakshit-737/stratum-cloud-security && cd stratum
 pip install -e ".[dev,api,bench]"
 export STRATUM_DATA=$HOME/stratum-data      # anywhere outside git
 python scripts/download_all.py              # about 2 GB (mostly the Trivy cache); exits non-zero if a step fails
@@ -34,7 +34,7 @@ Apart from the `provenance` block and `perf` timings, the non-ADFA benchmarks re
 gh workflow run live.yml -f runs=5           # 5 jobs, each its own kind cluster, image and certificate; ~10 min
 gh run watch <run-id>
 gh run download <run-id> -D live-runs
-python scripts/aggregate_live.py live-runs --run-url https://github.com/rakshit-737/stratum/actions/runs/<run-id>
+python scripts/aggregate_live.py live-runs --run-url https://github.com/rakshit-737/stratum-cloud-security/actions/runs/<run-id>
 ```
 
 Writes `results/live.{json,md}` (only the aggregator writes them). Expected: 5/5 runs pass, 5 distinct

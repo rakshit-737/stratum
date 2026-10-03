@@ -5,7 +5,7 @@ names the evidence it rests on. Hops that are only asserted, not checked against
 
 ![Live-cluster console: incidents traced to the CI run and commit](figures/console_live_incidents.png)
 
-*The console replaying job 1 of live run [37085766270](https://github.com/rakshit-737/stratum/actions/runs/37085766270) (commit 38cc4a3).*
+*The console replaying job 1 of live run [37085766270](https://github.com/rakshit-737/stratum-cloud-security/actions/runs/37085766270) (commit 38cc4a3).*
 
 ```mermaid
 flowchart TB
@@ -53,7 +53,7 @@ was built by a different commit, or not signed at all.
 Each live job builds and signs its own image (a per-job nonce makes the digest unique), and
 `--expect-build` requires the certificate to name this CI run, so a certificate from an earlier run cannot be
 reused. In the committed 5-job run the commit hop was read from 5 distinct certificates over 5 distinct digests
-([results/live.md](https://github.com/rakshit-737/stratum/blob/main/results/live.md)).
+([results/live.md](https://github.com/rakshit-737/stratum-cloud-security/blob/main/results/live.md)).
 
 *Negative controls,* both running the same shell command as the demo pod:
 
