@@ -35,6 +35,9 @@ markdown_extensions:
 
 plugins:
   - search
+  - redirects:
+      redirect_maps:
+        benchmarks.md: evaluation.md
   - mkdocstrings:
       handlers:
         python:
@@ -51,7 +54,7 @@ nav:
   - How it works: how-it-works.md
   - Architecture: architecture.md
   - Datasets: datasets.md
-  - Evaluation: benchmarks.md
+  - Evaluation: evaluation.md
   - Reproduce: reproduce.md
   - Live demo: live-demo.md
   - Live CI (kind + Tetragon): live.md
