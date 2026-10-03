@@ -11,7 +11,7 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, PlainTextResponse
 
 from . import __version__
@@ -19,7 +19,7 @@ from .dataset import Dataset
 from .incident import analyze, replay_with_policy
 from .models import to_dict
 from .neo4j import to_cypher
-from .policy import CONTROLS, SEV
+from .policy import CONTROLS, SEV, valid_namespace
 from .synth import generate
 
 WEB = Path(__file__).parent / "web"
@@ -94,7 +94,7 @@ def controls() -> list[dict]:
 
 
 @app.get("/api/findings")
-def findings(control: str | None = None, limit: int = 500) -> list[dict]:
+def findings(control: str | None = None, limit: int = Query(500, ge=1, le=10000)) -> list[dict]:
     """Posture findings, optionally filtered by control id."""
     fs = [f for f in _a().findings if control in (None, f.control_id)]
     return [to_dict(f) for f in fs[:limit]]
@@ -147,7 +147,9 @@ def bases() -> list[dict]:
 
 @app.post("/api/prevent/{namespace}")
 def prevent(namespace: str) -> dict:
-    """Generated egress NetworkPolicy for a namespace."""
+    """Generated egress NetworkPolicy for a namespace (422 unless the name is an RFC 1123 label)."""
+    if not valid_namespace(namespace):
+        raise HTTPException(422, "namespace must be an RFC 1123 label of at most 63 characters")
     ds = Dataset.from_json(_load(_source()).to_json())  # copy: replay mutates
     return replay_with_policy(ds, namespace)
 

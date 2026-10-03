@@ -50,3 +50,14 @@ def test_rego_matches_python(fix):
     ds = collect_files([fix / "manifests" / "local-path-provisioner.yaml", fix / "manifests" / "metrics-server.yaml"])
     d = diff(ds)
     assert d["equivalent"], d
+
+
+def test_api_input_validation():
+    assert client.get("/api/findings", params={"limit": -5}).status_code == 422
+    assert client.get("/api/findings", params={"limit": 0}).status_code == 422
+    assert len(client.get("/api/findings", params={"limit": 3}).json()) == 3
+    from urllib.parse import quote
+    for bad in ("Shop", "a" * 64, "x\n---\nkind: ConfigMap", "-shop"):
+        assert client.post("/api/prevent/" + quote(bad, safe="")).status_code == 422, bad
+    assert client.post("/api/prevent/" + "a" * 5000).status_code == 422
+

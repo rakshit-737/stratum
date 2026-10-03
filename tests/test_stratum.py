@@ -117,3 +117,34 @@ def test_cli(tmp_path, capsys):
     assert data["metrics"]["detected"] == 5
     assert main(["blast", BAD_BASE]) == 0
     assert main(["demo"]) == 0
+
+
+def test_netpol_yaml_rejects_injection():
+    import pytest
+    import yaml
+
+    for bad in ("shop\n---\nkind: ConfigMap", "Shop", "a" * 64, "", "shop}", "-x"):
+        with pytest.raises(ValueError):
+            recommend_egress_policy(bad)
+    docs = list(yaml.safe_load_all(render_netpol_yaml(recommend_egress_policy("a" * 63))))
+    assert len(docs) == 1 and docs[0]["metadata"] == {"name": "stratum-default-deny-egress", "namespace": "a" * 63}
+    assert docs[0]["spec"]["egress"][0]["to"][0]["ipBlock"]["cidr"] == "10.0.0.0/8"
+
+
+def test_cli_version_validation_and_globs(capsys):
+    import re
+    from pathlib import Path
+
+    import pytest
+
+    import stratum
+    root = Path(__file__).resolve().parents[1]
+    want = re.search(r'^version = "([^"]+)"', (root / "pyproject.toml").read_text(), re.M).group(1)
+    with pytest.raises(SystemExit) as e:
+        main(["--version"])
+    assert e.value.code == 0 and capsys.readouterr().out.strip() == f"stratum {want}" == f"stratum {stratum.__version__}"
+    assert main(["prevent", "bad\n---\nkind: ConfigMap"]) == 2
+    assert main(["serve", "--source", "no-such-source"]) == 2
+    assert main(["pss", str(root / "deploy" / "k8s" / "*.yaml")]) == 0
+    assert "Deployment/" in capsys.readouterr().out
+    assert main(["pss", str(root / "no-such-dir" / "*.yaml")]) == 2

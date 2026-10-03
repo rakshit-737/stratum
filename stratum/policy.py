@@ -8,6 +8,9 @@ finding says *which* control is missing.
 from __future__ import annotations
 
 import ipaddress
+import re
+
+import yaml
 
 from .dataset import Dataset
 from .graph import LifecycleGraph
@@ -128,14 +131,30 @@ def _dedupe(fs: list[Finding]) -> list[Finding]:
     return out
 
 
+_DNS1123_LABEL = re.compile(r"[a-z0-9]([-a-z0-9]*[a-z0-9])?")
+
+
+def valid_namespace(ns: str) -> bool:
+    """True if ``ns`` is a Kubernetes namespace name (an RFC 1123 DNS label, at most 63 characters)."""
+    return isinstance(ns, str) and len(ns) <= 63 and _DNS1123_LABEL.fullmatch(ns) is not None
+
+
 def recommend_egress_policy(ns: str, allow: tuple[str, ...] = ("10.0.0.0/8",)) -> NetworkPolicy:
+    """Default-deny egress policy for ``ns`` that keeps in-cluster CIDRs and DNS reachable.
+
+    Raises ``ValueError`` for a name that is not a valid namespace, so nothing user-supplied reaches the
+    generated YAML unchecked.
+    """
+    if not valid_namespace(ns):
+        raise ValueError(f"not a valid Kubernetes namespace name: {ns[:80]!r}")
     return NetworkPolicy("stratum-default-deny-egress", ns, ["Egress"], list(allow))
 
 
 def render_netpol_yaml(np: NetworkPolicy) -> str:
-    lines = ["apiVersion: networking.k8s.io/v1", "kind: NetworkPolicy", "metadata:",
-             f"  name: {np.name}", f"  namespace: {np.namespace}", "spec:", "  podSelector: {}",
-             "  policyTypes:"] + [f"    - {t}" for t in np.policy_types] + ["  egress:"]
-    lines += ["    - to:"] + [f"        - ipBlock:\n            cidr: {c}" for c in np.egress_allow_cidrs]
-    lines += ["    - ports:", "        - protocol: UDP", "          port: 53"]
-    return "\n".join(lines) + "\n"
+    """The policy as one Kubernetes YAML document (serialised from a dict, never by string concatenation)."""
+    doc = {"apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy",
+           "metadata": {"name": np.name, "namespace": np.namespace},
+           "spec": {"podSelector": {}, "policyTypes": list(np.policy_types),
+                    "egress": [{"to": [{"ipBlock": {"cidr": c}} for c in np.egress_allow_cidrs]},
+                               {"ports": [{"protocol": "UDP", "port": 53}]}]}}
+    return yaml.safe_dump(doc, sort_keys=False, default_flow_style=False)

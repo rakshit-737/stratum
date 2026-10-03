@@ -2,13 +2,34 @@
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import sys
+from pathlib import Path
 
+from . import __version__
 from .dataset import Dataset
 from .incident import analyze, metrics, replay_with_policy
 from .models import to_dict
 from .synth import generate
+
+
+class NoMatch(Exception):
+    """A wildcard argument matched no file."""
+
+
+def _expand(files: list[str]) -> list[str]:
+    """Expand wildcard arguments ourselves (Windows shells pass ``*.yaml`` through unexpanded)."""
+    out: list[str] = []
+    for f in files:
+        if any(c in f for c in "*?["):
+            hits = sorted(glob.glob(f, recursive=True))
+            if not hits:
+                raise NoMatch(f)
+            out += hits
+        else:
+            out.append(f)
+    return out
 
 
 def _load(path: str | None, seed: int) -> Dataset:
@@ -82,6 +103,11 @@ def cmd_blast(a) -> int:
 
 
 def cmd_prevent(a) -> int:
+    from .policy import valid_namespace
+    if not valid_namespace(a.namespace):
+        print(f"stratum: {a.namespace[:80]!r} is not a valid namespace name (RFC 1123 label, at most 63 characters)",
+              file=sys.stderr)
+        return 2
     ds = _load(a.data, a.seed)
     r = replay_with_policy(ds, a.namespace)
     print(r.pop("policy_yaml"))
@@ -102,7 +128,7 @@ def cmd_demo(a) -> int:
 
 def cmd_collect(a) -> int:
     from .k8s import collect_files
-    ds = collect_files(a.files, source=a.source, default_ns=a.namespace)
+    ds = collect_files(_expand(a.files), source=a.source, default_ns=a.namespace)
     if a.tetragon:
         from .ingest import runtime_inventory, tetragon_events
         ds.events = tetragon_events(a.tetragon)
@@ -119,7 +145,7 @@ def cmd_pss(a) -> int:
     from .k8s import WORKLOAD_KINDS, load_docs, pod_template
     from .pss import evaluate_pod, highest_level
     rc = 0
-    for d in load_docs(a.files):
+    for d in load_docs(_expand(a.files)):
         if d.get("kind") not in WORKLOAD_KINDS or (pod := pod_template(d)) is None:
             continue
         name = f"{d['kind']}/{(d.get('metadata') or {}).get('name')}"
@@ -163,7 +189,6 @@ def cmd_gatekeeper(a) -> int:
     from .gatekeeper import export_yaml
     text = export_yaml(a.level, a.action, tuple(a.exclude_namespace))
     if a.out:
-        from pathlib import Path
         Path(a.out).write_text(text, encoding="utf-8")
     else:
         print(text)
@@ -171,16 +196,12 @@ def cmd_gatekeeper(a) -> int:
 
 
 def cmd_bench(a) -> int:
-    from pathlib import Path
-
     from .bench.runner import run
     done = run(a.names or None, Path(a.data_dir) if a.data_dir else None, Path(a.out))
     return 0 if done else 1
 
 
 def cmd_live_check(a) -> int:
-    from pathlib import Path
-
     from .live import ablation, build_dataset, check, markdown
     from .sigstore import parse_cosign_verify
     sigs = parse_cosign_verify(a.cosign_json) if a.cosign_json else []
@@ -200,13 +221,21 @@ def cmd_live_check(a) -> int:
     return 0 if r["passed"] else 1
 
 
+SOURCES = ("synthetic", "real", "live")
+
+
 def cmd_serve(a) -> int:  # pragma: no cover - blocking server
     import os
 
+    if a.source not in SOURCES and not Path(a.source).is_file():
+        print(f"stratum: --source must be one of {', '.join(SOURCES)} or a dataset JSON file; got {a.source!r}",
+              file=sys.stderr)
+        return 2
     try:
         import uvicorn
     except ImportError:
-        print('stratum: the API needs extras: pip install "stratum[api]"', file=sys.stderr)
+        print('stratum: the API needs the [api] extra: pip install -e ".[api]" in a checkout, or '
+              '"<release wheel>[api]" (the PyPI name "stratum" is an unrelated project)', file=sys.stderr)
         return 2
     os.environ["STRATUM_SOURCE"] = a.source
     uvicorn.run("stratum.api:app", host=a.host, port=a.port)
@@ -216,6 +245,7 @@ def cmd_serve(a) -> int:  # pragma: no cover - blocking server
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="stratum", description="code-to-runtime lifecycle defense (mini-CNAPP)",
                                 epilog="example: stratum demo | stratum pss deploy/k8s/*.yaml --strict")
+    p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     seed = argparse.ArgumentParser(add_help=False)
     seed.add_argument("--seed", type=int, default=argparse.SUPPRESS, help="synthetic scenario seed (default 7)")
     p.add_argument("--seed", type=int, default=7, help="synthetic scenario seed (default 7)")
@@ -232,18 +262,21 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("base", help="base image ref, e.g. 'alpine 3.24.1'"); s.add_argument("--data", help=data_help)
     s.set_defaults(fn=cmd_blast)
     s = sub.add_parser("prevent", parents=[seed], help="egress NetworkPolicy for a namespace + replayed effect")
-    s.add_argument("namespace"); s.add_argument("--data", help=data_help); s.set_defaults(fn=cmd_prevent)
+    s.add_argument("namespace", help="namespace to protect (RFC 1123 label)"); s.add_argument("--data", help=data_help)
+    s.set_defaults(fn=cmd_prevent)
     s = sub.add_parser("demo", parents=[seed], help="run the synthetic end-to-end demo (no cluster needed)")
     s.set_defaults(fn=cmd_demo)
     s = sub.add_parser("collect", help="real K8s manifests (+ Tetragon JSON) -> dataset JSON")
-    s.add_argument("files", nargs="+", help="manifest files (YAML/JSON, multi-doc, or kubectl get -o json)")
+    s.add_argument("files", nargs="+", help="manifest files (YAML/JSON, multi-doc, or kubectl get -o json); "
+                                            "wildcards are expanded")
     s.add_argument("--out", default="cluster.json", help="output dataset JSON")
     s.add_argument("--source", default="", help="label recorded on the workloads")
     s.add_argument("--namespace", default="default", help="namespace for objects that have none")
     s.add_argument("--tetragon", nargs="*", default=[], help="Tetragon JSON export files"); s.set_defaults(fn=cmd_collect)
     s = sub.add_parser("pss", help="Pod Security Standards check of manifest files")
-    s.add_argument("files", nargs="+", help="manifest files"); s.add_argument("--level", default="restricted",
-                                                       choices=["baseline", "restricted"])
+    s.add_argument("files", nargs="+", help="manifest files (wildcards are expanded)")
+    s.add_argument("--level", default="restricted", choices=["baseline", "restricted"],
+                   help="PSS level to check against (default restricted)")
     s.add_argument("--strict", action="store_true", help="exit 1 on any violation"); s.set_defaults(fn=cmd_pss)
     s = sub.add_parser("export", help="dataset / graph export")
     s.add_argument("--data", help=data_help)
@@ -262,8 +295,9 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--out", default="results", help="output directory")
     s.set_defaults(fn=cmd_bench)
     s = sub.add_parser("live-check", help="assert on live kind + Tetragon evidence (CI)")
-    s.add_argument("--manifests", nargs="+", required=True); s.add_argument("--pods", required=True)
-    s.add_argument("--events", nargs="+", required=True)
+    s.add_argument("--manifests", nargs="+", required=True, help="the workload manifests that were applied")
+    s.add_argument("--pods", required=True, help="`kubectl get pods -o json` of the demo namespace")
+    s.add_argument("--events", nargs="+", required=True, help="Tetragon JSON export (one event per line)")
     s.add_argument("--cosign-json", help="`cosign verify -o json` output: the only source of image->build->commit")
     s.add_argument("--digest", default="", help="digest of the pushed demo image (expected in the events)")
     s.add_argument("--expect-commit", required=True, help="commit the trace must reach (e.g. github.sha)")
@@ -283,6 +317,9 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     try:
         return a.fn(a)
+    except NoMatch as e:
+        print(f"stratum: no file matches {e.args[0]!r}", file=sys.stderr)
+        return 2
     except (FileNotFoundError, IsADirectoryError) as e:
         print(f"stratum: no such file: {e.filename or e}", file=sys.stderr)
         return 2
