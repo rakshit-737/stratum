@@ -1,4 +1,4 @@
-# Live-CI demo workloads. ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1 is replaced by the workflow with ghcr.io/...@sha256:<digest>.
+# Live-CI demo workloads. ghcr.io/rakshit-737/stratum-live-demo@sha256:ea0dc9928ae5d3b1efe4f75d41d0bb4d36e102ad7ce8ff575cec51e080c63d35 is replaced by the workflow with ghcr.io/...@sha256:<digest>.
 # Both deployments meet the PSS restricted checks so the exported Gatekeeper constraint admits them.
 apiVersion: v1
 kind: Namespace
@@ -7,7 +7,7 @@ metadata: {name: stratum-live}
 apiVersion: v1
 kind: ServiceAccount
 metadata: {name: web-sa, namespace: stratum-live}
-imagePullSecrets: [{name: ghcr}]
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -22,7 +22,7 @@ spec:
       securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
       containers:
         - name: web
-          image: ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1
+          image: ghcr.io/rakshit-737/stratum-live-demo@sha256:ea0dc9928ae5d3b1efe4f75d41d0bb4d36e102ad7ce8ff575cec51e080c63d35
           command: ["sleep", "infinity"]
           securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
 ---
@@ -36,11 +36,10 @@ spec:
     metadata: {labels: {app: sink}}
     spec:
       automountServiceAccountToken: false
-      imagePullSecrets: [{name: ghcr}]
       securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
       containers:
         - name: sink
-          image: ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1
+          image: ghcr.io/rakshit-737/stratum-live-demo@sha256:ea0dc9928ae5d3b1efe4f75d41d0bb4d36e102ad7ce8ff575cec51e080c63d35
           command: ["httpd", "-f", "-p", "8080", "-h", "/tmp"]
           ports: [{containerPort: 8080}]
           securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
@@ -51,3 +50,42 @@ metadata: {name: sink, namespace: stratum-live}
 spec:
   selector: {app: sink}
   ports: [{port: 8080, targetPort: 8080}]
+---
+# Negative control ("drift"): a digest-pinned upstream image that the pipeline did not build or sign.
+# Its runtime alerts must NOT reach a commit, and STRATUM must name ZT-PROV-01.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: drift, namespace: stratum-live}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: drift}}
+  template:
+    metadata: {labels: {app: drift}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: drift
+          image: busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+          command: ["sleep", "infinity"]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+# Second negative control ("forged"): built in the same job from the same Dockerfile with the *right*
+# org.opencontainers.image.revision label, pushed but never signed. Label provenance would attribute it
+# to the commit; certificate provenance must not. ghcr.io/rakshit-737/stratum-live-demo@sha256:e30815bf8a15820fa57ef2d95b6673d0afffd67d87688850bca3638e9ec16a90 is replaced by the workflow.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: forged, namespace: stratum-live}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: forged}}
+  template:
+    metadata: {labels: {app: forged}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, runAsUser: 65534, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: forged
+          image: ghcr.io/rakshit-737/stratum-live-demo@sha256:e30815bf8a15820fa57ef2d95b6673d0afffd67d87688850bca3638e9ec16a90
+          command: ["sleep", "infinity"]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}

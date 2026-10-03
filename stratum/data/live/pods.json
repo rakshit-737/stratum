@@ -1,413 +1,737 @@
 {
-"apiVersion": "v1",
-"items": [
-{
-"apiVersion": "v1",
-"kind": "Pod",
-"metadata": {
-"creationTimestamp": "2026-09-27T12:36:42Z",
-"generateName": "sink-7997db44c-",
-"generation": 1,
-"labels": {
-"app": "sink",
-"pod-template-hash": "7997db44c"
-},
-"name": "sink-7997db44c-vz7hs",
-"namespace": "stratum-live",
-"ownerReferences": [
-{
-"apiVersion": "apps/v1",
-"blockOwnerDeletion": true,
-"controller": true,
-"kind": "ReplicaSet",
-"name": "sink-7997db44c",
-"uid": "6c470469-77eb-4096-93ff-cf08b467786c"
-}
-],
-"resourceVersion": "945",
-"uid": "fa3c3535-293f-4faf-a3a8-cbde101acd6c"
-},
-"spec": {
-"automountServiceAccountToken": false,
-"containers": [
-{
-"command": [
-"httpd",
-"-f",
-"-p",
-"8080",
-"-h",
-"/tmp"
-],
-"image": "ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1",
-"imagePullPolicy": "IfNotPresent",
-"name": "sink",
-"ports": [
-{
-"containerPort": 8080,
-"protocol": "TCP"
-}
-],
-"resources": {},
-"securityContext": {
-"allowPrivilegeEscalation": false,
-"capabilities": {
-"drop": [
-"ALL"
-]
-}
-},
-"terminationMessagePath": "/dev/termination-log",
-"terminationMessagePolicy": "File"
-}
-],
-"dnsPolicy": "ClusterFirst",
-"enableServiceLinks": true,
-"imagePullSecrets": [
-{
-"name": "ghcr"
-}
-],
-"nodeName": "stratum-control-plane",
-"preemptionPolicy": "PreemptLowerPriority",
-"priority": 0,
-"restartPolicy": "Always",
-"schedulerName": "default-scheduler",
-"securityContext": {
-"runAsNonRoot": true,
-"runAsUser": 65534,
-"seccompProfile": {
-"type": "RuntimeDefault"
-}
-},
-"serviceAccount": "default",
-"serviceAccountName": "default",
-"terminationGracePeriodSeconds": 30,
-"tolerations": [
-{
-"effect": "NoExecute",
-"key": "node.kubernetes.io/not-ready",
-"operator": "Exists",
-"tolerationSeconds": 300
-},
-{
-"effect": "NoExecute",
-"key": "node.kubernetes.io/unreachable",
-"operator": "Exists",
-"tolerationSeconds": 300
-}
-]
-},
-"status": {
-"conditions": [
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:44Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "PodReadyToStartContainers"
-},
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:42Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "Initialized"
-},
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:44Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "Ready"
-},
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:44Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "ContainersReady"
-},
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:42Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "PodScheduled"
-}
-],
-"containerStatuses": [
-{
-"containerID": "containerd://952cbf2bf6b8a224c31d7cff0439da5bce23a163f4198c863d3ea63d3f6a2209",
-"image": "sha256:b77c1b76fd0f59771336b5cf799b6cd88cdde10470116e85b09afa217d60e503",
-"imageID": "ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1",
-"lastState": {},
-"name": "sink",
-"ready": true,
-"resources": {},
-"restartCount": 0,
-"started": true,
-"state": {
-"running": {
-"startedAt": "2026-09-27T12:36:43Z"
-}
-},
-"user": {
-"linux": {
-"gid": 65534,
-"supplementalGroups": [
-65534
-],
-"uid": 65534
-}
-}
-}
-],
-"hostIP": "172.18.0.2",
-"hostIPs": [
-{
-"ip": "172.18.0.2"
-}
-],
-"observedGeneration": 1,
-"phase": "Running",
-"podIP": "10.244.0.12",
-"podIPs": [
-{
-"ip": "10.244.0.12"
-}
-],
-"qosClass": "BestEffort",
-"startTime": "2026-09-27T12:36:42Z"
-}
-},
-{
-"apiVersion": "v1",
-"kind": "Pod",
-"metadata": {
-"creationTimestamp": "2026-09-27T12:36:42Z",
-"generateName": "web-9dc6879bb-",
-"generation": 1,
-"labels": {
-"app": "web",
-"pod-template-hash": "9dc6879bb"
-},
-"name": "web-9dc6879bb-xl5nl",
-"namespace": "stratum-live",
-"ownerReferences": [
-{
-"apiVersion": "apps/v1",
-"blockOwnerDeletion": true,
-"controller": true,
-"kind": "ReplicaSet",
-"name": "web-9dc6879bb",
-"uid": "59306c1b-cf16-4a3f-a7b9-afdb0b508df6"
-}
-],
-"resourceVersion": "943",
-"uid": "0c34342e-5e46-413e-9202-fe689ae900f7"
-},
-"spec": {
-"containers": [
-{
-"command": [
-"sleep",
-"infinity"
-],
-"image": "ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1",
-"imagePullPolicy": "IfNotPresent",
-"name": "web",
-"resources": {},
-"securityContext": {
-"allowPrivilegeEscalation": false,
-"capabilities": {
-"drop": [
-"ALL"
-]
-}
-},
-"terminationMessagePath": "/dev/termination-log",
-"terminationMessagePolicy": "File",
-"volumeMounts": [
-{
-"mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
-"name": "kube-api-access-wjwkp",
-"readOnly": true
-}
-]
-}
-],
-"dnsPolicy": "ClusterFirst",
-"enableServiceLinks": true,
-"imagePullSecrets": [
-{
-"name": "ghcr"
-}
-],
-"nodeName": "stratum-control-plane",
-"preemptionPolicy": "PreemptLowerPriority",
-"priority": 0,
-"restartPolicy": "Always",
-"schedulerName": "default-scheduler",
-"securityContext": {
-"runAsNonRoot": true,
-"runAsUser": 65534,
-"seccompProfile": {
-"type": "RuntimeDefault"
-}
-},
-"serviceAccount": "web-sa",
-"serviceAccountName": "web-sa",
-"terminationGracePeriodSeconds": 30,
-"tolerations": [
-{
-"effect": "NoExecute",
-"key": "node.kubernetes.io/not-ready",
-"operator": "Exists",
-"tolerationSeconds": 300
-},
-{
-"effect": "NoExecute",
-"key": "node.kubernetes.io/unreachable",
-"operator": "Exists",
-"tolerationSeconds": 300
-}
-],
-"volumes": [
-{
-"name": "kube-api-access-wjwkp",
-"projected": {
-"defaultMode": 420,
-"sources": [
-{
-"serviceAccountToken": {
-"expirationSeconds": 3607,
-"path": "token"
-}
-},
-{
-"configMap": {
-"items": [
-{
-"key": "ca.crt",
-"path": "ca.crt"
-}
-],
-"name": "kube-root-ca.crt"
-}
-},
-{
-"downwardAPI": {
-"items": [
-{
-"fieldRef": {
-"apiVersion": "v1",
-"fieldPath": "metadata.namespace"
-},
-"path": "namespace"
-}
-]
-}
-}
-]
-}
-}
-]
-},
-"status": {
-"conditions": [
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:44Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "PodReadyToStartContainers"
-},
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:42Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "Initialized"
-},
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:44Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "Ready"
-},
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:44Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "ContainersReady"
-},
-{
-"lastProbeTime": null,
-"lastTransitionTime": "2026-09-27T12:36:42Z",
-"observedGeneration": 1,
-"status": "True",
-"type": "PodScheduled"
-}
-],
-"containerStatuses": [
-{
-"containerID": "containerd://4e53a379d6c09e68ba630581e1851db04c2b000adc3dae014a9506fd3488ed58",
-"image": "sha256:b77c1b76fd0f59771336b5cf799b6cd88cdde10470116e85b09afa217d60e503",
-"imageID": "ghcr.io/rakshit-737/stratum-live-demo@sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1",
-"lastState": {},
-"name": "web",
-"ready": true,
-"resources": {},
-"restartCount": 0,
-"started": true,
-"state": {
-"running": {
-"startedAt": "2026-09-27T12:36:43Z"
-}
-},
-"user": {
-"linux": {
-"gid": 65534,
-"supplementalGroups": [
-65534
-],
-"uid": 65534
-}
-},
-"volumeMounts": [
-{
-"mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
-"name": "kube-api-access-wjwkp",
-"readOnly": true,
-"recursiveReadOnly": "Disabled"
-}
-]
-}
-],
-"hostIP": "172.18.0.2",
-"hostIPs": [
-{
-"ip": "172.18.0.2"
-}
-],
-"observedGeneration": 1,
-"phase": "Running",
-"podIP": "10.244.0.13",
-"podIPs": [
-{
-"ip": "10.244.0.13"
-}
-],
-"qosClass": "BestEffort",
-"startTime": "2026-09-27T12:36:42Z"
-}
-}
-],
-"kind": "List",
-"metadata": {
-"resourceVersion": ""
-}
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-03T01:24:52Z",
+                "generateName": "drift-7d9659db8d-",
+                "generation": 1,
+                "labels": {
+                    "app": "drift",
+                    "pod-template-hash": "7d9659db8d"
+                },
+                "name": "drift-7d9659db8d-n4dg6",
+                "namespace": "stratum-live",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "drift-7d9659db8d",
+                        "uid": "a21fa9b6-4fb9-4506-9897-d8704a5a13ca"
+                    }
+                ],
+                "resourceVersion": "1027",
+                "uid": "34b5308c-71b7-49c3-bc8f-6da7f6b82028"
+            },
+            "spec": {
+                "automountServiceAccountToken": false,
+                "containers": [
+                    {
+                        "command": [
+                            "sleep",
+                            "infinity"
+                        ],
+                        "image": "busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "drift",
+                        "resources": {},
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "stratum-control-plane",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "runAsNonRoot": true,
+                    "runAsUser": 65534,
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:56Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:56Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://724614e9388995a6752317e2900690f06035a23ed169403e818b30ab31b8bec0",
+                        "image": "sha256:b116e155074440ffd9e449559433feb4cd2341eb3554b1da1c638c976e56451d",
+                        "imageID": "docker.io/library/busybox@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662",
+                        "lastState": {},
+                        "name": "drift",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-03T01:24:56Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 65534,
+                                "supplementalGroups": [
+                                    65534
+                                ],
+                                "uid": 65534
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "172.18.0.2",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.2"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "10.244.0.13",
+                "podIPs": [
+                    {
+                        "ip": "10.244.0.13"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-10-03T01:24:52Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-03T01:24:52Z",
+                "generateName": "forged-84d65b78c7-",
+                "generation": 1,
+                "labels": {
+                    "app": "forged",
+                    "pod-template-hash": "84d65b78c7"
+                },
+                "name": "forged-84d65b78c7-fvct5",
+                "namespace": "stratum-live",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "forged-84d65b78c7",
+                        "uid": "b92ae184-2965-4cd5-88cb-a092b46be3e5"
+                    }
+                ],
+                "resourceVersion": "1021",
+                "uid": "9faca3c9-b022-4cea-a6e8-80830b3d6b40"
+            },
+            "spec": {
+                "automountServiceAccountToken": false,
+                "containers": [
+                    {
+                        "command": [
+                            "sleep",
+                            "infinity"
+                        ],
+                        "image": "ghcr.io/rakshit-737/stratum-live-demo@sha256:e30815bf8a15820fa57ef2d95b6673d0afffd67d87688850bca3638e9ec16a90",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "forged",
+                        "resources": {},
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "stratum-control-plane",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "runAsNonRoot": true,
+                    "runAsUser": 65534,
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:54Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:54Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://a141617c90002a19d254861f85d76fb99fd8a5766c5fd369eace4d601a310c46",
+                        "image": "sha256:82063420fa0d9ce53489cc1f1980ace4c6817f98cb3dbf2ebb6cb164d455df95",
+                        "imageID": "ghcr.io/rakshit-737/stratum-live-demo@sha256:e30815bf8a15820fa57ef2d95b6673d0afffd67d87688850bca3638e9ec16a90",
+                        "lastState": {},
+                        "name": "forged",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-03T01:24:54Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 65534,
+                                "supplementalGroups": [
+                                    65534
+                                ],
+                                "uid": 65534
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "172.18.0.2",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.2"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "10.244.0.14",
+                "podIPs": [
+                    {
+                        "ip": "10.244.0.14"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-10-03T01:24:52Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-03T01:24:52Z",
+                "generateName": "sink-cd446664f-",
+                "generation": 1,
+                "labels": {
+                    "app": "sink",
+                    "pod-template-hash": "cd446664f"
+                },
+                "name": "sink-cd446664f-knw2t",
+                "namespace": "stratum-live",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "sink-cd446664f",
+                        "uid": "e7c3291c-4cde-4bf9-afd1-0ef2939b3302"
+                    }
+                ],
+                "resourceVersion": "1011",
+                "uid": "690017de-7a67-474b-8e7d-dfa19bd01340"
+            },
+            "spec": {
+                "automountServiceAccountToken": false,
+                "containers": [
+                    {
+                        "command": [
+                            "httpd",
+                            "-f",
+                            "-p",
+                            "8080",
+                            "-h",
+                            "/tmp"
+                        ],
+                        "image": "ghcr.io/rakshit-737/stratum-live-demo@sha256:ea0dc9928ae5d3b1efe4f75d41d0bb4d36e102ad7ce8ff575cec51e080c63d35",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "sink",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "stratum-control-plane",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "runAsNonRoot": true,
+                    "runAsUser": 65534,
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:54Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:54Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://0818a90846b853cc606168a58551875d7901e5d4defee7d6a5f2e483901bbf28",
+                        "image": "sha256:f029a44670200fe54c391eff07ea4b337df04600ea543f494095cd92a050b1e5",
+                        "imageID": "ghcr.io/rakshit-737/stratum-live-demo@sha256:ea0dc9928ae5d3b1efe4f75d41d0bb4d36e102ad7ce8ff575cec51e080c63d35",
+                        "lastState": {},
+                        "name": "sink",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-03T01:24:54Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 65534,
+                                "supplementalGroups": [
+                                    65534
+                                ],
+                                "uid": 65534
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "172.18.0.2",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.2"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "10.244.0.12",
+                "podIPs": [
+                    {
+                        "ip": "10.244.0.12"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-10-03T01:24:52Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-03T01:24:52Z",
+                "generateName": "web-5d5dc54ddb-",
+                "generation": 1,
+                "labels": {
+                    "app": "web",
+                    "pod-template-hash": "5d5dc54ddb"
+                },
+                "name": "web-5d5dc54ddb-mcspm",
+                "namespace": "stratum-live",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "web-5d5dc54ddb",
+                        "uid": "c479cc97-5382-4d01-99fb-d40bb0694dbd"
+                    }
+                ],
+                "resourceVersion": "1033",
+                "uid": "e9adc8f3-12bf-4d8c-8c0c-4fb1d3dfad8a"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "sleep",
+                            "infinity"
+                        ],
+                        "image": "ghcr.io/rakshit-737/stratum-live-demo@sha256:ea0dc9928ae5d3b1efe4f75d41d0bb4d36e102ad7ce8ff575cec51e080c63d35",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "web",
+                        "resources": {},
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-j9mg9",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "stratum-control-plane",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "runAsNonRoot": true,
+                    "runAsUser": 65534,
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "serviceAccount": "web-sa",
+                "serviceAccountName": "web-sa",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-j9mg9",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:53Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:56Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:56Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-03T01:24:52Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://1f163abf4cde4fddd858cbfd28731453b341019f06db4e19bf3a91308b1a67fc",
+                        "image": "sha256:f029a44670200fe54c391eff07ea4b337df04600ea543f494095cd92a050b1e5",
+                        "imageID": "ghcr.io/rakshit-737/stratum-live-demo@sha256:ea0dc9928ae5d3b1efe4f75d41d0bb4d36e102ad7ce8ff575cec51e080c63d35",
+                        "lastState": {},
+                        "name": "web",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-03T01:24:56Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 65534,
+                                "supplementalGroups": [
+                                    65534
+                                ],
+                                "uid": 65534
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-j9mg9",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.18.0.2",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.2"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "10.244.0.15",
+                "podIPs": [
+                    {
+                        "ip": "10.244.0.15"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-10-03T01:24:52Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
 }

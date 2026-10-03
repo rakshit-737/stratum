@@ -67,7 +67,8 @@ const chain = (c) => `<div class="chain">${c.map((n) => `<span title="${esc(n)}"
 const views = {
   async overview() {
     const s = await get("/api/summary");
-    $("#src").textContent = `source=${s.source} v${s.version}`;
+    const rp = s.replay ? ` (replay of CI run ${s.replay.run_id}, commit ${String(s.replay.commit || "").slice(0, 7)})` : "";
+    $("#src").textContent = `source=${s.source}${rp} v${s.version}`;
     const stat = (k, v) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`;
     const rows = Object.entries(s.findings_by_control).map(([k, v]) => `<tr><td><code>${esc(k)}</code></td><td class="num">${v}</td></tr>`).join("");
     const lv = Object.entries(s.pss_levels).map(([k, v]) => `<tr><td class="lvl-${esc(k)}">${esc(k)}</td><td class="num">${v}</td></tr>`).join("");

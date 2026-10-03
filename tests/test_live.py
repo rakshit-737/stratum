@@ -56,9 +56,10 @@ def test_live_check_end_to_end(tmp_path):
 
 
 FIX = ROOT / "stratum/data/live"
-LIVE_DIG = "sha256:a1e2a762c940879b79e09773574759805b898a89b914062949948f262c972ff1"
-LIVE_SHA = "6dd4b9b30f2404a974b0198a021ced3963a55516"
-LIVE_RUN = "36319470255"
+LIVE_DIG = "sha256:ea0dc9928ae5d3b1efe4f75d41d0bb4d36e102ad7ce8ff575cec51e080c63d35"
+LIVE_SHA = "38cc4a3747d9d4d026501bc2bc7d72928a925894"
+LIVE_RUN = "37085766270"
+FORGED_DIG = "sha256:e30815bf8a15820fa57ef2d95b6673d0afffd67d87688850bca3638e9ec16a90"
 
 
 def test_cosign_certificate_provenance():
@@ -92,11 +93,18 @@ def _replay(sigs):
 
 
 def test_replay_real_live_run():
-    ds = _replay(parse_cosign_verify(FIX / "cosign-verify.json"))
+    sigs = parse_cosign_verify(FIX / "cosign-verify.json")
+    ds = _replay(sigs)
     r = check(ds, namespace="stratum-live", workload="web", image_digest=LIVE_DIG, commit=LIVE_SHA,
-              gatekeeper={"privileged_denied": True, "demo_admitted": True}, cosign_ok=True)
+              gatekeeper={"privileged_denied": True, "demo_admitted": True}, cosign_ok=True,
+              drift="drift", forged="forged", expect_build=LIVE_RUN, signatures=sigs)
     assert r["passed"], r["failures"]
-    assert r["traced_to_commit"] == r["incidents_on_target"] == 5
+    assert r["traced_to_commit"] == r["incidents_on_target"] == 11 and r["sink_incidents"] == 0
+    for ctl in ("drift", "forged"):   # both unsigned controls are detected but reach no commit
+        assert r[ctl]["incidents"] and not r[ctl]["traced_to_any_commit"] and "ZT-PROV-01" in r[ctl]["failed_controls"]
+    # the certificate of another CI run would fail the --expect-build check
+    assert not check(ds, namespace="stratum-live", workload="web", image_digest=LIVE_DIG, commit=LIVE_SHA,
+                     expect_build="1")["passed"]
     assert not check(ds, namespace="stratum-live", workload="web", image_digest=LIVE_DIG, commit="0" * 40)["passed"]
 
 
@@ -164,12 +172,15 @@ def test_sink_count_excludes_both_negative_controls():
 def test_ablation_arms_on_real_replay():
     from stratum.live import ablation
     sigs = parse_cosign_verify(FIX / "cosign-verify.json")
+    labels = json.loads((FIX / "labels.json").read_text(encoding="utf-8"))
+    assert labels == {LIVE_DIG: LIVE_SHA, FORGED_DIG: LIVE_SHA}   # the forged image carries the right label
     ab = ablation([FIX / "workloads.yaml"], FIX / "pods.json", [FIX / "tetragon-events.json"],
-                  signatures=sigs, labels={LIVE_DIG: LIVE_SHA}, commit=LIVE_SHA, controls=())
+                  signatures=sigs, labels=labels, commit=LIVE_SHA)
     assert not ab["A0"]["workload_attributed"] and not ab["A0"]["traced"]
-    assert ab["A1"]["workload_attributed"] and not ab["A1"]["traced"]
-    assert ab["A2"]["traced"] and ab["A3"]["traced"] and ab["A4"]["traced"]
-    assert not ab["A3"]["false_attribution"]
+    assert ab["A1"]["workload_attributed"] and not ab["A1"]["traced"] and not ab["A1"]["false_attribution"]
+    assert ab["A2"]["traced"] and ab["A2"]["false_attribution"]        # label provenance trusts the forged label
+    assert ab["A3"]["traced"] and not ab["A3"]["false_attribution"] and ab["A3"]["prov_named"]
+    assert ab["A4"]["traced"] and ab["A4"]["false_attribution"] and not ab["A4"]["prov_named"]
 
 
 def test_repository_join_ignores_tag_and_digest():
