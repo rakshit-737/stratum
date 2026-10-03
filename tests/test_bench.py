@@ -28,3 +28,17 @@ def test_tetragon_labels_cover_fixture_events(fix):
     for f in (fix / "tetragon").glob("*.json"):
         if f.name != "process_exit.json":
             assert f.name in labels, f.name
+
+
+def test_result_provenance(monkeypatch, tmp_path):
+    from stratum.bench.meta import provenance
+    (tmp_path / "MANIFEST.json").write_text("{}")
+    monkeypatch.setenv("GITHUB_RUN_ID", "42")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "o/r")
+    monkeypatch.setenv("GITHUB_SHA", "c0ffee")
+    p = provenance(tmp_path)
+    assert p["source_run"] == "https://github.com/o/r/actions/runs/42" and p["commit"] == "c0ffee"
+    assert len(p["dataset_manifest_sha256"]) == 64 and "code_modified" not in p
+    monkeypatch.delenv("GITHUB_RUN_ID")
+    monkeypatch.delenv("GITHUB_SHA")
+    assert provenance()["source_run"] is None

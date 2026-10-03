@@ -72,13 +72,15 @@ def run(root: Path, roc: bool = True, n_boot: int = N_BOOT) -> dict:
     for name, m in detectors():
         t0 = time.perf_counter()
         seeds = {}
-        if isinstance(m, list):  # stochastic model: one run per seed, report seed 0 plus mean/sd over seeds
+        if isinstance(m, list):  # stochastic model: one run per seed; the row shows the median-AUC seed
             runs = [_scores(mm, d["train"], d["val"], pos) for mm in m]
             aucs = [roc_auc(a, b) for a, b in runs]
             mu = sum(aucs) / len(aucs)
             sd = (sum((a - mu) ** 2 for a in aucs) / max(len(aucs) - 1, 1)) ** 0.5
-            seeds = {"seeds": list(IFOREST_SEEDS), "auc_seed_mean": round(mu, 4), "auc_seed_sd": round(sd, 4)}
-            neg, sp = runs[0]
+            med = sorted(range(len(aucs)), key=lambda i: aucs[i])[len(aucs) // 2]
+            seeds = {"seeds": list(IFOREST_SEEDS), "auc_per_seed": [round(a, 4) for a in aucs],
+                     "auc_seed_mean": round(mu, 4), "auc_seed_sd": round(sd, 4), "shown_seed": IFOREST_SEEDS[med]}
+            neg, sp = runs[med]
         else:
             neg, sp = _scores(m, d["train"], d["val"], pos)
         scores[name] = (neg, sp)
@@ -113,6 +115,7 @@ def run(root: Path, roc: bool = True, n_boot: int = N_BOOT) -> dict:
 
 
 RESPLIT_SEEDS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+RESPLIT_PAIRS = (("STRATUM n-gram novelty n=5", "STIDE n=6"),)
 T975 = {4: 2.776, 9: 2.262}   # Student t 0.975 quantiles for df = n_seeds - 1
 
 
@@ -120,9 +123,26 @@ def resplit(d: dict, seeds=RESPLIT_SEEDS) -> dict:
     """Harder check of split luck: pool all 5,205 normals, draw a fresh 833-trace training set per seed,
     test on the remaining normals vs all attacks. Mean AUC with a t-based 95% CI over seeds."""
     import random
+
+    from .metrics import sign_test_p, t_two_sided_p
     normals = d["train"] + d["val"]
     pos = [t for _, t in d["attack"]]
     out = {}
+    n_tr, n_te = len(d["train"]), len(normals) - len(d["train"])
+    corr = 1 / len(seeds) + n_te / n_tr      # Nadeau & Bengio (2003) variance correction for overlapping training sets
+
+    def stat(xs, bounded=False):
+        # corrected resampled t: variance x (1/n + n_test/n_train), because the random training sets overlap;
+        # plain t-intervals over re-splits are too narrow. ``bounded`` clips a proportion's interval to [0, 1].
+        n = len(xs)
+        mu = sum(xs) / n
+        var = sum((x - mu) ** 2 for x in xs) / (n - 1)
+        h = T975.get(n - 1, 1.96) * (var * corr) ** 0.5
+        lo, hi = mu - h, mu + h
+        if bounded:
+            lo, hi = max(0.0, lo), min(1.0, hi)
+        return {"mean": round(mu, 4), "sd": round(var ** 0.5, 4), "min": round(min(xs), 4), "max": round(max(xs), 4),
+                "ci95_corrected": [round(lo, 4), round(hi, 4)], "per_seed": [round(x, 4) for x in xs]}
     for name, make in (("STIDE n=6", lambda: Stide(6)), ("STIDE n=3", lambda: Stide(3)),
                        ("STRATUM n-gram novelty n=3", lambda: NgramNovelty(3)),
                        ("STRATUM n-gram novelty n=5", lambda: NgramNovelty(5))):
@@ -135,20 +155,21 @@ def resplit(d: dict, seeds=RESPLIT_SEEDS) -> dict:
             neg, sp = _scores(make(), tr, te, pos)
             aucs.append(roc_auc(neg, sp))
             tprs.append(tpr_at_fpr_interp(neg, sp, 0.01))
-        n = len(aucs)
-
-        n_tr, n_te = len(d["train"]), len(normals) - len(d["train"])
-
-        def stat(xs, n=n, n_tr=n_tr, n_te=n_te):
-            # Nadeau & Bengio (2003) corrected resampled t: variance x (1/n + n_test/n_train), because the
-            # random training sets overlap; plain t-intervals over re-splits are too narrow.
-            mu = sum(xs) / n
-            var = sum((x - mu) ** 2 for x in xs) / (n - 1)
-            h = T975.get(n - 1, 1.96) * (var * (1 / n + n_te / n_tr)) ** 0.5
-            return {"mean": round(mu, 4), "sd": round(var ** 0.5, 4), "min": round(min(xs), 4), "max": round(max(xs), 4),
-                    "ci95_corrected": [round(mu - h, 4), round(mu + h, 4)]}
-        out[name] = {"auc": stat(aucs), "tpr@0.01_interp": stat(tprs)}
-    return {"seeds": list(seeds), "detectors": out}
+        out[name] = {"auc": stat(aucs), "tpr@0.01_interp": stat(tprs, bounded=True)}
+    paired = []
+    for a, b in RESPLIT_PAIRS:
+        diffs = [x - y for x, y in zip(out[a]["auc"]["per_seed"], out[b]["auc"]["per_seed"])]
+        n = len(diffs)
+        st = stat(diffs)
+        mu, sd = sum(diffs) / n, st["sd"]
+        t = mu / (sd * corr ** 0.5) if sd else float("inf")
+        paired.append({"a": a, "b": b, "metric": "auc", "diff": st["mean"], "ci95_corrected": st["ci95_corrected"],
+                       "t_corrected": round(t, 3), "df": n - 1, "p_corrected_t": round(t_two_sided_p(t, n - 1), 4),
+                       "positive_splits": sum(x > 0 for x in diffs), "n_splits": n,
+                       "p_sign_test": round(sign_test_p(sum(x > 0 for x in diffs), n), 4), "per_seed": st["per_seed"]})
+    return {"seeds": list(seeds), "detectors": out, "paired": paired,
+            "note": "TPR intervals are clipped to [0, 1]; with 10 re-splits the corrected interval for TPR at 1% FPR "
+                    "is too wide to be informative."}
 
 
 def _roc_points(neg, pos, n=200):
@@ -164,7 +185,8 @@ def markdown(r: dict) -> str:
     lines = [f"### Syscall anomaly detection on ADFA-LD ({r['n_train']} train / {r['n_val_normal']} normal test / "
              f"{r['n_attack']} attack traces)", "",
              "95% CIs: stratified percentile bootstrap over test traces (500 resamples, seed 0). "
-             "Isolation Forest: seed 0 shown, AUC mean ± sd over seeds 0-4 in the last column.", "",
+             "Isolation Forest: the median-AUC seed is shown; AUC mean ± sd over seeds 0-4 in the last column "
+             "(per-seed AUCs in adfa.json).", "",
              "| detector | ROC-AUC [95% CI] | TPR @1% FPR [95% CI] | TPR @5% FPR [95% CI] | TPR @15% FPR | seed AUC mean ± sd |",
              "|---|---:|---:|---:|---:|---:|"]
 
@@ -219,4 +241,12 @@ def markdown(r: dict) -> str:
             ac, tc = a["ci95_corrected"], t["ci95_corrected"]
             lines.append(f"| {n} | {a['mean']:.3f} [{ac[0]:.3f}, {ac[1]:.3f}] | {a['min']:.3f}-{a['max']:.3f} | "
                          f"{t['mean']:.3f} [{tc[0]:.3f}, {tc[1]:.3f}] |")
+        if rs.get("note"):
+            lines += ["", rs["note"]]
+        for q in rs.get("paired", []):
+            c = q["ci95_corrected"]
+            lines += ["", f"Paired over the same {q['n_splits']} re-splits, {q['a']} minus {q['b']} ({q['metric']}): "
+                      f"{q['diff']:+.4f}, corrected 95% CI [{c[0]:+.4f}, {c[1]:+.4f}], corrected t = {q['t_corrected']} "
+                      f"(df {q['df']}, p = {q['p_corrected_t']:.3f}); positive in {q['positive_splits']}/{q['n_splits']} "
+                      f"splits (sign test p = {q['p_sign_test']:.3f})."]
     return "\n".join(lines)

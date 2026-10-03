@@ -40,3 +40,17 @@ def test_container_syscalls_leave_one_run_out(tmp_path):
     v = res["detectors"]["STIDE n=3"]
     assert res["runs"] == 2 and len(v["folds"]) == 2 and v["auc_mean"] == 1.0
     assert "2 runs" in markdown(res)
+
+
+def test_paired_bootstrap_p_value_never_zero():
+    from stratum.syscall import paired_bootstrap_diff, roc_auc
+    neg, good, bad = [0.0, 0.1, 0.2, 0.3], [0.9, 0.8, 0.95, 0.85], [-1.0, -2.0, -3.0, -4.0]
+    r = paired_bootstrap_diff(neg, good, neg, bad, roc_auc, n_boot=99)
+    assert r["diff"] > 0 and r["p_boot"] == 2 / 100   # every resample favours A: p = 2 (0 + 1) / (B + 1)
+
+
+def test_t_and_sign_test():
+    from stratum.bench.metrics import sign_test_p, t_two_sided_p
+    assert abs(t_two_sided_p(2.262, 9) - 0.05) < 1e-3 and abs(t_two_sided_p(2.776, 4) - 0.05) < 1e-3
+    assert t_two_sided_p(0.0, 5) == 1.0
+    assert sign_test_p(10, 10) == 2 / 1024 and sign_test_p(5, 10) == 1.0

@@ -214,7 +214,8 @@ def fpr_at_tpr(neg: Sequence[float], pos: Sequence[float], tpr: float) -> float:
 def paired_bootstrap_diff(neg_a, pos_a, neg_b, pos_b, stat, n_boot: int = 1000, seed: int = 0,
                           alpha: float = 0.05) -> dict:
     """Paired, stratified bootstrap of ``stat(A) - stat(B)`` for two detectors scored on the same traces.
-    Returns the observed difference, its percentile CI and a two-sided bootstrap p-value."""
+    Returns the observed difference, its percentile CI and a two-sided bootstrap p-value,
+    ``min(1, 2 (k + 1) / (B + 1))`` with ``k`` the smaller tail count."""
     import random
     rng = random.Random(seed)
     obs = stat(neg_a, pos_a) - stat(neg_b, pos_b)
@@ -226,5 +227,7 @@ def paired_bootstrap_diff(neg_a, pos_a, neg_b, pos_b, stat, n_boot: int = 1000, 
                      - stat([neg_b[i] for i in ni], [pos_b[i] for i in pi]))
     diffs.sort()
     lo, hi = diffs[int(alpha / 2 * (n_boot - 1))], diffs[int((1 - alpha / 2) * (n_boot - 1))]
-    p = min(1.0, 2 * min(sum(d <= 0 for d in diffs), sum(d >= 0 for d in diffs)) / n_boot)
+    # Monte Carlo p-value with the +1 correction (Davison & Hinkley 1997): never 0 for a finite B.
+    k = min(sum(d <= 0 for d in diffs), sum(d >= 0 for d in diffs))
+    p = min(1.0, 2 * (k + 1) / (n_boot + 1))
     return {"diff": obs, "ci95": [lo, hi], "p_boot": p, "n_boot": n_boot}

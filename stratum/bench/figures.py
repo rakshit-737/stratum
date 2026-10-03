@@ -13,7 +13,8 @@ SERIES = ["#2458d6", "#c2570c", "#1f7a3d", "#8a3ffc", "#b3261e"]
 
 
 def _roc_label(name: str, d: dict) -> str:
-    seeds = f", seed 0; seed mean {d['auc_seed_mean']:.3f}" if "auc_seed_mean" in d else ""
+    seeds = (f", median seed {d['shown_seed']}; mean {d['auc_seed_mean']:.3f} ± {d['auc_seed_sd']:.3f} over seeds"
+             if "auc_seed_mean" in d else "")
     return f"{name} (AUC {d['auc']:.3f}{seeds})"
 
 
@@ -78,7 +79,7 @@ def render(results: dict, out: Path) -> None:
         plt.close(fig)
     if "provenance" in results:
         fn = results["provenance"]["funnel"]
-        fig, ax = plt.subplots(figsize=(5.6, 3.2), dpi=130)
+        fig, ax = plt.subplots(figsize=(6.4, 3.4), dpi=130)
         items = list(fn.items())[::-1]
         bars = ax.barh([k for k, _ in items], [v[1] for _, v in items], color=SERIES[2], height=0.6)
         ax.bar_label(bars, labels=[f"{v[0]} ({v[1]:.0f}%)" for _, v in items], fontsize=8, color=INK, padding=2)
